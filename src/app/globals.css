@@ -1,26 +1,151 @@
 @import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Futuristic Dark Theme */
+  --background: 0 0% 5%; /* Deep black */
+  --foreground: 0 0% 95%;
+  --primary: 199 89% 48%; /* Electric blue */
+  --primary-foreground: 0 0% 98%;
+  --primary-glow: 199 89% 48% / 0.3;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 0 0% 90%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 95%;
+  --border: 0 0% 15%;
+  --input: 0 0% 12%;
+  --ring: 199 89% 48%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 65%;
+  --accent: 0 0% 12%;
+  --accent-foreground: 0 0% 90%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.75rem;
+  
+  /* Font variables */
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-poppins: 'Poppins', system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: hsl(var(--border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-inter);
+  min-height: 100vh;
+}
+
+/* Glassmorphism utility classes */
+.glass-card {
+  background: rgba(15, 15, 25, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+.glass-card-strong {
+  background: rgba(15, 15, 25, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+}
+
+/* Glow effects */
+.glow-border {
+  box-shadow: 0 0 20px hsl(var(--primary-glow));
+}
+
+.glow-border-strong {
+  box-shadow: 0 0 30px hsl(var(--primary-glow));
+}
+
+.glow-text {
+  text-shadow: 0 0 10px hsl(var(--primary-glow));
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(199 89% 60%) 100%);
+}
+
+.gradient-card {
+  background: linear-gradient(135deg, rgba(15, 15, 25, 0.8) 0%, rgba(25, 25, 35, 0.6) 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(199 89% 60%);
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    transform: translateY(20px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 20px hsl(var(--primary-glow)); }
+  to { box-shadow: 0 0 30px hsl(var(--primary-glow)); }
+}
+
+/* Hover effects */
+.hover-glow:hover {
+  box-shadow: 0 0 25px hsl(var(--primary-glow));
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+/* Focus styles */
+.focus-ring:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
