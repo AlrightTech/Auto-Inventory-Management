@@ -55,6 +55,12 @@ export default function RegisterPage() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          data: {
+            role: data.role,
+            username: data.username,
+          }
+        }
       });
 
       if (authError) {
@@ -63,32 +69,39 @@ export default function RegisterPage() {
       }
 
       if (authData.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email: data.email,
-            role: data.role,
-            username: data.username,
-          });
+        // Check if email confirmation is required
+        if (authData.user.email_confirmed_at) {
+          // Email is already confirmed, create profile manually
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: authData.user.id,
+              email: data.email,
+              role: data.role,
+              username: data.username || data.email.split('@')[0],
+            });
 
-        if (profileError) {
-          setError('Failed to create profile');
-          return;
-        }
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+            setError('Failed to create profile. Please try again.');
+            return;
+          }
 
-        // Redirect based on role
-        if (data.role === 'seller') {
-          router.push('/seller');
-        } else if (data.role === 'transporter') {
-          router.push('/transporter');
+          // Redirect based on role
+          if (data.role === 'seller') {
+            router.push('/seller');
+          } else if (data.role === 'transporter') {
+            router.push('/transporter');
+          } else {
+            router.push('/');
+          }
         } else {
-          router.push('/');
+          // Email confirmation required
+          setError('Please check your email for verification link before signing in.');
         }
       }
     } catch {
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

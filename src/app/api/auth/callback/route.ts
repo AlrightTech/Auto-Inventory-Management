@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
+        // Wait a moment for the profile to be created by trigger
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Get user role from profiles table
         const { data: profile } = await supabase
           .from('profiles')
@@ -28,6 +31,9 @@ export async function GET(request: NextRequest) {
         } else if (profile?.role === 'transporter') {
           return NextResponse.redirect(`${origin}/transporter`);
         }
+        
+        // If no profile found, redirect to login with error
+        return NextResponse.redirect(`${origin}/auth/login?error=profile_not_found`);
       }
       
       return NextResponse.redirect(`${origin}${next}`);
