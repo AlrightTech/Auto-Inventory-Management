@@ -55,8 +55,12 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    - Install Command: `npm install`
 
 3. **Set Environment Variables**:
-   - Add all required environment variables
-   - Ensure they match your Supabase project
+   - Go to `Settings` > `Environment Variables` in your Vercel project
+   - Add the following as **Environment Variables** (NOT Secrets):
+     - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase Anon Key
+   - **Important**: Do NOT use the `@` prefix when adding these variables
+   - Ensure they are available for both Development and Production environments
 
 4. **Deploy**:
    - Click "Deploy"
