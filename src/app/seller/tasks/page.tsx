@@ -1,189 +1,259 @@
 'use client';
 
-import { useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { TaskTable } from '@/components/tasks/TaskTable';
-import { TaskFilters } from '@/components/tasks/TaskFilters';
-import { CheckSquare, Filter, Search } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TaskTable } from '@/components/tasks/TaskTable';
+import { TaskFilters } from '@/components/tasks/TaskFilters';
+import {
+  CheckSquare,
+  FileText,
+  AlertTriangle,
+  MapPin,
+  Search,
+  Download,
+  RotateCcw,
+} from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { TaskWithRelations, TaskFiltersState } from '@/types';
 
-// Mock data for demonstration
-const mockTasks: TaskWithRelations[] = [
-  {
-    id: '1',
-    vehicle_id: 'v1',
-    task_name: 'Update vehicle listing photos',
-    due_date: '2024-10-20',
-    notes: 'Take high-quality photos of the vehicle from all angles',
-    assigned_to: 'seller-1',
-    assigned_by: 'admin-1',
-    category: 'general',
-    status: 'pending',
-    created_at: '2024-10-17T10:00:00Z',
-    updated_at: '2024-10-17T10:00:00Z',
-    vehicle: {
-      id: 'v1',
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      vin: 'JTDKN3D27L3000001',
-      color: 'Silver',
-      mileage: 45000,
-      price: 22500,
-      status: 'available',
-      notes: 'Well-maintained, single owner.',
-      created_by: 'seller-1',
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-09-01T11:00:00Z',
-    },
-    assigned_user: {
-      id: 'seller-1',
-      email: 'seller@example.com',
-      username: 'You',
-      role: 'seller',
-      isOnline: true,
-      lastSeen: null,
-      created_at: '2024-01-01T00:00:00Z',
-    },
-  },
-  {
-    id: '2',
-    vehicle_id: 'v2',
-    task_name: 'Verify title documents',
-    due_date: '2024-10-18',
-    notes: 'Check if all title documents are present and valid',
-    assigned_to: 'seller-1',
-    assigned_by: 'admin-1',
-    category: 'missing_title',
-    status: 'completed',
-    created_at: '2024-10-16T09:00:00Z',
-    updated_at: '2024-10-17T14:30:00Z',
-    vehicle: {
-      id: 'v2',
-      make: 'Honda',
-      model: 'Civic',
-      year: 2018,
-      vin: '3HGFC2F59KH100002',
-      color: 'Blue',
-      mileage: 60000,
-      price: 18000,
-      status: 'pending',
-      notes: 'Minor dent on rear bumper.',
-      created_by: 'seller-1',
-      created_at: '2024-02-20T12:00:00Z',
-      updated_at: '2024-09-05T14:00:00Z',
-    },
-    assigned_user: {
-      id: 'seller-1',
-      email: 'seller@example.com',
-      username: 'You',
-      role: 'seller',
-      isOnline: true,
-      lastSeen: null,
-      created_at: '2024-01-01T00:00:00Z',
-    },
-  },
-  {
-    id: '3',
-    vehicle_id: 'v3',
-    task_name: 'Schedule vehicle inspection',
-    due_date: '2024-10-22',
-    notes: 'Arrange for professional inspection of the vehicle',
-    assigned_to: 'seller-1',
-    assigned_by: 'admin-1',
-    category: 'general',
-    status: 'pending',
-    created_at: '2024-10-17T11:00:00Z',
-    updated_at: '2024-10-17T11:00:00Z',
-    vehicle: {
-      id: 'v3',
-      make: 'Ford',
-      model: 'F-150',
-      year: 2022,
-      vin: '1FTFW1ET5NFC00003',
-      color: 'Black',
-      mileage: 15000,
-      price: 45000,
-      status: 'available',
-      notes: 'Heavy duty package, low mileage.',
-      created_by: 'seller-1',
-      created_at: '2024-03-10T09:00:00Z',
-      updated_at: '2024-09-10T10:00:00Z',
-    },
-    assigned_user: {
-      id: 'seller-1',
-      email: 'seller@example.com',
-      username: 'You',
-      role: 'seller',
-      isOnline: true,
-      lastSeen: null,
-      created_at: '2024-01-01T00:00:00Z',
-    },
-  },
-];
-
-const TaskCountCard = ({ title, value, icon: Icon, delay = 0 }: {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
-  delay?: number;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.5 }}
-  >
-    <Card className="glass-card hover-glow transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-300">{title}</p>
-            <p className="text-2xl font-bold text-white">{value}</p>
-          </div>
-          <Icon className="h-8 w-8 text-blue-400" />
-        </div>
-      </CardContent>
-    </Card>
-  </motion.div>
-);
-
 export default function SellerTasksPage() {
-  const [tasks] = useState<TaskWithRelations[]>(mockTasks);
+  const [tasks, setTasks] = useState<TaskWithRelations[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<TaskWithRelations[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<TaskFiltersState>({
-    status: '',
-    category: '',
-    assignedTo: '',
-    dateFrom: '',
-    dateTo: '',
+    status: 'all',
+    category: 'all',
+    assignedTo: 'all',
+    dateRange: {
+      from: undefined,
+      to: undefined,
+    },
   });
-
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.notes?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !filters.status || task.status === filters.status;
-    const matchesCategory = !filters.category || task.category === filters.category;
-    
-    return matchesSearch && matchesStatus && matchesCategory;
+  const [taskCounts, setTaskCounts] = useState({
+    accountingToDo: 0,
+    allTasks: 0,
+    missingTitle: 0,
+    fileArb: 0,
+    location: 0,
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const supabase = createClient();
 
-  const taskStats = {
-    total: tasks.length,
-    pending: tasks.filter(t => t.status === 'pending').length,
-    completed: tasks.filter(t => t.status === 'completed').length,
-    overdue: tasks.filter(t => t.status === 'pending' && new Date(t.due_date) < new Date()).length,
-  };
+  // Load current user
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Error loading current user:', error);
+      }
+    };
+
+    loadCurrentUser();
+  }, [supabase]);
+
+  // Load tasks assigned to current user
+  useEffect(() => {
+    const loadTasks = async () => {
+      if (!currentUser) return;
+
+      try {
+        setIsLoading(true);
+        const { data: tasksData, error } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            vehicle:vehicles(*),
+            assigned_user:profiles!tasks_assigned_to_fkey(*)
+          `)
+          .eq('assigned_to', currentUser.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading tasks:', error);
+          return;
+        }
+
+        if (tasksData) {
+          const tasksWithRelations: TaskWithRelations[] = tasksData.map(task => ({
+            id: task.id,
+            task_name: task.task_name,
+            vehicle_id: task.vehicle_id,
+            assigned_to: task.assigned_to,
+            assigned_by: task.assigned_by,
+            due_date: task.due_date,
+            notes: task.notes,
+            category: task.category,
+            status: task.status,
+            created_at: task.created_at,
+            updated_at: task.updated_at,
+            vehicle: task.vehicle ? {
+              id: task.vehicle.id,
+              make: task.vehicle.make,
+              model: task.vehicle.model,
+              year: task.vehicle.year,
+              vin: task.vehicle.vin,
+              status: task.vehicle.status,
+              created_by: task.vehicle.created_by,
+              created_at: task.vehicle.created_at,
+            } : undefined,
+            assigned_user: task.assigned_user ? {
+              id: task.assigned_user.id,
+              email: task.assigned_user.email,
+              username: task.assigned_user.username || task.assigned_user.email.split('@')[0],
+              role: task.assigned_user.role,
+              isOnline: false,
+              lastSeen: null,
+              created_at: task.assigned_user.created_at,
+            } : undefined,
+          }));
+
+          setTasks(tasksWithRelations);
+          setFilteredTasks(tasksWithRelations);
+
+          // Calculate task counts
+          const counts = {
+            accountingToDo: tasksWithRelations.filter(t => t.category === 'accounting' && t.status === 'pending').length,
+            allTasks: tasksWithRelations.length,
+            missingTitle: tasksWithRelations.filter(t => t.category === 'missing_title' && t.status === 'pending').length,
+            fileArb: tasksWithRelations.filter(t => t.category === 'file_arb' && t.status === 'pending').length,
+            location: tasksWithRelations.filter(t => t.category === 'location' && t.status === 'pending').length,
+          };
+          setTaskCounts(counts);
+        }
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, [currentUser, supabase]);
+
+  // Apply filters and search
+  useEffect(() => {
+    let filtered = [...tasks];
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(task =>
+        task.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.vehicle?.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.vehicle?.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.vehicle?.vin?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(task => task.status === filters.status);
+    }
+
+    // Apply category filter
+    if (filters.category !== 'all') {
+      filtered = filtered.filter(task => task.category === filters.category);
+    }
+
+    // Apply date range filter
+    if (filters.dateRange.from && filters.dateRange.to) {
+      filtered = filtered.filter(task => {
+        const taskDate = new Date(task.due_date);
+        return taskDate >= filters.dateRange.from! && taskDate <= filters.dateRange.to!;
+      });
+    }
+
+    setFilteredTasks(filtered);
+  }, [tasks, searchTerm, filters]);
 
   const handleFiltersChange = (newFilters: TaskFiltersState) => {
     setFilters(newFilters);
   };
 
+  const handleResetFilters = () => {
+    setFilters({
+      status: 'all',
+      category: 'all',
+      assignedTo: 'all',
+      dateRange: {
+        from: undefined,
+        to: undefined,
+      },
+    });
+    setSearchTerm('');
+  };
+
+  const handleExportCSV = () => {
+    const csvContent = [
+      ['Task ID', 'Task Name', 'Vehicle', 'Due Date', 'Category', 'Status', 'Notes'],
+      ...filteredTasks.map(task => [
+        task.id,
+        task.task_name,
+        task.vehicle ? `${task.vehicle.year} ${task.vehicle.make} ${task.vehicle.model}` : 'N/A',
+        task.due_date,
+        task.category,
+        task.status,
+        task.notes || '',
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `my-tasks-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleTaskUpdate = async (taskId: string, updates: { status?: string; notes?: string }) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', taskId);
+
+      if (error) {
+        console.error('Error updating task:', error);
+        return;
+      }
+
+      setTasks(prev => prev.map(task => 
+        task.id === taskId ? { 
+          ...task, 
+          ...updates,
+          status: updates.status as 'pending' | 'completed' | 'cancelled' || task.status
+        } : task
+      ));
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading your tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -194,58 +264,147 @@ export default function SellerTasksPage() {
             My Tasks
           </h1>
           <p className="text-slate-400 mt-1">
-            View and manage tasks assigned to you
+            Tasks assigned to you by admin
           </p>
         </div>
       </motion.div>
 
-      {/* Task Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <TaskCountCard title="Total Tasks" value={taskStats.total} icon={CheckSquare} delay={0.1} />
-        <TaskCountCard title="Pending" value={taskStats.pending} icon={CheckSquare} delay={0.2} />
-        <TaskCountCard title="Completed" value={taskStats.completed} icon={CheckSquare} delay={0.3} />
-        <TaskCountCard title="Overdue" value={taskStats.overdue} icon={CheckSquare} delay={0.4} />
-      </div>
-
+      {/* Summary Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
       >
-        <Card className="glass-card border-slate-700/50 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="Search tasks..."
-                className="pl-9 pr-4 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        <Card className="glass-card glow-border">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <CheckSquare className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-400">Accounting To Do</p>
+                <p className="text-2xl font-bold text-white">{taskCounts.accountingToDo}</p>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-              </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card glow-border">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <FileText className="w-5 h-5 text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-400">All Tasks</p>
+                <p className="text-2xl font-bold text-white">{taskCounts.allTasks}</p>
+              </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card glow-border">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-yellow-500/20 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-400">Missing Title</p>
+                <p className="text-2xl font-bold text-white">{taskCounts.missingTitle}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card glow-border">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-red-500/20 rounded-lg">
+                <FileText className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-400">File ARB</p>
+                <p className="text-2xl font-bold text-white">{taskCounts.fileArb}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card glow-border">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <MapPin className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-400">Location</p>
+                <p className="text-2xl font-bold text-white">{taskCounts.location}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Filters and Search */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="flex flex-col lg:flex-row gap-4"
+      >
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Input
+              placeholder="Search your tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+            />
           </div>
+        </div>
+        <div className="flex gap-2">
+          <TaskFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+          />
+          <Button
+            variant="outline"
+            onClick={handleResetFilters}
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Reset
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExportCSV}
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
+      </motion.div>
 
-          {showFilters && (
-            <div className="mb-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-              <TaskFilters
-                filters={filters}
-                onFiltersChange={handleFiltersChange}
-              />
-            </div>
-          )}
-
-          <TaskTable tasks={filteredTasks} />
+      {/* Task Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="text-white">Your Tasks ({filteredTasks.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TaskTable
+              tasks={filteredTasks}
+              onTaskUpdate={handleTaskUpdate}
+            />
+          </CardContent>
         </Card>
       </motion.div>
     </div>

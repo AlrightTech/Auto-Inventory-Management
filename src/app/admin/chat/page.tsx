@@ -1,121 +1,218 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserList } from '@/components/chat/UserList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { MessageInput } from '@/components/chat/MessageInput';
 import { MessageSquare, Users, Wifi, WifiOff } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { MessageWithSender, User } from '@/types';
 
-// Mock data for demonstration
-const mockUsers = [
-  {
-    id: '1',
-    email: 'admin@example.com',
-    username: 'Admin User',
-    role: 'admin',
-    isOnline: true,
-    lastSeen: null,
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '2',
-    email: 'seller@example.com',
-    username: 'Seller User',
-    role: 'seller',
-    isOnline: true,
-    lastSeen: null,
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '3',
-    email: 'transporter@example.com',
-    username: 'Transporter User',
-    role: 'transporter',
-    isOnline: false,
-    lastSeen: '2024-10-17T10:30:00Z',
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '4',
-    email: 'momina@example.com',
-    username: 'Momina',
-    role: 'seller',
-    isOnline: true,
-    lastSeen: null,
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '5',
-    email: 'aftab@example.com',
-    username: 'Aftab',
-    role: 'transporter',
-    isOnline: false,
-    lastSeen: '2024-10-17T09:15:00Z',
-    created_at: '2024-01-01T00:00:00Z',
-  },
-];
+export default function AdminChatPage() {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [messages, setMessages] = useState<MessageWithSender[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const supabase = createClient();
 
-const mockMessages = [
-  {
-    id: '1',
-    sender_id: '2',
-    receiver_id: '1',
-    content: 'Hi! I have a question about the vehicle inspection process.',
-    read: true,
-    created_at: '2024-10-17T10:00:00Z',
-    sender: mockUsers[1],
-  },
-  {
-    id: '2',
-    sender_id: '1',
-    receiver_id: '2',
-    content: 'Hello! I\'d be happy to help. What specific aspect of the inspection process would you like to know about?',
-    read: true,
-    created_at: '2024-10-17T10:02:00Z',
-    sender: mockUsers[0],
-  },
-  {
-    id: '3',
-    sender_id: '2',
-    receiver_id: '1',
-    content: 'I need to know what documents are required for the ARB filing.',
-    read: true,
-    created_at: '2024-10-17T10:05:00Z',
-    sender: mockUsers[1],
-  },
-  {
-    id: '4',
-    sender_id: '1',
-    receiver_id: '2',
-    content: 'For ARB filing, you\'ll need the vehicle title, inspection report, and any repair documentation. I can send you the complete checklist.',
-    read: false,
-    created_at: '2024-10-17T10:07:00Z',
-    sender: mockUsers[0],
-  },
-];
+  // Load current user and other users
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile) {
+            setCurrentUser({
+              id: user.id,
+              email: user.email || '',
+              username: profile.username || user.email?.split('@')[0] || 'User',
+              role: profile.role,
+              isOnline: true,
+              lastSeen: null,
+              created_at: user.created_at,
+            });
+          }
+        }
 
-export default function ChatPage() {
-  const [selectedUser, setSelectedUser] = useState(mockUsers[1]);
-  const [messages, setMessages] = useState(mockMessages);
-  const [isConnected] = useState(true);
+        // Get all other users
+        const { data: allProfiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .neq('id', user?.id);
 
-  const handleSendMessage = (content: string) => {
-    const newMessage = {
-      id: Date.now().toString(),
-      sender_id: '1', // Current user (admin)
-      receiver_id: selectedUser.id,
-      content,
-      read: false,
-      created_at: new Date().toISOString(),
-      sender: mockUsers[0], // Admin user
+        if (allProfiles) {
+          const usersWithStatus = await Promise.all(
+            allProfiles.map(async (profile: any) => {
+              const { data: status } = await supabase
+                .from('user_status')
+                .select('is_online, last_seen')
+                .eq('user_id', profile.id)
+                .single();
+
+              return {
+                id: profile.id,
+                email: profile.email,
+                username: profile.username || profile.email.split('@')[0],
+                role: profile.role,
+                isOnline: status?.is_online || false,
+                lastSeen: status?.last_seen || null,
+                created_at: profile.created_at,
+              };
+            })
+          );
+          setUsers(usersWithStatus);
+          if (usersWithStatus.length > 0) {
+            setSelectedUser(usersWithStatus[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
     };
-    
-    setMessages(prev => [...prev, newMessage]);
+
+    loadUsers();
+  }, [supabase]);
+
+  // Load messages for selected user
+  useEffect(() => {
+    if (!selectedUser || !currentUser) return;
+
+    const loadMessages = async () => {
+      try {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            sender:profiles!messages_sender_id_fkey(*)
+          `)
+          .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${currentUser.id})`)
+          .order('created_at', { ascending: true });
+
+        if (messagesData) {
+          const messagesWithSender: MessageWithSender[] = messagesData.map((msg: any) => ({
+            id: msg.id,
+            sender_id: msg.sender_id,
+            receiver_id: msg.receiver_id,
+            content: msg.content,
+            read: msg.read,
+            created_at: msg.created_at,
+            sender: {
+              id: msg.sender.id,
+              email: msg.sender.email,
+              username: msg.sender.username || msg.sender.email.split('@')[0],
+              role: msg.sender.role,
+              isOnline: true,
+              lastSeen: null,
+              created_at: msg.sender.created_at,
+            },
+          }));
+          setMessages(messagesWithSender);
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
+    };
+
+    loadMessages();
+  }, [selectedUser, currentUser, supabase]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const channel = supabase
+      .channel('messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload: any) => {
+          const newMessage = payload.new as {
+            id: string;
+            sender_id: string;
+            receiver_id: string;
+            content: string;
+            read: boolean;
+            created_at: string;
+          };
+          if (
+            (newMessage.sender_id === currentUser.id && newMessage.receiver_id === selectedUser?.id) ||
+            (newMessage.sender_id === selectedUser?.id && newMessage.receiver_id === currentUser.id)
+          ) {
+            // Load sender profile
+            supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', newMessage.sender_id)
+              .single()
+              .then(({ data: sender }) => {
+                if (sender) {
+                  const messageWithSender: MessageWithSender = {
+                    id: newMessage.id,
+                    sender_id: newMessage.sender_id,
+                    receiver_id: newMessage.receiver_id,
+                    content: newMessage.content,
+                    read: newMessage.read,
+                    created_at: newMessage.created_at,
+                    sender: {
+                      id: sender.id,
+                      email: sender.email,
+                      username: sender.username || sender.email.split('@')[0],
+                      role: sender.role,
+                      isOnline: true,
+                      lastSeen: null,
+                      created_at: sender.created_at,
+                    },
+                  };
+                  setMessages(prev => [...prev, messageWithSender]);
+                }
+              });
+          }
+        }
+      )
+      .subscribe();
+
+    setIsConnected(true);
+
+    return () => {
+      supabase.removeChannel(channel);
+      setIsConnected(false);
+    };
+  }, [currentUser, selectedUser, supabase]);
+
+  const handleSendMessage = async (content: string) => {
+    if (!selectedUser || !currentUser) return;
+
+    try {
+      const { error } = await supabase.from('messages').insert({
+        sender_id: currentUser.id,
+        receiver_id: selectedUser.id,
+        content,
+        read: false,
+      });
+
+      if (error) {
+        console.error('Error sending message:', error);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
-  const handleUserSelect = (user: typeof mockUsers[0]) => {
+  const handleUserSelect = (user: User) => {
     setSelectedUser(user);
   };
 
@@ -132,7 +229,7 @@ export default function ChatPage() {
             Live Chat
           </h1>
           <p className="text-slate-400 mt-1">
-            Real-time messaging with your team members.
+            Real-time messaging with sellers and transporters
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -160,18 +257,15 @@ export default function ChatPage() {
         {/* User List */}
         <div className="lg:col-span-1">
           <Card className="glass-card h-full">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Users className="w-5 h-5 mr-2 text-blue-400" />
-                Team Members
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-white flex items-center">
+                <Users className="w-5 h-5 mr-2" />
+                Contacts ({users.length})
               </CardTitle>
-              <CardDescription className="text-slate-400">
-                {mockUsers.filter(user => user.isOnline).length} online
-              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <UserList 
-                users={mockUsers}
+              <UserList
+                users={users}
                 selectedUser={selectedUser}
                 onUserSelect={handleUserSelect}
               />
@@ -182,33 +276,44 @@ export default function ChatPage() {
         {/* Chat Window */}
         <div className="lg:col-span-3">
           <Card className="glass-card h-full flex flex-col">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <MessageSquare className="w-5 h-5 mr-2 text-blue-400" />
-                {selectedUser.username}
-                {selectedUser.isOnline && (
-                  <div className="ml-2 w-2 h-2 bg-green-400 rounded-full"></div>
-                )}
-              </CardTitle>
-              <CardDescription className="text-slate-400">
-                {selectedUser.isOnline ? 'Online' : `Last seen ${new Date(selectedUser.lastSeen || '').toLocaleTimeString()}`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col p-0">
-              <ChatWindow 
-                messages={messages.filter(msg => 
-                  (msg.sender_id === selectedUser.id && msg.receiver_id === '1') ||
-                  (msg.sender_id === '1' && msg.receiver_id === selectedUser.id)
-                )}
-                currentUserId="1"
-              />
-              <div className="p-4 border-t border-slate-700/50">
-                <MessageInput 
-                  onSendMessage={handleSendMessage}
-                  placeholder={`Message ${selectedUser.username}...`}
-                />
-              </div>
-            </CardContent>
+            {selectedUser ? (
+              <>
+                <CardHeader className="pb-3 border-b border-slate-700/50">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${selectedUser.isOnline ? 'bg-green-400' : 'bg-slate-400'}`} />
+                    <div>
+                      <CardTitle className="text-lg text-white">
+                        {selectedUser.username}
+                      </CardTitle>
+                      <CardDescription className="text-slate-400">
+                        {selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}
+                        {selectedUser.isOnline ? ' • Online' : ` • Last seen ${selectedUser.lastSeen ? new Date(selectedUser.lastSeen).toLocaleTimeString() : 'Unknown'}`}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 p-0 flex flex-col">
+                  <ChatWindow
+                    messages={messages}
+                    currentUserId={currentUser?.id || ''}
+                  />
+                  <div className="p-4 border-t border-slate-700/50">
+                    <MessageInput
+                      onSendMessage={handleSendMessage}
+                      placeholder={`Message ${selectedUser.username}...`}
+                    />
+                  </div>
+                </CardContent>
+              </>
+            ) : (
+              <CardContent className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <MessageSquare className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">Select a contact</h3>
+                  <p className="text-slate-400">Choose someone to start a conversation</p>
+                </div>
+              </CardContent>
+            )}
           </Card>
         </div>
       </motion.div>

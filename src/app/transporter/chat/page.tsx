@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserList } from '@/components/chat/UserList';
@@ -10,123 +12,203 @@ import { MessageSquare, Users, Wifi, WifiOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { MessageWithSender, User } from '@/types';
 
-// Mock data for demonstration
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'admin@example.com',
-    username: 'Admin User',
-    role: 'admin',
-    isOnline: true,
-    lastSeen: null,
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '2',
-    email: 'seller@example.com',
-    username: 'Seller User',
-    role: 'seller',
-    isOnline: true,
-    lastSeen: null,
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '3',
-    email: 'transporter@example.com',
-    username: 'Transporter User',
-    role: 'transporter',
-    isOnline: false,
-    lastSeen: '2024-10-17T10:30:00Z',
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '4',
-    email: 'momina@example.com',
-    username: 'Momina',
-    role: 'seller',
-    isOnline: true,
-    lastSeen: null,
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '5',
-    email: 'aftab@example.com',
-    username: 'Aftab',
-    role: 'transporter',
-    isOnline: false,
-    lastSeen: '2024-10-17T09:15:00Z',
-    created_at: '2024-01-01T00:00:00Z',
-  },
-];
-
-const mockMessages: MessageWithSender[] = [
-  {
-    id: '1',
-    sender_id: '1',
-    receiver_id: '3',
-    content: 'Welcome to the platform! How can I assist you?',
-    read: true,
-    created_at: '2024-10-17T10:00:00Z',
-    sender: mockUsers[0],
-  },
-  {
-    id: '2',
-    sender_id: '3',
-    receiver_id: '1',
-    content: 'Thank you! I\'m looking for a reliable vehicle.',
-    read: true,
-    created_at: '2024-10-17T10:01:00Z',
-    sender: mockUsers[2],
-  },
-  {
-    id: '3',
-    sender_id: '2',
-    receiver_id: '3',
-    content: 'Hi! I have some great vehicles available. Would you like to see them?',
-    read: false,
-    created_at: '2024-10-17T10:02:00Z',
-    sender: mockUsers[1],
-  },
-];
-
 export default function TransporterChatPage() {
-  const [selectedUser, setSelectedUser] = useState<User | null>(mockUsers[0]);
-  const [messages, setMessages] = useState<MessageWithSender[]>(mockMessages);
-  const [isConnected] = useState(true);
-  const [currentUser] = useState({ id: '3', role: 'transporter' }); // Current transporter user
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [messages, setMessages] = useState<MessageWithSender[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const supabase = createClient();
+
+  // Load current user and other users
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile) {
+            setCurrentUser({
+              id: user.id,
+              email: user.email || '',
+              username: profile.username || user.email?.split('@')[0] || 'User',
+              role: profile.role,
+              isOnline: true,
+              lastSeen: null,
+              created_at: user.created_at,
+            });
+          }
+        }
+
+        // Get all other users
+        const { data: allProfiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .neq('id', user?.id);
+
+        if (allProfiles) {
+          const usersWithStatus = await Promise.all(
+            allProfiles.map(async (profile: any) => {
+              const { data: status } = await supabase
+                .from('user_status')
+                .select('is_online, last_seen')
+                .eq('user_id', profile.id)
+                .single();
+
+              return {
+                id: profile.id,
+                email: profile.email,
+                username: profile.username || profile.email.split('@')[0],
+                role: profile.role,
+                isOnline: status?.is_online || false,
+                lastSeen: status?.last_seen || null,
+                created_at: profile.created_at,
+              };
+            })
+          );
+          setUsers(usersWithStatus);
+          if (usersWithStatus.length > 0) {
+            setSelectedUser(usersWithStatus[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    };
+
+    loadUsers();
+  }, [supabase]);
+
+  // Load messages for selected user
+  useEffect(() => {
+    if (!selectedUser || !currentUser) return;
+
+    const loadMessages = async () => {
+      try {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            sender:profiles!messages_sender_id_fkey(*)
+          `)
+          .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${currentUser.id})`)
+          .order('created_at', { ascending: true });
+
+        if (messagesData) {
+          const messagesWithSender: MessageWithSender[] = messagesData.map((msg: any) => ({
+            id: msg.id,
+            sender_id: msg.sender_id,
+            receiver_id: msg.receiver_id,
+            content: msg.content,
+            read: msg.read,
+            created_at: msg.created_at,
+            sender: {
+              id: msg.sender.id,
+              email: msg.sender.email,
+              username: msg.sender.username || msg.sender.email.split('@')[0],
+              role: msg.sender.role,
+              isOnline: true,
+              lastSeen: null,
+              created_at: msg.sender.created_at,
+            },
+          }));
+          setMessages(messagesWithSender);
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
+    };
+
+    loadMessages();
+  }, [selectedUser, currentUser, supabase]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const channel = supabase
+      .channel('messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload: any) => {
+          const newMessage = payload.new as {
+            id: string;
+            sender_id: string;
+            receiver_id: string;
+            content: string;
+            read: boolean;
+            created_at: string;
+          };
+          if (
+            (newMessage.sender_id === currentUser.id && newMessage.receiver_id === selectedUser?.id) ||
+            (newMessage.sender_id === selectedUser?.id && newMessage.receiver_id === currentUser.id)
+          ) {
+            // Load sender profile
+            supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', newMessage.sender_id)
+              .single()
+              .then(({ data: sender }) => {
+                if (sender) {
+                  const messageWithSender: MessageWithSender = {
+                    id: newMessage.id,
+                    sender_id: newMessage.sender_id,
+                    receiver_id: newMessage.receiver_id,
+                    content: newMessage.content,
+                    read: newMessage.read,
+                    created_at: newMessage.created_at,
+                    sender: {
+                      id: sender.id,
+                      email: sender.email,
+                      username: sender.username || sender.email.split('@')[0],
+                      role: sender.role,
+                      isOnline: true,
+                      lastSeen: null,
+                      created_at: sender.created_at,
+                    },
+                  };
+                  setMessages(prev => [...prev, messageWithSender]);
+                }
+              });
+          }
+        }
+      )
+      .subscribe();
+
+    setIsConnected(true);
+
+    return () => {
+      supabase.removeChannel(channel);
+      setIsConnected(false);
+    };
+  }, [currentUser, selectedUser, supabase]);
 
   const handleSendMessage = async (content: string) => {
-    if (!selectedUser) return;
+    if (!selectedUser || !currentUser) return;
 
-    const newMessage: MessageWithSender = {
-      id: Date.now().toString(),
-      sender_id: currentUser.id,
-      receiver_id: selectedUser.id,
-      content,
-      read: false,
-      created_at: new Date().toISOString(),
-    sender: {
-      id: currentUser.id,
-      email: 'transporter@example.com',
-      username: 'You',
-      role: 'transporter',
-      isOnline: true,
-      lastSeen: null,
-      created_at: '2024-01-01T00:00:00Z',
-    },
-    };
-    
-    setMessages(prev => [...prev, newMessage]);
-    
-    // TODO: Send to API
     try {
-      const supabase = createClient();
-      await supabase.from('messages').insert({
-        sender_id: newMessage.sender_id,
-        receiver_id: newMessage.receiver_id,
-        content: newMessage.content,
-        read: newMessage.read,
+      const { error } = await supabase.from('messages').insert({
+        sender_id: currentUser.id,
+        receiver_id: selectedUser.id,
+        content,
+        read: false,
       });
+
+      if (error) {
+        console.error('Error sending message:', error);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -149,7 +231,7 @@ export default function TransporterChatPage() {
             Live Chat
           </h1>
           <p className="text-slate-400 mt-1">
-            Real-time messaging with sellers and admin support.
+            Real-time messaging with admin and sellers
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -180,12 +262,12 @@ export default function TransporterChatPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg text-white flex items-center">
                 <Users className="w-5 h-5 mr-2" />
-                Contacts
+                Contacts ({users.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <UserList
-                users={mockUsers.filter(user => user.id !== currentUser.id)}
+                users={users}
                 selectedUser={selectedUser}
                 onUserSelect={handleUserSelect}
               />
@@ -214,11 +296,8 @@ export default function TransporterChatPage() {
                 </CardHeader>
                 <CardContent className="flex-1 p-0 flex flex-col">
                   <ChatWindow
-                    messages={messages.filter(msg => 
-                      (msg.sender_id === currentUser.id && msg.receiver_id === selectedUser.id) ||
-                      (msg.sender_id === selectedUser.id && msg.receiver_id === currentUser.id)
-                    )}
-                    currentUserId={currentUser.id}
+                    messages={messages}
+                    currentUserId={currentUser?.id || ''}
                   />
                   <div className="p-4 border-t border-slate-700/50">
                     <MessageInput

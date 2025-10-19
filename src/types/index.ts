@@ -51,26 +51,21 @@ export interface TaskWithRelations {
   notes: string | null;
   assigned_to: string | null;
   assigned_by: string | null;
-  category: 'missing_title' | 'file_arb' | 'location' | 'general' | null;
+  category: 'missing_title' | 'file_arb' | 'location' | 'general' | 'accounting' | 'inspection' | null;
   status: 'pending' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;
-  vehicle: {
+  vehicle?: {
     id: string;
     make: string;
     model: string;
     year: number;
     vin: string;
-    color: string;
-    mileage: number;
-    price: number;
     status: string;
-    notes: string;
     created_by: string;
     created_at: string;
-    updated_at: string;
   };
-  assigned_user: User;
+  assigned_user?: User;
 }
 
 export interface DashboardMetrics {
@@ -94,11 +89,13 @@ export interface TaskFilters {
 }
 
 export interface TaskFiltersState {
-  category: string;
   status: string;
+  category: string;
   assignedTo: string;
-  dateFrom: string;
-  dateTo: string;
+  dateRange: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
 }
 
 export interface EventFilters {

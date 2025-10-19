@@ -13,34 +13,21 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, CheckCircle, Clock, AlertCircle, Eye, Edit, Trash2 } from 'lucide-react';
 import { formatDate, getTimeAgo, getStatusColor } from '@/lib/utils';
-import { Task } from '@/types';
-
-interface TaskWithRelations extends Task {
-  vehicle?: {
-    id: string;
-    make: string;
-    model: string;
-    year: number;
-    vin: string;
-    status: string;
-    created_by: string;
-    created_at: string;
-  };
-  assigned_user?: {
-    id: string;
-    email: string;
-    role: string;
-    username: string;
-    created_at: string;
-  };
-}
+import { TaskWithRelations } from '@/types';
 
 interface TaskTableProps {
   tasks: TaskWithRelations[];
+  onTaskUpdate?: (taskId: string, updates: { status?: string; notes?: string }) => void;
 }
 
-export function TaskTable({ tasks }: TaskTableProps) {
+export function TaskTable({ tasks, onTaskUpdate }: TaskTableProps) {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+
+  const handleTaskUpdate = (taskId: string, updates: { status?: string; notes?: string }) => {
+    if (onTaskUpdate) {
+      onTaskUpdate(taskId, updates);
+    }
+  };
 
   const handleSelectTask = (taskId: string) => {
     setSelectedTasks(prev => 
@@ -226,7 +213,10 @@ export function TaskTable({ tasks }: TaskTableProps) {
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Task
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 hover:text-white">
+                        <DropdownMenuItem 
+                          className="text-slate-300 hover:text-white"
+                          onClick={() => handleTaskUpdate(task.id, { status: 'completed' })}
+                        >
                           <CheckCircle className="mr-2 h-4 w-4" />
                           Mark as Completed
                         </DropdownMenuItem>

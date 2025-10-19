@@ -9,14 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, Filter, X } from 'lucide-react';
 import { format } from 'date-fns';
-
-interface TaskFiltersState {
-  category: string;
-  status: string;
-  assignedTo: string;
-  dateFrom: string;
-  dateTo: string;
-}
+import { TaskFiltersState } from '@/types';
 
 interface TaskFiltersProps {
   filters: TaskFiltersState;
@@ -46,8 +39,6 @@ const mockUsers = [
 
 export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [dateFrom, setDateFrom] = useState<Date | undefined>();
-  const [dateTo, setDateTo] = useState<Date | undefined>();
 
   const handleFilterChange = (key: string, value: string) => {
     onFiltersChange({
@@ -57,34 +48,43 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
   };
 
   const handleDateFromChange = (date: Date | undefined) => {
-    setDateFrom(date);
     onFiltersChange({
       ...filters,
-      dateFrom: date ? format(date, 'yyyy-MM-dd') : '',
+      dateRange: {
+        ...filters.dateRange,
+        from: date,
+      },
     });
   };
 
   const handleDateToChange = (date: Date | undefined) => {
-    setDateTo(date);
     onFiltersChange({
       ...filters,
-      dateTo: date ? format(date, 'yyyy-MM-dd') : '',
+      dateRange: {
+        ...filters.dateRange,
+        to: date,
+      },
     });
   };
 
   const clearFilters = () => {
     onFiltersChange({
-      category: '',
-      status: '',
-      assignedTo: '',
-      dateFrom: '',
-      dateTo: '',
+      status: 'all',
+      category: 'all',
+      assignedTo: 'all',
+      dateRange: {
+        from: undefined,
+        to: undefined,
+      },
     });
-    setDateFrom(undefined);
-    setDateTo(undefined);
   };
 
-  const hasActiveFilters = Object.values(filters).some(value => value !== '');
+  const hasActiveFilters = 
+    filters.status !== 'all' || 
+    filters.category !== 'all' || 
+    filters.assignedTo !== 'all' || 
+    filters.dateRange.from !== undefined || 
+    filters.dateRange.to !== undefined;
 
   return (
     <div className="space-y-4">
@@ -198,13 +198,13 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
                     className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(dateFrom, 'MMM dd') : 'From date'}
+                    {filters.dateRange.from ? format(filters.dateRange.from, 'MMM dd') : 'From date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 glass-card border-slate-700">
                   <Calendar
                     mode="single"
-                    selected={dateFrom}
+                    selected={filters.dateRange.from}
                     onSelect={handleDateFromChange}
                     initialFocus
                   />
@@ -218,15 +218,15 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
                     className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(dateTo, 'MMM dd') : 'To date'}
+                    {filters.dateRange.to ? format(filters.dateRange.to, 'MMM dd') : 'To date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 glass-card border-slate-700">
                   <Calendar
                     mode="single"
-                    selected={dateTo}
+                    selected={filters.dateRange.to}
                     onSelect={handleDateToChange}
-                    disabled={(date) => dateFrom ? date < dateFrom : false}
+                    disabled={(date) => filters.dateRange.from ? date < filters.dateRange.from : false}
                     initialFocus
                   />
                 </PopoverContent>
