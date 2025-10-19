@@ -160,11 +160,11 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       )}
       
       <div className={cn(
-        "fixed lg:static inset-y-0 left-0 z-50 w-64 glass-card-strong border-r border-slate-700/50 flex flex-col transform transition-transform duration-300 ease-in-out",
+        "fixed lg:static inset-y-0 left-0 z-50 w-64 glass-card-strong border-r border-slate-700/50 flex flex-col transform transition-transform duration-300 ease-in-out overflow-hidden",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Logo */}
-        <div className="p-6 border-b border-slate-700/50">
+        <div className="p-6 border-b border-slate-700/50 flex-shrink-0">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -181,7 +181,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
         </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
         {navigation.map((item, index) => (
           <motion.div
             key={item.name}
@@ -263,7 +263,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-700/50">
+        <div className="p-4 border-t border-slate-700/50 flex-shrink-0">
           <div className="text-xs text-slate-500 text-center">
             <p>Auto Inventory v1.0</p>
             <p className="mt-1">© 2024 All rights reserved</p>

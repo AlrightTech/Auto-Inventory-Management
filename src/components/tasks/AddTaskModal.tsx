@@ -249,15 +249,24 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                         <SelectValue placeholder="Select a vehicle" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-600 max-h-60">
-                        {vehicles.filter(vehicle => vehicle.id && vehicle.id.trim() !== '').map((vehicle) => (
-                          <SelectItem
-                            key={vehicle.id}
-                            value={vehicle.id}
-                            className="text-white hover:bg-slate-700"
-                          >
-                            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.vin ? `(${vehicle.vin})` : ''}
-                          </SelectItem>
-                        ))}
+                        {vehicles
+                          .filter(vehicle => 
+                            vehicle && 
+                            vehicle.id && 
+                            vehicle.id.trim() !== '' && 
+                            vehicle.make && 
+                            vehicle.model && 
+                            vehicle.year
+                          )
+                          .map((vehicle) => (
+                            <SelectItem
+                              key={vehicle.id}
+                              value={vehicle.id}
+                              className="text-white hover:bg-slate-700"
+                            >
+                              {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.vin ? `(${vehicle.vin})` : ''}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     {errors.vehicle_id && (
@@ -278,15 +287,23 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                         <SelectValue placeholder="Select user" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-600">
-                        {users.filter(user => user.id && user.id.trim() !== '').map((user) => (
-                          <SelectItem
-                            key={user.id}
-                            value={user.id}
-                            className="text-white hover:bg-slate-700"
-                          >
-                            {user.username} ({user.role})
-                          </SelectItem>
-                        ))}
+                        {users
+                          .filter(user => 
+                            user && 
+                            user.id && 
+                            user.id.trim() !== '' && 
+                            user.username && 
+                            user.role
+                          )
+                          .map((user) => (
+                            <SelectItem
+                              key={user.id}
+                              value={user.id}
+                              className="text-white hover:bg-slate-700"
+                            >
+                              {user.username} ({user.role})
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     {errors.assigned_to && (
