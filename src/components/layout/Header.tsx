@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { User, LogOut, Bell, Search, Menu } from 'lucide-react';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,6 +31,7 @@ interface HeaderProps {
 export function Header({ user, onMenuClick }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
+  const unreadCount = useUnreadMessages(user?.id || null);
 
   const handleSignOut = async () => {
     try {
@@ -123,9 +125,11 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               className="relative text-slate-400 hover:text-white"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Button>
           </motion.div>
 

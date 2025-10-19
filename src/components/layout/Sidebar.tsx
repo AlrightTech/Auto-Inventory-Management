@@ -102,6 +102,7 @@ interface SidebarProps {
   navigation?: NavigationItem[];
   isOpen?: boolean;
   onToggle?: () => void;
+  unreadCount?: number;
 }
 
 // Icon mapping for string-based icons
@@ -124,7 +125,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   TrendingUp,
 };
 
-export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggle }: SidebarProps) {
+export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggle, unreadCount = 0 }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const pathname = usePathname();
 
@@ -240,14 +241,21 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
               <Link
                 href={item.href!}
                 className={cn(
-                  "flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-slate-700/50",
+                  "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-slate-700/50",
                   isActive(item.href!)
                     ? "bg-blue-500/20 text-blue-400 border border-blue-500/30 glow-border"
                     : "text-slate-300 hover:text-white"
                 )}
               >
-                {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
-                <span>{item.name}</span>
+                <div className="flex items-center space-x-3">
+                  {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
+                  <span>{item.name}</span>
+                </div>
+                {item.name === 'Chat' && unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             )}
           </motion.div>

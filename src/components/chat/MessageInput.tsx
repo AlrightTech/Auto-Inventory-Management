@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Smile, Paperclip } from 'lucide-react';
+import { Send, Smile } from 'lucide-react';
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
@@ -48,15 +48,6 @@ export function MessageInput({ onSendMessage, placeholder = "Type a message..." 
       onSubmit={handleSubmit}
       className="flex items-end space-x-3"
     >
-      {/* Attachment Button */}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-10 w-10 p-0 text-slate-400 hover:text-white hover:bg-slate-700/50"
-      >
-        <Paperclip className="w-4 h-4" />
-      </Button>
 
       {/* Message Input */}
       <div className="flex-1 relative">

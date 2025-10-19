@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 export const dynamic = 'force-dynamic';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 const transporterNavigation = [
   {
@@ -55,6 +56,21 @@ export default function TransporterLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const unreadCount = useUnreadMessages(currentUser?.id || null);
+
+  // Load current user
+  React.useEffect(() => {
+    const loadCurrentUser = async () => {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUser({ id: user.id });
+      }
+    };
+    loadCurrentUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -65,6 +81,7 @@ export default function TransporterLayout({
             navigation={transporterNavigation} 
             isOpen={sidebarOpen}
             onToggle={() => setSidebarOpen(!sidebarOpen)}
+            unreadCount={unreadCount}
           />
         </div>
         

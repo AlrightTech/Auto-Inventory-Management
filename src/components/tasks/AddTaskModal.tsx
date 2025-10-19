@@ -249,7 +249,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                         <SelectValue placeholder="Select a vehicle" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-600 max-h-60">
-                        {vehicles.map((vehicle) => (
+                        {vehicles.filter(vehicle => vehicle.id && vehicle.id.trim() !== '').map((vehicle) => (
                           <SelectItem
                             key={vehicle.id}
                             value={vehicle.id}
@@ -278,7 +278,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                         <SelectValue placeholder="Select user" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-600">
-                        {users.map((user) => (
+                        {users.filter(user => user.id && user.id.trim() !== '').map((user) => (
                           <SelectItem
                             key={user.id}
                             value={user.id}
