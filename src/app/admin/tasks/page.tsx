@@ -291,7 +291,7 @@ export default function AdminTasksPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

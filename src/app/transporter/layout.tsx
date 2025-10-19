@@ -57,7 +57,7 @@ export default function TransporterLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
-  const unreadCount = useUnreadMessages(currentUser?.id || null);
+  const { unreadCount } = useUnreadMessages(currentUser?.id || null);
 
   // Load current user
   React.useEffect(() => {

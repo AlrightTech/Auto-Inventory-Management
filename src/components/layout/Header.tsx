@@ -31,7 +31,7 @@ interface HeaderProps {
 export function Header({ user, onMenuClick }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
-  const unreadCount = useUnreadMessages(user?.id || null);
+  const { unreadCount } = useUnreadMessages(user?.id || null);
 
   const handleSignOut = async () => {
     try {
