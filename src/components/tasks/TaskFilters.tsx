@@ -135,7 +135,7 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent className="glass-card border-slate-700">
-                <SelectItem value="">All categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {taskCategories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -156,7 +156,7 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent className="glass-card border-slate-700">
-                <SelectItem value="">All statuses</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 {taskStatuses.map((status) => (
                   <SelectItem key={status} value={status}>
                     <span className="capitalize">{status}</span>
@@ -177,7 +177,7 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
                 <SelectValue placeholder="All users" />
               </SelectTrigger>
               <SelectContent className="glass-card border-slate-700">
-                <SelectItem value="">All users</SelectItem>
+                <SelectItem value="all">All users</SelectItem>
                 {mockUsers.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.username} ({user.role})

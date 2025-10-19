@@ -138,7 +138,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
   const selectedCategory = watch('category');
 
   const handleFormSubmit = async (data: TaskInput) => {
-    if (!currentUser || !data.vehicle_id || !data.assigned_to || !data.category) return;
+    if (!currentUser || !data.vehicle_id || !data.assigned_to || !data.category || data.vehicle_id === 'no-vehicles' || data.assigned_to === 'no-users') return;
 
     setIsSubmitting(true);
     try {
@@ -251,24 +251,32 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                         <SelectValue placeholder="Select a vehicle" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-600 max-h-60">
-                        {vehicles
-                          .filter(vehicle => 
-                            vehicle && 
-                            vehicle.id && 
-                            vehicle.id.trim() !== '' && 
-                            vehicle.make && 
-                            vehicle.model && 
-                            vehicle.year
-                          )
-                          .map((vehicle) => (
-                            <SelectItem
-                              key={vehicle.id}
-                              value={vehicle.id}
-                              className="text-white hover:bg-slate-700"
-                            >
-                              {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.vin ? `(${vehicle.vin})` : ''}
-                            </SelectItem>
-                          ))}
+                        {vehicles.length === 0 ? (
+                          <SelectItem value="no-vehicles" disabled className="text-slate-400">
+                            No vehicles available
+                          </SelectItem>
+                        ) : (
+                          vehicles
+                            .filter(vehicle => 
+                              vehicle && 
+                              vehicle.id && 
+                              vehicle.id.trim() !== '' && 
+                              vehicle.make && 
+                              vehicle.model && 
+                              vehicle.year &&
+                              vehicle.id !== null &&
+                              vehicle.id !== undefined
+                            )
+                            .map((vehicle) => (
+                              <SelectItem
+                                key={vehicle.id}
+                                value={vehicle.id}
+                                className="text-white hover:bg-slate-700"
+                              >
+                                {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.vin ? `(${vehicle.vin})` : ''}
+                              </SelectItem>
+                            ))
+                        )}
                       </SelectContent>
                     </Select>
                     {errors.vehicle_id && (
@@ -289,23 +297,31 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                         <SelectValue placeholder="Select user" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-600">
-                        {users
-                          .filter(user => 
-                            user && 
-                            user.id && 
-                            user.id.trim() !== '' && 
-                            user.username && 
-                            user.role
-                          )
-                          .map((user) => (
-                            <SelectItem
-                              key={user.id}
-                              value={user.id}
-                              className="text-white hover:bg-slate-700"
-                            >
-                              {user.username} ({user.role})
-                            </SelectItem>
-                          ))}
+                        {users.length === 0 ? (
+                          <SelectItem value="no-users" disabled className="text-slate-400">
+                            No users available
+                          </SelectItem>
+                        ) : (
+                          users
+                            .filter(user => 
+                              user && 
+                              user.id && 
+                              user.id.trim() !== '' && 
+                              user.username && 
+                              user.role &&
+                              user.id !== null &&
+                              user.id !== undefined
+                            )
+                            .map((user) => (
+                              <SelectItem
+                                key={user.id}
+                                value={user.id}
+                                className="text-white hover:bg-slate-700"
+                              >
+                                {user.username} ({user.role})
+                              </SelectItem>
+                            ))
+                        )}
                       </SelectContent>
                     </Select>
                     {errors.assigned_to && (
