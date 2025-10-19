@@ -21,7 +21,7 @@ export function AdminLayoutClient({ user, children }: AdminLayoutClientProps) {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="grid grid-cols-12 min-h-screen">
         {/* Sidebar - col-3 on large screens, hidden on mobile */}
-        <div className="hidden lg:block lg:col-span-3 h-screen overflow-hidden">
+        <div className="hidden lg:block lg:col-span-3 h-screen">
           <Sidebar unreadCount={unreadCount} />
         </div>
         

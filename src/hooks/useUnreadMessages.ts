@@ -56,7 +56,8 @@ export function useUnreadMessages(userId: string | null) {
           table: 'messages',
           filter: `receiver_id=eq.${userId}`,
         },
-        () => {
+        (payload) => {
+          console.log('Message change detected:', payload);
           fetchUnreadCount();
         }
       )
@@ -68,7 +69,8 @@ export function useUnreadMessages(userId: string | null) {
           table: 'messages',
           filter: `receiver_id=eq.${userId}`,
         },
-        () => {
+        (payload) => {
+          console.log('Message change detected:', payload);
           fetchUnreadCount();
         }
       )

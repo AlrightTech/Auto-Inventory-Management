@@ -212,6 +212,29 @@ export default function AdminChatPage() {
     }
   };
 
+  // Mark messages as read when viewing them
+  const markMessagesAsRead = async (senderId: string) => {
+    if (!currentUser) return;
+
+    const { error } = await supabase
+      .from('messages')
+      .update({ read: true })
+      .eq('sender_id', senderId)
+      .eq('receiver_id', currentUser.id)
+      .eq('read', false);
+
+    if (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  };
+
+  // Mark messages as read when user is selected
+  useEffect(() => {
+    if (selectedUser && currentUser) {
+      markMessagesAsRead(selectedUser.id);
+    }
+  }, [selectedUser, currentUser]);
+
   const handleUserSelect = (user: User) => {
     setSelectedUser(user);
   };

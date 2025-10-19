@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,83 +15,222 @@ import {
   Clock,
   User,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { Event } from '@/types';
 
-// Mock data for demonstration
-const mockEvents = [
-  {
-    id: '1',
-    title: 'Inspection Day',
-    event_date: '2024-10-20',
-    event_time: '09:00',
-    assigned_to: 'admin-1',
-    created_by: 'admin-1',
-    notes: 'Vehicle inspection for VIN123',
-    status: 'scheduled' as const,
-    created_at: '2024-10-15T10:00:00Z',
-    updated_at: '2024-10-15T10:00:00Z',
-  },
-  {
-    id: '2',
-    title: 'Car Mela',
-    event_date: '2024-10-25',
-    event_time: '14:00',
-    assigned_to: 'seller-1',
-    created_by: 'admin-1',
-    notes: 'Annual car exhibition event',
-    status: 'scheduled' as const,
-    created_at: '2024-10-16T11:00:00Z',
-    updated_at: '2024-10-16T11:00:00Z',
-  },
-  {
-    id: '3',
-    title: 'Auction Review',
-    event_date: '2024-10-22',
-    event_time: '16:30',
-    assigned_to: 'transporter-1',
-    created_by: 'admin-1',
-    notes: 'Review auction results and pricing',
-    status: 'scheduled' as const,
-    created_at: '2024-10-17T09:00:00Z',
-    updated_at: '2024-10-17T09:00:00Z',
-  },
-];
-
-export default function EventsPage() {
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+export default function AdminEventsPage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    assignedTo: '',
-    dateFrom: '',
-    dateTo: '',
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
 
-  const handleFilterReset = () => {
-    setFilters({
-      assignedTo: '',
-      dateFrom: '',
-      dateTo: '',
-    });
+  // Load events from database
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const { data: eventsData, error } = await supabase
+          .from('events')
+          .select(`
+            *,
+            assigned_user:profiles!events_assigned_to_fkey(*),
+            created_user:profiles!events_created_by_fkey(*)
+          `)
+          .order('event_date', { ascending: true });
+
+        if (error) {
+          console.error('Error loading events:', error);
+          setError('Failed to load events. Please try again.');
+          return;
+        }
+
+        if (eventsData) {
+          const eventsWithRelations: Event[] = eventsData.map(event => ({
+            id: event.id,
+            title: event.title,
+            event_date: event.event_date,
+            event_time: event.event_time,
+            assigned_to: event.assigned_to,
+            created_by: event.created_by,
+            notes: event.notes || '',
+            status: event.status || 'scheduled',
+            created_at: event.created_at,
+            updated_at: event.updated_at,
+          }));
+          setEvents(eventsWithRelations);
+        }
+      } catch (error) {
+        console.error('Error loading events:', error);
+        setError('Failed to load events. Please check your connection.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, [supabase]);
+
+  // Apply search filter
+  useEffect(() => {
+    let filtered = [...events];
+
+    if (searchTerm) {
+      filtered = filtered.filter(event =>
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.notes.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredEvents(filtered);
+  }, [events, searchTerm]);
+
+  const handleAddEvent = async (eventData: {
+    title: string;
+    event_date: string;
+    event_time: string;
+    assigned_to: string;
+    notes?: string;
+  }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase.from('events').insert({
+        title: eventData.title,
+        event_date: eventData.event_date,
+        event_time: eventData.event_time,
+        assigned_to: eventData.assigned_to,
+        created_by: user.id,
+        notes: eventData.notes || '',
+        status: 'scheduled',
+      });
+
+      if (error) {
+        console.error('Error creating event:', error);
+        return;
+      }
+
+      // Reload events
+      const { data: eventsData } = await supabase
+        .from('events')
+        .select(`
+          *,
+          assigned_user:profiles!events_assigned_to_fkey(*),
+          created_user:profiles!events_created_by_fkey(*)
+        `)
+        .order('event_date', { ascending: true });
+
+      if (eventsData) {
+        const eventsWithRelations: Event[] = eventsData.map(event => ({
+          id: event.id,
+          title: event.title,
+          event_date: event.event_date,
+          event_time: event.event_time,
+          assigned_to: event.assigned_to,
+          created_by: event.created_by,
+          notes: event.notes || '',
+          status: event.status || 'scheduled',
+          created_at: event.created_at,
+          updated_at: event.updated_at,
+        }));
+        setEvents(eventsWithRelations);
+      }
+
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error('Error creating event:', error);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', eventId);
+
+      if (error) {
+        console.error('Error deleting event:', error);
+        return;
+      }
+
+      setEvents(events.filter(event => event.id !== eventId));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
+  const handleUpdateEvent = async (eventId: string, updates: Partial<Event>) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update(updates)
+        .eq('id', eventId);
+
+      if (error) {
+        console.error('Error updating event:', error);
+        return;
+      }
+
+      setEvents(events.map(event => 
+        event.id === eventId ? { ...event, ...updates } : event
+      ));
+    } catch (error) {
+      console.error('Error updating event:', error);
+    }
+  };
+
+  const handleResetFilters = () => {
     setSearchTerm('');
   };
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-red-400 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-white mb-2">Error</h2>
+          <p className="text-slate-400 mb-4">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="gradient-primary hover:opacity-90"
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading events...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white glow-text">
-            Event Management
-          </h1>
-          <p className="text-slate-400 mt-1">
-            Schedule and manage events, inspections, and important dates.
-          </p>
+          <h1 className="text-3xl font-bold text-white glow-text">Event Management</h1>
+          <p className="text-slate-400 mt-1">Schedule and manage events across the platform</p>
         </div>
-        <Button 
-          onClick={() => setIsEventModalOpen(true)}
+        <Button
+          onClick={() => setIsAddModalOpen(true)}
           className="gradient-primary hover:opacity-90"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -99,170 +238,121 @@ export default function EventsPage() {
         </Button>
       </motion.div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="glass-card hover-glow transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-300">Total Events</p>
-                  <p className="text-2xl font-bold text-white">{mockEvents.length}</p>
-                </div>
-                <Calendar className="h-8 w-8 text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="glass-card hover-glow transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-300">This Week</p>
-                  <p className="text-2xl font-bold text-white">2</p>
-                </div>
-                <Clock className="h-8 w-8 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="glass-card hover-glow transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-300">Assigned Users</p>
-                  <p className="text-2xl font-bold text-white">3</p>
-                </div>
-                <User className="h-8 w-8 text-purple-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Filters and Actions */}
+      {/* Stats Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-white">Filters & Actions</CardTitle>
-            <CardDescription className="text-slate-400">
-              Search events and filter by date or assigned user
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search by event title or VIN..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
-                  />
-                </div>
+        <Card className="glass-card-strong border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400">Total Events</p>
+                <p className="text-2xl font-bold text-white">{events.length}</p>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={handleFilterReset}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset Filters
-                </Button>
-              </div>
+              <Calendar className="w-8 h-8 text-blue-400" />
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Advanced Filters */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Assigned To Filter */}
-              <div className="space-y-2">
-                <label className="text-slate-300 text-sm">Assigned To</label>
-                <select 
-                  value={filters.assignedTo}
-                  onChange={(e) => setFilters({...filters, assignedTo: e.target.value})}
-                  className="w-full p-2 bg-slate-800/50 border border-slate-600 rounded-md text-white focus:border-blue-500 focus:ring-blue-500/20"
-                >
-                  <option value="">All Users</option>
-                  <option value="admin">Admin User</option>
-                  <option value="seller">Seller User</option>
-                  <option value="transporter">Transporter User</option>
-                </select>
+        <Card className="glass-card-strong border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400">Scheduled</p>
+                <p className="text-2xl font-bold text-white">
+                  {events.filter(e => e.status === 'scheduled').length}
+                </p>
               </div>
+              <Clock className="w-8 h-8 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Date From Filter */}
-              <div className="space-y-2">
-                <label className="text-slate-300 text-sm">From Date</label>
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
-                  className="w-full p-2 bg-slate-800/50 border border-slate-600 rounded-md text-white focus:border-blue-500 focus:ring-blue-500/20"
-                />
+        <Card className="glass-card-strong border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400">Completed</p>
+                <p className="text-2xl font-bold text-white">
+                  {events.filter(e => e.status === 'completed').length}
+                </p>
               </div>
+              <User className="w-8 h-8 text-purple-400" />
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Date To Filter */}
-              <div className="space-y-2">
-                <label className="text-slate-300 text-sm">To Date</label>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
-                  className="w-full p-2 bg-slate-800/50 border border-slate-600 rounded-md text-white focus:border-blue-500 focus:ring-blue-500/20"
-                />
+        <Card className="glass-card-strong border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400">This Week</p>
+                <p className="text-2xl font-bold text-white">
+                  {events.filter(e => {
+                    const eventDate = new Date(e.event_date);
+                    const now = new Date();
+                    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    return eventDate >= now && eventDate <= weekFromNow;
+                  }).length}
+                </p>
               </div>
+              <Calendar className="w-8 h-8 text-orange-400" />
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Event Table */}
+      {/* Filters and Search */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.2 }}
+        className="glass-card-strong border-slate-700/50 p-6"
       >
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-white">Event List</CardTitle>
-            <CardDescription className="text-slate-400">
-              Showing {mockEvents.length} events
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EventTable events={mockEvents} />
-          </CardContent>
-        </Card>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Input
+                placeholder="Search events by title or notes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+              />
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleResetFilters}
+            className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Reset
+          </Button>
+        </div>
       </motion.div>
 
-      {/* Event Modal */}
-      <EventModal 
-        isOpen={isEventModalOpen}
-        onClose={() => setIsEventModalOpen(false)}
+      {/* Events Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <EventTable
+          events={filteredEvents}
+          onDelete={handleDeleteEvent}
+          onUpdate={handleUpdateEvent}
+        />
+      </motion.div>
+
+      {/* Add Event Modal */}
+      <EventModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddEvent}
       />
     </div>
   );
