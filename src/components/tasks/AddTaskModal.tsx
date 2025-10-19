@@ -62,7 +62,11 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
           .order('created_at', { ascending: false });
 
         if (vehiclesData) {
+          console.log('Loaded vehicles:', vehiclesData);
           setVehicles(vehiclesData);
+        } else {
+          console.log('No vehicles data loaded');
+          setVehicles([]);
         }
 
         // Load users
@@ -72,6 +76,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
           .order('created_at', { ascending: false });
 
         if (usersData) {
+          console.log('Loaded users:', usersData);
           const usersWithStatus: User[] = usersData.map(user => ({
             id: user.id,
             email: user.email,
@@ -82,6 +87,9 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
             created_at: user.created_at,
           }));
           setUsers(usersWithStatus);
+        } else {
+          console.log('No users data loaded');
+          setUsers([]);
         }
 
         // Get current user
@@ -107,6 +115,8 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
         }
       } catch (error) {
         console.error('Error loading data:', error);
+        setVehicles([]);
+        setUsers([]);
       }
     };
 
