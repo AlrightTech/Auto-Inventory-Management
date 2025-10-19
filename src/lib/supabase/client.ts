@@ -6,7 +6,7 @@ export function createClient() {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('Missing Supabase environment variables');
-    // Return a minimal mock client
+    // Return a mock client for build time
     return {
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),

@@ -43,13 +43,17 @@ export default function AdminTasksPage() {
     location: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const supabase = createClient();
 
   // Load tasks from database
   useEffect(() => {
+    
     const loadTasks = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         const { data: tasksData, error } = await supabase
           .from('tasks')
           .select(`
@@ -61,6 +65,7 @@ export default function AdminTasksPage() {
 
         if (error) {
           console.error('Error loading tasks:', error);
+          setError('Failed to load tasks. Please try again.');
           return;
         }
 
@@ -113,6 +118,7 @@ export default function AdminTasksPage() {
         }
       } catch (error) {
         console.error('Error loading tasks:', error);
+        setError('Failed to load tasks. Please check your connection.');
       } finally {
         setIsLoading(false);
       }
@@ -278,6 +284,24 @@ export default function AdminTasksPage() {
     a.click();
     window.URL.revokeObjectURL(url);
   };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-red-400 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-white mb-2">Error</h2>
+          <p className="text-slate-400 mb-4">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="gradient-primary hover:opacity-90"
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

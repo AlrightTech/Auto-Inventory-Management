@@ -47,10 +47,12 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
   const supabase = createClient();
 
   // Load vehicles and users
   useEffect(() => {
+    
     const loadData = async () => {
       try {
         // Load vehicles
