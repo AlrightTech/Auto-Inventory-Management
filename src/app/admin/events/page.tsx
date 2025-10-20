@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EventTable } from '@/components/events/EventTable';
 import { EventModal } from '@/components/events/EventModal';
+import { EventDetailsModal } from '@/components/events/EventDetailsModal';
+import { DeleteEventModal } from '@/components/events/DeleteEventModal';
 import {
   Calendar,
   Plus,
@@ -16,14 +18,19 @@ import {
   User,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Event } from '@/types';
+import { EventWithRelations } from '@/types';
 
 export default function AdminEventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<EventWithRelations[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventWithRelations[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventWithRelations | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -49,7 +56,7 @@ export default function AdminEventsPage() {
         }
 
         if (eventsData) {
-          const eventsWithRelations: Event[] = eventsData.map(event => ({
+          const eventsWithRelations: EventWithRelations[] = eventsData.map(event => ({
             id: event.id,
             title: event.title,
             event_date: event.event_date,
@@ -60,6 +67,8 @@ export default function AdminEventsPage() {
             status: event.status || 'scheduled',
             created_at: event.created_at,
             updated_at: event.updated_at,
+            assigned_user: event.assigned_user || null,
+            created_by_user: event.created_user || null,
           }));
           setEvents(eventsWithRelations);
         }
@@ -181,6 +190,107 @@ export default function AdminEventsPage() {
       ));
     } catch (error) {
       console.error('Error updating event:', error);
+    }
+  };
+
+  // New handlers for table actions
+  const handleViewDetails = (event: Event) => {
+    setSelectedEvent(event);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleEditClick = (event: Event) => {
+    setSelectedEvent(event);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (event: Event) => {
+    setSelectedEvent(event);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleEditEvent = async (eventData: {
+    title: string;
+    event_date: string;
+    event_time: string;
+    assigned_to: string;
+    notes?: string;
+  }) => {
+    if (!selectedEvent) return;
+
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({
+          ...eventData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedEvent.id);
+
+      if (error) {
+        console.error('Error updating event:', error);
+        setError('Failed to update event. Please try again.');
+      } else {
+        // Reload events to get the updated event with user relations
+        const { data: eventsData } = await supabase
+          .from('events')
+          .select(`
+            *,
+            assigned_user:profiles!events_assigned_to_fkey(*),
+            created_user:profiles!events_created_by_fkey(*)
+          `)
+          .order('event_date', { ascending: true });
+
+        if (eventsData) {
+          const eventsWithRelations: EventWithRelations[] = eventsData.map(event => ({
+            id: event.id,
+            title: event.title,
+            event_date: event.event_date,
+            event_time: event.event_time,
+            assigned_to: event.assigned_to,
+            created_by: event.created_by,
+            notes: event.notes || '',
+            status: event.status || 'scheduled',
+            created_at: event.created_at,
+            updated_at: event.updated_at,
+            assigned_user: event.assigned_user || null,
+            created_by_user: event.created_user || null,
+          }));
+          setEvents(eventsWithRelations);
+        }
+        setIsEditModalOpen(false);
+        setSelectedEvent(null);
+      }
+    } catch (error) {
+      console.error('Error updating event:', error);
+      setError('Failed to update event. Please check your connection.');
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedEvent) return;
+
+    try {
+      setIsDeleting(true);
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', selectedEvent.id);
+
+      if (error) {
+        console.error('Error deleting event:', error);
+        setError('Failed to delete event. Please try again.');
+      } else {
+        // Remove from local state immediately for better UX
+        setEvents(prev => prev.filter(event => event.id !== selectedEvent.id));
+        setIsDeleteModalOpen(false);
+        setSelectedEvent(null);
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      setError('Failed to delete event. Please check your connection.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -343,8 +453,9 @@ export default function AdminEventsPage() {
       >
         <EventTable
           events={filteredEvents}
-          onDelete={handleDeleteEvent}
-          onUpdate={handleUpdateEvent}
+          onViewDetails={handleViewDetails}
+          onEditEvent={handleEditClick}
+          onDeleteEvent={handleDeleteClick}
         />
       </motion.div>
 
@@ -353,6 +464,39 @@ export default function AdminEventsPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddEvent}
+      />
+
+      {/* Edit Event Modal */}
+      <EventModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedEvent(null);
+        }}
+        onSubmit={handleEditEvent}
+        editingEvent={selectedEvent}
+      />
+
+      {/* Event Details Modal */}
+      <EventDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent}
+      />
+
+      {/* Delete Event Modal */}
+      <DeleteEventModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedEvent(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        eventTitle={selectedEvent?.title || ''}
+        isLoading={isDeleting}
       />
     </div>
   );

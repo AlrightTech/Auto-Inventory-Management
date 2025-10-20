@@ -24,15 +24,16 @@ import {
 import { eventSchema, type EventInput } from '@/lib/validations/events';
 import { Calendar, Clock, User, FileText } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { User as UserType } from '@/types';
+import { User as UserType, EventWithRelations } from '@/types';
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (eventData: Omit<EventInput, 'id' | 'created_at' | 'updated_at'>) => void;
+  editingEvent?: EventWithRelations | null;
 }
 
-export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
+export function EventModal({ isOpen, onClose, onSubmit, editingEvent }: EventModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<UserType[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
@@ -43,10 +44,45 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors },
   } = useForm<EventInput>({
     resolver: zodResolver(eventSchema),
+    defaultValues: editingEvent ? {
+      title: editingEvent.title,
+      event_date: editingEvent.event_date,
+      event_time: editingEvent.event_time,
+      assigned_to: editingEvent.assigned_to || '',
+      notes: editingEvent.notes || '',
+    } : {
+      title: '',
+      event_date: '',
+      event_time: '',
+      assigned_to: '',
+      notes: '',
+    },
   });
+
+  // Reset form when editing event changes
+  useEffect(() => {
+    if (editingEvent) {
+      reset({
+        title: editingEvent.title,
+        event_date: editingEvent.event_date,
+        event_time: editingEvent.event_time,
+        assigned_to: editingEvent.assigned_to || '',
+        notes: editingEvent.notes || '',
+      });
+    } else {
+      reset({
+        title: '',
+        event_date: '',
+        event_time: '',
+        assigned_to: '',
+        notes: '',
+      });
+    }
+  }, [editingEvent, reset]);
 
   // Load users from database
   useEffect(() => {
@@ -113,10 +149,10 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             <DialogHeader>
               <DialogTitle className="text-white text-xl flex items-center">
                 <Calendar className="w-5 h-5 mr-2 text-blue-400" />
-                Create New Event
+                {editingEvent ? 'Edit Event' : 'Create New Event'}
               </DialogTitle>
               <DialogDescription className="text-slate-400">
-                Schedule a new event, inspection, or important date.
+                {editingEvent ? 'Update event details and scheduling.' : 'Schedule a new event, inspection, or important date.'}
               </DialogDescription>
             </DialogHeader>
 
@@ -226,7 +262,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
                   disabled={isLoading}
                   className="gradient-primary hover:opacity-90"
                 >
-                  {isLoading ? 'Creating...' : 'Save Event'}
+                  {isLoading ? (editingEvent ? 'Updating...' : 'Creating...') : (editingEvent ? 'Update Event' : 'Save Event')}
                 </Button>
               </div>
             </motion.form>

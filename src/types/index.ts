@@ -68,6 +68,21 @@ export interface TaskWithRelations {
   assigned_user?: User;
 }
 
+export interface EventWithRelations {
+  id: string;
+  title: string;
+  event_date: string;
+  event_time: string;
+  assigned_to: string | null;
+  created_by: string | null;
+  notes: string | null;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+  assigned_user?: User | null;
+  created_by_user?: User | null;
+}
+
 export interface DashboardMetrics {
   totalSales: number;
   totalPurchases: number;

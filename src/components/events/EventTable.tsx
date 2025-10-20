@@ -18,14 +18,17 @@ import {
   Clock,
   User,
 } from 'lucide-react';
-import { Event } from '@/types';
+import { EventWithRelations } from '@/types';
 import { formatDate, formatTime } from '@/lib/utils';
 
 interface EventTableProps {
-  events: Event[];
+  events: EventWithRelations[];
+  onViewDetails: (event: EventWithRelations) => void;
+  onEditEvent: (event: EventWithRelations) => void;
+  onDeleteEvent: (event: EventWithRelations) => void;
 }
 
-export function EventTable({ events }: EventTableProps) {
+export function EventTable({ events, onViewDetails, onEditEvent, onDeleteEvent }: EventTableProps) {
   const getEventStatus = (eventDate: string, eventTime: string) => {
     const eventDateTime = new Date(`${eventDate}T${eventTime}`);
     const now = new Date();
@@ -90,7 +93,7 @@ export function EventTable({ events }: EventTableProps) {
                     <div className="flex items-center space-x-2">
                       <User className="w-4 h-4 text-slate-400" />
                       <span className="text-slate-300">
-                        {event.assigned_to || 'Unassigned'}
+                        {event.assigned_user?.username || 'Unassigned'}
                       </span>
                     </div>
                   </td>
@@ -110,15 +113,24 @@ export function EventTable({ events }: EventTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="glass-card-strong border-slate-700">
-                        <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700/50">
+                        <DropdownMenuItem 
+                          onClick={() => onViewDetails(event)}
+                          className="text-slate-300 hover:text-white hover:bg-slate-700/50"
+                        >
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700/50">
+                        <DropdownMenuItem 
+                          onClick={() => onEditEvent(event)}
+                          className="text-slate-300 hover:text-white hover:bg-slate-700/50"
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Event
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                        <DropdownMenuItem 
+                          onClick={() => onDeleteEvent(event)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete Event
                         </DropdownMenuItem>
