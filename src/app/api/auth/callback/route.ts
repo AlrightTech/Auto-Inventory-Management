@@ -18,11 +18,34 @@ export async function GET(request: NextRequest) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Get user role from profiles table
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
+
+        // If profile doesn't exist, create it
+        if (profileError && profileError.code === 'PGRST116') {
+          console.log('Profile not found in callback, creating...');
+          
+          const { error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email || '',
+              role: 'transporter', // Default role
+              username: user.email?.split('@')[0] || 'User',
+              created_at: new Date().toISOString()
+            });
+
+          if (createError) {
+            console.error('Error creating profile in callback:', createError);
+            return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`);
+          }
+
+          // Redirect to transporter dashboard
+          return NextResponse.redirect(`${origin}/transporter`);
+        }
 
         if (profile?.role === 'admin') {
           return NextResponse.redirect(`${origin}/admin`);

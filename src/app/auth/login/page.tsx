@@ -72,8 +72,39 @@ export default function LoginPage() {
 
         if (profileError) {
           console.error('Profile fetch error:', profileError);
-          setError('Failed to load user profile. Please try again.');
-          return;
+          
+          // If profile doesn't exist, create it with default role
+          if (profileError.code === 'PGRST116') {
+            console.log('Profile not found, creating default profile...');
+            
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: authData.user.id,
+                email: authData.user.email || '',
+                role: 'transporter', // Default role
+                username: authData.user.email?.split('@')[0] || 'User',
+                created_at: new Date().toISOString()
+              })
+              .select('role')
+              .single();
+
+            if (createError) {
+              console.error('Error creating profile:', createError);
+              setError('Failed to create user profile. Please contact support.');
+              return;
+            }
+
+            console.log('Created new profile:', newProfile);
+            
+            // Redirect based on default role
+            router.push('/transporter');
+            return;
+          } else {
+            console.error('Unexpected profile error:', profileError);
+            setError(`Failed to load user profile: ${profileError.message}`);
+            return;
+          }
         }
 
         console.log('User profile:', profile);
