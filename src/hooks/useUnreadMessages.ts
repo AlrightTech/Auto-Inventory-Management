@@ -47,7 +47,7 @@ export function useUnreadMessages(userId: string | null) {
 
     // Subscribe to all message changes (INSERT, UPDATE, DELETE)
     const channel = supabase
-      .channel('unread_messages')
+      .channel(`unread_messages_${userId}`)
       .on(
         'postgres_changes',
         {
@@ -57,7 +57,7 @@ export function useUnreadMessages(userId: string | null) {
           filter: `receiver_id=eq.${userId}`,
         },
         (payload) => {
-          console.log('Message change detected:', payload);
+          console.log('Message change detected for user:', userId, payload);
           fetchUnreadCount();
         }
       )

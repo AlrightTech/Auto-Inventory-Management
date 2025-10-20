@@ -351,7 +351,7 @@ export default function AdminChatPage() {
                       </CardTitle>
                       <CardDescription className="text-slate-400">
                         {selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}
-                        {selectedUser.isOnline ? ' • Online' : ` • Last seen ${selectedUser.lastSeen ? new Date(selectedUser.lastSeen).toLocaleTimeString() : 'Unknown'}`}
+                        {selectedUser.isOnline ? ' • Online' : ''}
                       </CardDescription>
                     </div>
                   </div>
