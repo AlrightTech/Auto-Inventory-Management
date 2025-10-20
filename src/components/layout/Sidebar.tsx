@@ -160,7 +160,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       )}
       
       <div className={cn(
-        "fixed lg:static inset-y-0 left-0 z-50 w-64 glass-card-strong border-r border-slate-700/50 flex flex-col transform transition-transform duration-300 ease-in-out overflow-hidden",
+        "fixed lg:static inset-y-0 left-0 z-50 w-64 glass-card-strong border-r border-slate-700/50 flex flex-col transform transition-transform duration-300 ease-in-out h-full",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Logo */}

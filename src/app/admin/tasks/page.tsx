@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TaskTable } from '@/components/tasks/TaskTable';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
-import { TaskFiltersDebug as TaskFilters } from '@/components/tasks/TaskFiltersDebug';
+import { TaskFilters } from '@/components/tasks/TaskFilters';
 import {
   CheckSquare,
   FileText,

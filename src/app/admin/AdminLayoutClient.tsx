@@ -19,14 +19,14 @@ export function AdminLayoutClient({ user, children }: AdminLayoutClientProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="grid grid-cols-12 min-h-screen">
-        {/* Sidebar - col-3 on large screens, hidden on mobile */}
-        <div className="hidden lg:block lg:col-span-3 h-screen">
+      <div className="flex h-screen">
+        {/* Sidebar - fixed width on large screens, hidden on mobile */}
+        <div className="hidden lg:block w-64 flex-shrink-0">
           <Sidebar unreadCount={unreadCount} />
         </div>
         
-        {/* Main Content - col-12 on mobile, col-9 on large screens */}
-        <div className="col-span-12 lg:col-span-9 flex flex-col min-h-screen">
+        {/* Main Content - flex-1 to take remaining space */}
+        <div className="flex-1 flex flex-col min-h-screen">
           <Header user={user} />
           <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-full">

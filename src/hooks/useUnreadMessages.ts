@@ -61,19 +61,6 @@ export function useUnreadMessages(userId: string | null) {
           fetchUnreadCount();
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_id=eq.${userId}`,
-        },
-        (payload) => {
-          console.log('Message change detected:', payload);
-          fetchUnreadCount();
-        }
-      )
       .subscribe();
 
     return () => {
