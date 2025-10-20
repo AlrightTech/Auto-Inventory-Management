@@ -101,7 +101,10 @@ export function ChatWindow({ messages, currentUserId }: ChatWindowProps) {
                     {isCurrentUser && (
                       <div className="flex items-center space-x-1">
                         {message.read ? (
-                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                          <div className="flex items-center space-x-0.5">
+                            <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                            <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                          </div>
                         ) : (
                           <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
                         )}

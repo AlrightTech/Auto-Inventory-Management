@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,14 +23,20 @@ import {
 } from '@/components/ui/dialog';
 import { eventSchema, type EventInput } from '@/lib/validations/events';
 import { Calendar, Clock, User, FileText } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { User as UserType } from '@/types';
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (eventData: Omit<EventInput, 'id' | 'created_at' | 'updated_at'>) => void;
 }
 
-export function EventModal({ isOpen, onClose }: EventModalProps) {
+export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const supabase = createClient();
 
   const {
     register,
@@ -42,17 +48,49 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
     resolver: zodResolver(eventSchema),
   });
 
+  // Load users from database
+  useEffect(() => {
+    if (isOpen) {
+      const loadUsers = async () => {
+        try {
+          setIsLoadingUsers(true);
+          const { data: usersData, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('username', { ascending: true });
 
-  const onSubmit = async (data: EventInput) => {
+          if (error) {
+            console.error('Error loading users:', error);
+            return;
+          }
+
+          if (usersData) {
+            const usersWithStatus: UserType[] = usersData.map(user => ({
+              id: user.id,
+              email: user.email || '',
+              username: user.username || user.email?.split('@')[0] || 'User',
+              role: user.role,
+              isOnline: false, // Default to false, will be updated by presence
+              lastSeen: null,
+              created_at: user.created_at,
+            }));
+            setUsers(usersWithStatus);
+          }
+        } catch (error) {
+          console.error('Error loading users:', error);
+        } finally {
+          setIsLoadingUsers(false);
+        }
+      };
+
+      loadUsers();
+    }
+  }, [isOpen, supabase]);
+
+  const handleFormSubmit = async (data: EventInput) => {
     setIsLoading(true);
     try {
-      // TODO: Implement API call to create event
-      console.log('Creating event:', data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Reset form and close modal
+      await onSubmit(data);
       reset();
       onClose();
     } catch (error) {
@@ -85,7 +123,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
             <motion.form
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              onSubmit={handleSubmit(onSubmit)}
+              onSubmit={handleSubmit(handleFormSubmit)}
               className="space-y-6"
             >
               {/* Event Title */}
@@ -147,30 +185,28 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                 </Label>
                 <Select onValueChange={(value) => setValue('assigned_to', value)}>
                   <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
-                    <SelectValue placeholder="Select user to assign this event" />
+                    <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select user to assign this event"} />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-600">
-                    <SelectItem value="admin" className="text-white hover:bg-slate-700">
-                      Admin User
-                    </SelectItem>
-                    <SelectItem value="seller1" className="text-white hover:bg-slate-700">
-                      Seller User
-                    </SelectItem>
-                    <SelectItem value="transporter1" className="text-white hover:bg-slate-700">
-                      Transporter User
-                    </SelectItem>
-                    <SelectItem value="staff1" className="text-white hover:bg-slate-700">
-                      Staff Member
-                    </SelectItem>
-                    <SelectItem value="momina" className="text-white hover:bg-slate-700">
-                      Momina
-                    </SelectItem>
-                    <SelectItem value="aftab" className="text-white hover:bg-slate-700">
-                      Aftab
-                    </SelectItem>
-                    <SelectItem value="ayesha" className="text-white hover:bg-slate-700">
-                      Ayesha Magsi
-                    </SelectItem>
+                    {isLoadingUsers ? (
+                      <SelectItem value="loading" disabled className="text-slate-400">
+                        Loading users...
+                      </SelectItem>
+                    ) : users.length === 0 ? (
+                      <SelectItem value="no-users" disabled className="text-slate-400">
+                        No users available
+                      </SelectItem>
+                    ) : (
+                      users.map((user) => (
+                        <SelectItem
+                          key={user.id}
+                          value={user.id}
+                          className="text-white hover:bg-slate-700"
+                        >
+                          {user.username} ({user.role})
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

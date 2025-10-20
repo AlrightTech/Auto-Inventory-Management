@@ -225,6 +225,15 @@ export default function AdminChatPage() {
 
     if (error) {
       console.error('Error marking messages as read:', error);
+    } else {
+      // Update local state immediately for better UX
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.sender_id === senderId && msg.receiver_id === currentUser.id && !msg.read
+            ? { ...msg, read: true }
+            : msg
+        )
+      );
     }
   };
 
@@ -234,6 +243,38 @@ export default function AdminChatPage() {
       markMessagesAsRead(selectedUser.id);
     }
   }, [selectedUser, currentUser]);
+
+  // Update messages when they are marked as read
+  useEffect(() => {
+    if (!currentUser || !selectedUser) return;
+
+    const channel = supabase
+      .channel(`messages_read_${currentUser.id}_${selectedUser.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${currentUser.id}`,
+        },
+        (payload) => {
+          const updatedMessage = payload.new as MessageWithSender;
+          if (updatedMessage.sender_id === selectedUser.id) {
+            setMessages(prevMessages => 
+              prevMessages.map(msg => 
+                msg.id === updatedMessage.id ? updatedMessage : msg
+              )
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser, selectedUser, supabase]);
 
   const handleUserSelect = (user: User) => {
     setSelectedUser(user);

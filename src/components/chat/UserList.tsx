@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
 
 import { User } from '@/types';
 
@@ -69,10 +68,8 @@ export function UserList({ users, selectedUser, onUserSelect }: UserListProps) {
                 <p className="text-sm font-medium text-white truncate">
                   {user.username}
                 </p>
-                {!user.isOnline && user.lastSeen && (
-                  <span className="text-xs text-slate-400">
-                    {formatDistanceToNow(new Date(user.lastSeen), { addSuffix: true })}
-                  </span>
+                {user.isOnline && (
+                  <span className="text-xs text-green-400">Online</span>
                 )}
               </div>
               
@@ -83,9 +80,6 @@ export function UserList({ users, selectedUser, onUserSelect }: UserListProps) {
                 >
                   {user.role}
                 </Badge>
-                {user.isOnline && (
-                  <span className="text-xs text-green-400">Online</span>
-                )}
               </div>
             </div>
           </div>
