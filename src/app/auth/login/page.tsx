@@ -47,23 +47,36 @@ export default function LoginPage() {
     setError('');
 
     try {
+      console.log('Attempting to sign in with email:', data.email);
+      
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
 
       if (authError) {
+        console.error('Authentication error:', authError);
         setError(authError.message);
         return;
       }
 
+      console.log('Authentication successful:', authData.user?.id);
+
       if (authData.user) {
         // Get user role
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', authData.user.id)
           .single();
+
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          setError('Failed to load user profile. Please try again.');
+          return;
+        }
+
+        console.log('User profile:', profile);
 
         // Redirect based on role
         if (profile?.role === 'admin') {
@@ -76,7 +89,8 @@ export default function LoginPage() {
           router.push('/');
         }
       }
-    } catch {
+    } catch (error) {
+      console.error('Unexpected error during login:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);

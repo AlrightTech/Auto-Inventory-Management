@@ -68,6 +68,16 @@ export default function ResetPasswordPage() {
 
     try {
       const supabase = createClient();
+      
+      // First, get the current session to ensure user is authenticated
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        setError('Invalid or expired reset link. Please request a new password reset.');
+        return;
+      }
+
+      // Update the password
       const { error } = await supabase.auth.updateUser({
         password: data.password
       });
@@ -77,6 +87,9 @@ export default function ResetPasswordPage() {
         return;
       }
 
+      // Sign out the user to force them to sign in with new password
+      await supabase.auth.signOut();
+      
       setIsSuccess(true);
       
       // Redirect to login after 3 seconds
@@ -121,7 +134,10 @@ export default function ResetPasswordPage() {
             <CardContent className="space-y-4">
               <div className="text-center space-y-2">
                 <p className="text-slate-400 text-sm">
-                  You can now sign in with your new password.
+                  Your password has been successfully updated. You have been signed out for security.
+                </p>
+                <p className="text-slate-400 text-sm">
+                  Please sign in with your new password.
                 </p>
                 <p className="text-slate-500 text-xs">
                   Redirecting to login page...
