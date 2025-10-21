@@ -31,61 +31,28 @@ import {
   TrendingDown,
   Plus,
   Upload,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
-// Mock sold vehicles data
-const mockSoldVehicles = [
-  {
-    id: '1',
-    vehicle: '2021 Chevrolet Silverado',
-    vin: '1GCHK29U4XZ123456',
-    purchaseDate: '2024-10-10',
-    saleDate: '2024-10-15',
-    boughtPrice: 25000,
-    soldPrice: 32000,
-    netProfit: 7000,
-    titleStatus: 'Present',
-    arbStatus: 'Absent',
-    status: 'Sold',
-    location: 'Auction',
-    buyerName: 'John Smith',
-    paymentStatus: 'Received'
-  },
-  {
-    id: '2',
-    vehicle: '2020 Ford F-150',
-    vin: '1FTFW1ET5DFC12345',
-    purchaseDate: '2024-10-09',
-    saleDate: '2024-10-14',
-    boughtPrice: 28000,
-    soldPrice: 35000,
-    netProfit: 7000,
-    titleStatus: 'Present',
-    arbStatus: 'Present',
-    status: 'ARB',
-    location: 'Shop/Mechanic',
-    buyerName: 'Sarah Johnson',
-    paymentStatus: 'Pending'
-  },
-  {
-    id: '3',
-    vehicle: '2019 Honda Civic',
-    vin: '2HGFC2F59KH123456',
-    purchaseDate: '2024-10-08',
-    saleDate: '2024-10-13',
-    boughtPrice: 18000,
-    soldPrice: 22000,
-    netProfit: 4000,
-    titleStatus: 'In Transit',
-    arbStatus: 'Present',
-    status: 'Sold',
-    location: 'Missing',
-    buyerName: 'Mike Wilson',
-    paymentStatus: 'Received'
-  },
-];
+interface SoldVehicle {
+  id: string;
+  vehicle: string;
+  vin: string;
+  purchaseDate: string;
+  saleDate: string;
+  boughtPrice: number;
+  soldPrice: number;
+  netProfit: number;
+  titleStatus: string;
+  arbStatus: string;
+  status: string;
+  location: string;
+  buyerName: string;
+  paymentStatus: string;
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -117,9 +84,36 @@ const getPaymentStatusColor = (status: string) => {
 
 export default function SoldPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [vehicles, setVehicles] = useState(mockSoldVehicles);
+  const [vehicles, setVehicles] = useState<SoldVehicle[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<SoldVehicle | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Load sold vehicles from API
+  useEffect(() => {
+    const loadSoldVehicles = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/vehicles/sold');
+        
+        if (!response.ok) {
+          throw new Error('Failed to load sold vehicles');
+        }
+        
+        const { data } = await response.json();
+        setVehicles(data || []);
+      } catch (error) {
+        console.error('Error loading sold vehicles:', error);
+        toast.error('Failed to load sold vehicles');
+        setVehicles([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSoldVehicles();
+  }, [refreshTrigger]);
 
   const filteredVehicles = vehicles.filter(vehicle =>
     vehicle.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -132,41 +126,61 @@ export default function SoldPage() {
   const totalProfit = vehicles.reduce((sum, vehicle) => sum + vehicle.netProfit, 0);
   const avgPrice = vehicles.length > 0 ? totalSales / vehicles.length : 0;
 
-  const handleStatusChange = (vehicleId: string, newStatus: string) => {
-    setVehicles(prev => prev.map(vehicle => 
-      vehicle.id === vehicleId 
-        ? { ...vehicle, status: newStatus }
-        : vehicle
-    ));
+  const handleStatusChange = async (vehicleId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/vehicles/${vehicleId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update vehicle status');
+      }
+
+      // Refresh the data
+      setRefreshTrigger(prev => prev + 1);
+      toast.success('Vehicle status updated successfully');
+    } catch (error) {
+      console.error('Error updating vehicle status:', error);
+      toast.error('Failed to update vehicle status');
+    }
   };
 
-  const handlePriceChange = (vehicleId: string, field: 'soldPrice' | 'boughtPrice', value: string) => {
+  const handlePriceChange = async (vehicleId: string, field: 'soldPrice' | 'boughtPrice', value: string) => {
     const numValue = parseFloat(value) || 0;
-    setVehicles(prev => prev.map(vehicle => {
-      if (vehicle.id === vehicleId) {
-        const updatedVehicle = { ...vehicle, [field]: numValue };
-        // Recalculate net profit
-        updatedVehicle.netProfit = updatedVehicle.soldPrice - updatedVehicle.boughtPrice;
-        return updatedVehicle;
+    const updateField = field === 'soldPrice' ? 'sold_price' : 'bought_price';
+    
+    try {
+      const response = await fetch(`/api/vehicles/${vehicleId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [updateField]: numValue }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update vehicle price');
       }
-      return vehicle;
-    }));
+
+      // Refresh the data
+      setRefreshTrigger(prev => prev + 1);
+      toast.success('Vehicle price updated successfully');
+    } catch (error) {
+      console.error('Error updating vehicle price:', error);
+      toast.error('Failed to update vehicle price');
+    }
   };
 
   const handleMoveToARB = (vehicleId: string) => {
-    setVehicles(prev => prev.map(vehicle => 
-      vehicle.id === vehicleId 
-        ? { ...vehicle, status: 'ARB' }
-        : vehicle
-    ));
+    handleStatusChange(vehicleId, 'ARB');
   };
 
   const handleMoveToWithdrew = (vehicleId: string) => {
-    setVehicles(prev => prev.map(vehicle => 
-      vehicle.id === vehicleId 
-        ? { ...vehicle, status: 'Withdrew' }
-        : vehicle
-    ));
+    handleStatusChange(vehicleId, 'Withdrew');
   };
 
   return (
@@ -178,10 +192,10 @@ export default function SoldPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white glow-text">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white glow-text">
             Sold Vehicles
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             Track sold vehicles, profit calculations, and payment status.
           </p>
         </div>
@@ -193,7 +207,7 @@ export default function SoldPage() {
             <Plus className="w-4 h-4 mr-2" />
             Add Vehicle
           </Button>
-          <Button variant="outline" className="border-slate-600 text-slate-300">
+          <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
@@ -207,16 +221,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-card border-slate-700/50">
+          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-300">Total Sales</p>
-                  <p className="text-3xl font-bold text-white">
-                    ${totalSales.toLocaleString()}
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Sales</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${totalSales.toLocaleString()}`}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-400" />
+                <DollarSign className="h-8 w-8 text-green-500 dark:text-green-400" />
               </div>
             </CardContent>
           </Card>
@@ -227,16 +241,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="glass-card border-slate-700/50">
+          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-300">Total Purchases</p>
-                  <p className="text-3xl font-bold text-white">
-                    ${totalPurchases.toLocaleString()}
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Purchases</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${totalPurchases.toLocaleString()}`}
                   </p>
                 </div>
-                <TrendingDown className="h-8 w-8 text-red-400" />
+                <TrendingDown className="h-8 w-8 text-red-500 dark:text-red-400" />
               </div>
             </CardContent>
           </Card>
@@ -247,16 +261,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-card border-slate-700/50">
+          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-300">Net Profit</p>
-                  <p className={`text-3xl font-bold ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    ${totalProfit.toLocaleString()}
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Net Profit</p>
+                  <p className={`text-3xl font-bold ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${totalProfit.toLocaleString()}`}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-blue-400" />
+                <TrendingUp className="h-8 w-8 text-blue-500 dark:text-blue-400" />
               </div>
             </CardContent>
           </Card>
@@ -267,16 +281,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="glass-card border-slate-700/50">
+          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-300">Avg Price</p>
-                  <p className="text-3xl font-bold text-white">
-                    ${avgPrice.toLocaleString()}
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Avg Price</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${avgPrice.toLocaleString()}`}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-purple-400" />
+                <DollarSign className="h-8 w-8 text-purple-500 dark:text-purple-400" />
               </div>
             </CardContent>
           </Card>
@@ -293,12 +307,12 @@ export default function SoldPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                 <Input
                   placeholder="Search by vehicle, VIN, or buyer..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  className="pl-9 bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                 />
               </div>
             </div>
@@ -314,24 +328,41 @@ export default function SoldPage() {
       >
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-white">Sold Vehicles ({filteredVehicles.length})</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-slate-900 dark:text-white">Sold Vehicles ({filteredVehicles.length})</CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-400">
               Manage sold vehicles and track financial performance
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                <span className="ml-2 text-slate-600 dark:text-slate-400">Loading sold vehicles...</span>
+              </div>
+            ) : filteredVehicles.length === 0 ? (
+              <div className="text-center py-12">
+                <DollarSign className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-400 mb-2">No sold vehicles yet</h3>
+                <p className="text-slate-500 dark:text-slate-500">
+                  {vehicles.length === 0 
+                    ? "No vehicles have been marked as sold. Add vehicles to your inventory and mark them as sold to see them here."
+                    : "No vehicles match your search criteria. Try adjusting your search terms."
+                  }
+                </p>
+              </div>
+            ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-700/50">
-                  <TableHead className="text-slate-300">Vehicle</TableHead>
-                  <TableHead className="text-slate-300">Purchase Date</TableHead>
-                  <TableHead className="text-slate-300">Sale Date</TableHead>
-                  <TableHead className="text-slate-300">Bought Price</TableHead>
-                  <TableHead className="text-slate-300">Sold Price</TableHead>
-                  <TableHead className="text-slate-300">Net Profit</TableHead>
-                  <TableHead className="text-slate-300">Status</TableHead>
-                  <TableHead className="text-slate-300">Payment</TableHead>
-                  <TableHead className="text-slate-300">Actions</TableHead>
+                  <TableRow className="border-slate-200 dark:border-slate-700/50">
+                    <TableHead className="text-slate-700 dark:text-slate-300">Vehicle</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Purchase Date</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Sale Date</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Bought Price</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Sold Price</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Net Profit</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Status</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Payment</TableHead>
+                    <TableHead className="text-slate-700 dark:text-slate-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -341,19 +372,19 @@ export default function SoldPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="border-slate-700/50 hover:bg-slate-800/30 transition-colors"
+                    className="border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/30 transition-colors"
                   >
-                    <TableCell className="text-white">
+                    <TableCell className="text-slate-900 dark:text-white">
                       <div>
                         <div className="font-medium">{vehicle.vehicle}</div>
-                        <div className="text-sm text-slate-400">VIN: {vehicle.vin}</div>
-                        <div className="text-sm text-slate-400">Buyer: {vehicle.buyerName}</div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400">VIN: {vehicle.vin}</div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400">Buyer: {vehicle.buyerName}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-slate-300">
+                    <TableCell className="text-slate-700 dark:text-slate-300">
                       {new Date(vehicle.purchaseDate).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="text-slate-300">
+                    <TableCell className="text-slate-700 dark:text-slate-300">
                       {new Date(vehicle.saleDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
@@ -361,7 +392,7 @@ export default function SoldPage() {
                         type="number"
                         value={vehicle.boughtPrice}
                         onChange={(e) => handlePriceChange(vehicle.id, 'boughtPrice', e.target.value)}
-                        className="w-24 bg-slate-800 border-slate-600 text-white"
+                        className="w-24 bg-white/50 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
                       />
                     </TableCell>
                     <TableCell>
@@ -369,10 +400,10 @@ export default function SoldPage() {
                         type="number"
                         value={vehicle.soldPrice}
                         onChange={(e) => handlePriceChange(vehicle.id, 'soldPrice', e.target.value)}
-                        className="w-24 bg-slate-800 border-slate-600 text-white"
+                        className="w-24 bg-white/50 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
                       />
                     </TableCell>
-                    <TableCell className={`font-bold ${vehicle.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <TableCell className={`font-bold ${vehicle.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       ${vehicle.netProfit.toLocaleString()}
                     </TableCell>
                     <TableCell>
@@ -397,34 +428,34 @@ export default function SoldPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedVehicle(vehicle)}
-                          className="border-slate-600 text-slate-300"
+                          className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
                         >
                           <Upload className="w-4 h-4" />
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="border-slate-600 text-slate-300">
+                            <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="bg-slate-800 border-slate-600">
+                          <DropdownMenuContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600">
                             <DropdownMenuItem
                               onClick={() => handleMoveToARB(vehicle.id)}
-                              className="text-slate-300 hover:bg-slate-700"
+                              className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                               Move to ARB
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleMoveToWithdrew(vehicle.id)}
-                              className="text-slate-300 hover:bg-slate-700"
+                              className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                               Mark as Withdrew
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-slate-300 hover:bg-slate-700">
+                            <DropdownMenuItem className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-slate-300 hover:bg-slate-700">
+                            <DropdownMenuItem className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
                               <FileText className="w-4 h-4 mr-2" />
                               Add Notes
                             </DropdownMenuItem>
@@ -436,6 +467,7 @@ export default function SoldPage() {
                 ))}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
       </motion.div>

@@ -162,11 +162,11 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       )}
       
       <div className={cn(
-        "fixed lg:static inset-y-0 left-0 z-50 w-64 glass-card-strong border-r border-slate-700/50 flex flex-col transform transition-transform duration-300 ease-in-out h-full",
+        "fixed lg:static inset-y-0 left-0 z-50 w-64 glass-card-strong border-r border-slate-200/50 dark:border-slate-700/50 flex flex-col transform transition-transform duration-300 ease-in-out h-full",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Logo */}
-        <div className="p-6 border-b border-slate-700/50 flex-shrink-0">
+        <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 flex-shrink-0">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -176,8 +176,8 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
               <Car className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white glow-text">Auto Inventory</h1>
-              <p className="text-xs text-slate-400">Dashboard</p>
+              <h1 className="text-lg font-bold text-slate-900 dark:text-white glow-text">Auto Inventory</h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Dashboard</p>
             </div>
           </motion.div>
         </div>
@@ -196,10 +196,10 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                 <button
                   onClick={() => toggleExpanded(item.name)}
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-slate-700/50",
+                    "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-700/50",
                     isParentActive(item.children)
-                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                      : "text-slate-300 hover:text-white"
+                      ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30"
+                      : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   )}
                 >
                   <div className="flex items-center space-x-3">
@@ -226,10 +226,10 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                           key={child.name}
                           href={child.href}
                           className={cn(
-                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200 hover:bg-slate-700/50",
+                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-700/50",
                             isActive(child.href)
-                              ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                              : "text-slate-400 hover:text-white"
+                              ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30"
+                              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                           )}
                         >
                           {child.name}
@@ -243,10 +243,10 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
               <Link
                 href={item.href!}
                 className={cn(
-                  "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-slate-700/50",
+                  "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-700/50",
                   isActive(item.href!)
-                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/30 glow-border"
-                    : "text-slate-300 hover:text-white"
+                    ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 glow-border"
+                    : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 )}
               >
                 <div className="flex items-center space-x-3">
@@ -265,8 +265,8 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-700/50 flex-shrink-0">
-          <div className="text-xs text-slate-500 text-center">
+        <div className="p-4 border-t border-slate-200/50 dark:border-slate-700/50 flex-shrink-0">
+          <div className="text-xs text-slate-500 dark:text-slate-500 text-center">
             <p>Auto Inventory v1.0</p>
             <p className="mt-1">© 2024 All rights reserved</p>
           </div>

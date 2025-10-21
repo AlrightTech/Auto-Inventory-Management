@@ -7,7 +7,34 @@
 @import "@fontsource/poppins/600.css";
 
 :root {
-  /* Futuristic Dark Theme */
+  /* Light Theme */
+  --background: 0 0% 100%; /* White */
+  --foreground: 0 0% 3.9%;
+  --primary: 199 89% 48%; /* Electric blue */
+  --primary-foreground: 0 0% 98%;
+  --primary-glow: 199 89% 48% / 0.2;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 96.1%;
+  --ring: 199 89% 48%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.75rem;
+  
+  /* Font variables */
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-poppins: 'Poppins', system-ui, sans-serif;
+}
+
+.dark {
+  /* Dark Theme */
   --background: 0 0% 5%; /* Deep black */
   --foreground: 0 0% 95%;
   --primary: 199 89% 48%; /* Electric blue */
@@ -26,11 +53,6 @@
   --accent-foreground: 0 0% 90%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --radius: 0.75rem;
-  
-  /* Font variables */
-  --font-inter: 'Inter', system-ui, sans-serif;
-  --font-poppins: 'Poppins', system-ui, sans-serif;
 }
 
 * {
@@ -46,17 +68,11 @@ body {
 
 /* Glassmorphism utility classes */
 .glass-card {
-  background: rgba(15, 15, 25, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  @apply bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl;
 }
 
 .glass-card-strong {
-  background: rgba(15, 15, 25, 0.8);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/30 dark:border-white/15 rounded-2xl;
 }
 
 /* Glow effects */
@@ -78,7 +94,7 @@ body {
 }
 
 .gradient-card {
-  background: linear-gradient(135deg, rgba(15, 15, 25, 0.8) 0%, rgba(25, 25, 35, 0.6) 100%);
+  @apply bg-gradient-to-br from-white/80 to-gray-100/60 dark:from-slate-900/80 dark:to-slate-800/60;
 }
 
 /* Custom scrollbar */

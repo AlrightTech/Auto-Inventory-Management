@@ -126,3 +126,6 @@ export interface FileUploadResult {
   data?: any;
   errors?: string[];
 }
+
+
+

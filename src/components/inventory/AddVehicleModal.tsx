@@ -190,7 +190,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className="glass-card border-slate-700/50 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="glass-card border-slate-200/50 dark:border-slate-700/50 max-w-4xl max-h-[90vh] overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -198,11 +198,11 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
               transition={{ duration: 0.2 }}
             >
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-white glow-text flex items-center">
+                <DialogTitle className="text-2xl font-bold text-slate-900 dark:text-white glow-text flex items-center">
                   <Car className="w-6 h-6 mr-2" />
                   Add New Vehicle
                 </DialogTitle>
-                <DialogDescription className="text-slate-400">
+                <DialogDescription className="text-slate-600 dark:text-slate-400">
                   Add a new vehicle to your inventory with complete details and tracking information.
                 </DialogDescription>
               </DialogHeader>
@@ -210,46 +210,46 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6 max-h-[70vh] overflow-y-auto">
                 {/* Vehicle Basic Information */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
                     Vehicle Information
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Make */}
                     <div className="space-y-2">
-                      <Label htmlFor="make" className="text-slate-300">
+                      <Label htmlFor="make" className="text-slate-700 dark:text-slate-300">
                         Make *
                       </Label>
                       <Input
                         id="make"
                         placeholder="e.g., Chevrolet"
                         {...register('make')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.make && (
-                        <p className="text-red-400 text-sm">{errors.make.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.make.message}</p>
                       )}
                     </div>
 
                     {/* Model */}
                     <div className="space-y-2">
-                      <Label htmlFor="model" className="text-slate-300">
+                      <Label htmlFor="model" className="text-slate-700 dark:text-slate-300">
                         Model *
                       </Label>
                       <Input
                         id="model"
                         placeholder="e.g., Silverado"
                         {...register('model')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.model && (
-                        <p className="text-red-400 text-sm">{errors.model.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.model.message}</p>
                       )}
                     </div>
 
                     {/* Year */}
                     <div className="space-y-2">
-                      <Label htmlFor="year" className="text-slate-300">
+                      <Label htmlFor="year" className="text-slate-700 dark:text-slate-300">
                         Year *
                       </Label>
                       <Input
@@ -257,10 +257,10 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         type="number"
                         placeholder="2021"
                         {...register('year', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.year && (
-                        <p className="text-red-400 text-sm">{errors.year.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.year.message}</p>
                       )}
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* VIN */}
                     <div className="space-y-2">
-                      <Label htmlFor="vin" className="text-slate-300">
+                      <Label htmlFor="vin" className="text-slate-700 dark:text-slate-300">
                         VIN Number
                       </Label>
                       <Input
@@ -276,29 +276,29 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         placeholder="17-character VIN (optional)"
                         maxLength={17}
                         {...register('vin')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.vin && (
-                        <p className="text-red-400 text-sm">{errors.vin.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.vin.message}</p>
                       )}
                     </div>
 
                     {/* Trim */}
                     <div className="space-y-2">
-                      <Label htmlFor="trim" className="text-slate-300">
+                      <Label htmlFor="trim" className="text-slate-700 dark:text-slate-300">
                         Trim
                       </Label>
                       <Input
                         id="trim"
                         placeholder="e.g., LT, XLT"
                         {...register('trim')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Odometer */}
                     <div className="space-y-2">
-                      <Label htmlFor="odometer" className="text-slate-300">
+                      <Label htmlFor="odometer" className="text-slate-700 dark:text-slate-300">
                         Odometer (miles)
                       </Label>
                       <Input
@@ -306,10 +306,10 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         type="number"
                         placeholder="45000"
                         {...register('odometer', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.odometer && (
-                        <p className="text-red-400 text-sm">{errors.odometer.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.odometer.message}</p>
                       )}
                     </div>
                   </div>
@@ -317,27 +317,27 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Exterior Color */}
                     <div className="space-y-2">
-                      <Label htmlFor="exterior_color" className="text-slate-300">
+                      <Label htmlFor="exterior_color" className="text-slate-700 dark:text-slate-300">
                         Exterior Color
                       </Label>
                       <Input
                         id="exterior_color"
                         placeholder="e.g., Blue, White, Black"
                         {...register('exterior_color')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Interior Color */}
                     <div className="space-y-2">
-                      <Label htmlFor="interior_color" className="text-slate-300">
+                      <Label htmlFor="interior_color" className="text-slate-700 dark:text-slate-300">
                         Interior Color
                       </Label>
                       <Input
                         id="interior_color"
                         placeholder="e.g., Black, Gray, Beige"
                         {...register('interior_color')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
                   </div>
@@ -352,7 +352,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="status" className="text-slate-300">
+                      <Label htmlFor="status" className="text-slate-700 dark:text-slate-300">
                         Status *
                       </Label>
                       <Select onValueChange={(value) => setValue('status', value)}>
@@ -368,13 +368,13 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         </SelectContent>
                       </Select>
                       {errors.status && (
-                        <p className="text-red-400 text-sm">{errors.status.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.status.message}</p>
                       )}
                     </div>
 
                     {/* Title Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="title_status" className="text-slate-300">
+                      <Label htmlFor="title_status" className="text-slate-700 dark:text-slate-300">
                         Title Status
                       </Label>
                       <Select onValueChange={(value) => setValue('title_status', value as 'Present' | 'Absent')}>
@@ -387,13 +387,13 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         </SelectContent>
                       </Select>
                       {errors.title_status && (
-                        <p className="text-red-400 text-sm">{errors.title_status.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.title_status.message}</p>
                       )}
                     </div>
 
                     {/* Sale Invoice Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="sale_invoice_status" className="text-slate-300">
+                      <Label htmlFor="sale_invoice_status" className="text-slate-700 dark:text-slate-300">
                         Sale Invoice Status
                       </Label>
                       <Select onValueChange={(value) => setValue('sale_invoice_status', value as 'PAID' | 'UNPAID')}>
@@ -406,7 +406,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         </SelectContent>
                       </Select>
                       {errors.sale_invoice_status && (
-                        <p className="text-red-400 text-sm">{errors.sale_invoice_status.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.sale_invoice_status.message}</p>
                       )}
                     </div>
                   </div>
@@ -414,7 +414,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Bought Price */}
                     <div className="space-y-2">
-                      <Label htmlFor="bought_price" className="text-slate-300">
+                      <Label htmlFor="bought_price" className="text-slate-700 dark:text-slate-300">
                         Bought Price ($)
                       </Label>
                       <Input
@@ -423,16 +423,16 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         step="0.01"
                         placeholder="25000.00"
                         {...register('bought_price', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.bought_price && (
-                        <p className="text-red-400 text-sm">{errors.bought_price.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.bought_price.message}</p>
                       )}
                     </div>
 
                     {/* Buy Fee */}
                     <div className="space-y-2">
-                      <Label htmlFor="buy_fee" className="text-slate-300">
+                      <Label htmlFor="buy_fee" className="text-slate-700 dark:text-slate-300">
                         Buy Fee ($)
                       </Label>
                       <Input
@@ -441,16 +441,16 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         step="0.01"
                         placeholder="735.00"
                         {...register('buy_fee', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.buy_fee && (
-                        <p className="text-red-400 text-sm">{errors.buy_fee.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.buy_fee.message}</p>
                       )}
                     </div>
 
                     {/* Other Charges */}
                     <div className="space-y-2">
-                      <Label htmlFor="other_charges" className="text-slate-300">
+                      <Label htmlFor="other_charges" className="text-slate-700 dark:text-slate-300">
                         Other Charges ($)
                       </Label>
                       <Input
@@ -459,10 +459,10 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         step="0.01"
                         placeholder="0.00"
                         {...register('other_charges', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.other_charges && (
-                        <p className="text-red-400 text-sm">{errors.other_charges.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.other_charges.message}</p>
                       )}
                     </div>
                   </div>
@@ -477,7 +477,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Sale Date */}
                     <div className="space-y-2">
-                      <Label className="text-slate-300">Sale Date</Label>
+                      <Label className="text-slate-700 dark:text-slate-300">Sale Date</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -502,7 +502,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Lane */}
                     <div className="space-y-2">
-                      <Label htmlFor="lane" className="text-slate-300">
+                      <Label htmlFor="lane" className="text-slate-700 dark:text-slate-300">
                         Lane
                       </Label>
                       <Input
@@ -510,16 +510,16 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         type="number"
                         placeholder="74"
                         {...register('lane', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.lane && (
-                        <p className="text-red-400 text-sm">{errors.lane.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.lane.message}</p>
                       )}
                     </div>
 
                     {/* Run */}
                     <div className="space-y-2">
-                      <Label htmlFor="run" className="text-slate-300">
+                      <Label htmlFor="run" className="text-slate-700 dark:text-slate-300">
                         Run
                       </Label>
                       <Input
@@ -527,10 +527,10 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         type="number"
                         placeholder="71"
                         {...register('run', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                       {errors.run && (
-                        <p className="text-red-400 text-sm">{errors.run.message}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.run.message}</p>
                       )}
                     </div>
                   </div>
@@ -545,27 +545,27 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Facilitating Location */}
                     <div className="space-y-2">
-                      <Label htmlFor="facilitating_location" className="text-slate-300">
+                      <Label htmlFor="facilitating_location" className="text-slate-700 dark:text-slate-300">
                         Facilitating Location
                       </Label>
                       <Input
                         id="facilitating_location"
                         placeholder="Manheim Dallas"
                         {...register('facilitating_location')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Vehicle Location */}
                     <div className="space-y-2">
-                      <Label htmlFor="vehicle_location" className="text-slate-300">
+                      <Label htmlFor="vehicle_location" className="text-slate-700 dark:text-slate-300">
                         Vehicle Location
                       </Label>
                       <Input
                         id="vehicle_location"
                         placeholder="Manheim Dallas"
                         {...register('vehicle_location')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
                   </div>
@@ -573,27 +573,27 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Pickup Address */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_address1" className="text-slate-300">
+                      <Label htmlFor="pickup_location_address1" className="text-slate-700 dark:text-slate-300">
                         Pickup Address
                       </Label>
                       <Input
                         id="pickup_location_address1"
                         placeholder="5333 W Kiest Blvd"
                         {...register('pickup_location_address1')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Pickup City */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_city" className="text-slate-300">
+                      <Label htmlFor="pickup_location_city" className="text-slate-700 dark:text-slate-300">
                         Pickup City
                       </Label>
                       <Input
                         id="pickup_location_city"
                         placeholder="Dallas"
                         {...register('pickup_location_city')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
                   </div>
@@ -601,40 +601,40 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Pickup State */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_state" className="text-slate-300">
+                      <Label htmlFor="pickup_location_state" className="text-slate-700 dark:text-slate-300">
                         Pickup State
                       </Label>
                       <Input
                         id="pickup_location_state"
                         placeholder="TX"
                         {...register('pickup_location_state')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Pickup Zip */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_zip" className="text-slate-300">
+                      <Label htmlFor="pickup_location_zip" className="text-slate-700 dark:text-slate-300">
                         Pickup Zip
                       </Label>
                       <Input
                         id="pickup_location_zip"
                         placeholder="75236-1055"
                         {...register('pickup_location_zip')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Pickup Phone */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_phone" className="text-slate-300">
+                      <Label htmlFor="pickup_location_phone" className="text-slate-700 dark:text-slate-300">
                         Pickup Phone
                       </Label>
                       <Input
                         id="pickup_location_phone"
                         placeholder="(214) 330-1800"
                         {...register('pickup_location_phone')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
                   </div>
@@ -649,27 +649,27 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Seller Name */}
                     <div className="space-y-2">
-                      <Label htmlFor="seller_name" className="text-slate-300">
+                      <Label htmlFor="seller_name" className="text-slate-700 dark:text-slate-300">
                         Seller Name
                       </Label>
                       <Input
                         id="seller_name"
                         placeholder="HILEY SUBARU OF FORT WORTH"
                         {...register('seller_name')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Buyer Dealership */}
                     <div className="space-y-2">
-                      <Label htmlFor="buyer_dealership" className="text-slate-300">
+                      <Label htmlFor="buyer_dealership" className="text-slate-700 dark:text-slate-300">
                         Buyer Dealership
                       </Label>
                       <Input
                         id="buyer_dealership"
                         placeholder="AUTO PLANET"
                         {...register('buyer_dealership')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
                   </div>
@@ -677,39 +677,39 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Buyer Contact Name */}
                     <div className="space-y-2">
-                      <Label htmlFor="buyer_contact_name" className="text-slate-300">
+                      <Label htmlFor="buyer_contact_name" className="text-slate-700 dark:text-slate-300">
                         Buyer Contact Name
                       </Label>
                       <Input
                         id="buyer_contact_name"
                         placeholder="MIAD KARIMI"
                         {...register('buyer_contact_name')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
 
                     {/* Buyer AA ID */}
                     <div className="space-y-2">
-                      <Label htmlFor="buyer_aa_id" className="text-slate-300">
+                      <Label htmlFor="buyer_aa_id" className="text-slate-700 dark:text-slate-300">
                         Buyer AA ID
                       </Label>
                       <Input
                         id="buyer_aa_id"
                         placeholder="****"
                         {...register('buyer_aa_id')}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end space-x-3 pt-4 border-t border-slate-700/50">
+                <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700/50">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
+                    className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Cancel

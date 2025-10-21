@@ -133,3 +133,6 @@ CREATE TRIGGER calculate_vehicle_costs_trigger
   BEFORE INSERT OR UPDATE ON vehicles
   FOR EACH ROW
   EXECUTE FUNCTION calculate_total_vehicle_cost();
+
+
+

@@ -147,7 +147,7 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -165,10 +165,10 @@ function LoginPageContent() {
               <Car className="w-8 h-8 text-white" />
             </motion.div>
             <div>
-              <CardTitle className="text-2xl font-bold text-white glow-text">
+              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white glow-text">
                 Auto Inventory
               </CardTitle>
-              <CardDescription className="text-slate-300">
+              <CardDescription className="text-slate-600 dark:text-slate-300">
                 Sign in to your account
               </CardDescription>
             </div>
@@ -176,23 +176,23 @@ function LoginPageContent() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-200">
+                <Label htmlFor="email" className="text-slate-700 dark:text-slate-200">
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-red-400 text-sm">{errors.email.message}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.email.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-200">
+                <Label htmlFor="password" className="text-slate-700 dark:text-slate-200">
                   Password
                 </Label>
                 <div className="relative">
@@ -200,19 +200,19 @@ function LoginPageContent() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
+                    className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
                     {...register('password')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-400 text-sm">{errors.password.message}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.password.message}</p>
                 )}
               </div>
 
@@ -220,7 +220,7 @@ function LoginPageContent() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm"
+                  className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm"
                 >
                   {error}
                 </motion.div>
@@ -230,7 +230,7 @@ function LoginPageContent() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm"
+                  className="p-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg text-green-600 dark:text-green-400 text-sm"
                 >
                   {success}
                 </motion.div>
@@ -250,16 +250,16 @@ function LoginPageContent() {
                 {/* Hide forgot password link for Admin after detecting role post-login; show here unconditionally for UI consistency. */}
                 <Link
                   href="/auth/forgot-password"
-                  className="text-blue-400 hover:text-blue-300 transition-colors font-medium text-sm"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium text-sm"
                 >
                   Forgot your password?
                 </Link>
               </div>
-              <p className="text-slate-400 text-sm">
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
                 Don&apos;t have an account?{' '}
                 <Link
                   href="/auth/register"
-                  className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
                 >
                   Sign up
                 </Link>
@@ -275,7 +275,7 @@ function LoginPageContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
     }>
