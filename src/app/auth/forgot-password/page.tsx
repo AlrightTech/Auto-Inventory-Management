@@ -57,6 +57,18 @@ export default function ForgotPasswordPage() {
     setError('');
 
     try {
+      // Disallow Admin role from using email reset flow
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('email', data.email)
+        .single();
+
+      if (!profileError && profile?.role === 'admin') {
+        setError('Admins must change password from Profile settings.');
+        return;
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });

@@ -24,6 +24,7 @@ import {
   ShoppingCart,
   User,
   TrendingUp,
+  Users,
 } from 'lucide-react';
 
 const defaultNavigation = [
@@ -81,13 +82,14 @@ const defaultNavigation = [
     icon: Car,
   },
   {
+    name: 'User Management',
+    href: '/admin/users',
+    icon: Users,
+  },
+  {
     name: 'Settings',
+    href: '/admin/settings',
     icon: Settings,
-    children: [
-      { name: 'My Account', href: '/admin/settings' },
-      { name: 'Staff', href: '/admin/settings/staff' },
-      { name: 'Transporter', href: '/admin/settings/transporter' },
-    ],
   },
 ];
 

@@ -77,6 +77,20 @@ export default function ResetPasswordPage() {
         return;
       }
 
+      // If the current user is an Admin, prevent reset via email link
+      const userEmail = session.user.email;
+      if (userEmail) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        if (profile?.role === 'admin') {
+          setError('Admins must change password from Profile settings.');
+          return;
+        }
+      }
+
       // Update the password
       const { error } = await supabase.auth.updateUser({
         password: data.password

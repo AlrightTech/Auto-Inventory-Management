@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ProfileForm } from '@/components/profile/ProfileForm';
 import { User, Shield, Users } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -95,6 +96,9 @@ export default function SettingsPage() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Profile editor */}
+      <ProfileForm role={'admin'} />
     </div>
   );
 }

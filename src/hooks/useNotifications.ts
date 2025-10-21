@@ -10,37 +10,51 @@ export function useNotifications(userId: string | null) {
   useEffect(() => {
     if (!userId) return;
 
-    // Subscribe to new messages
-    const channel = supabase
-      .channel('notifications')
+    // Combine messages, tasks, and events subscriptions into one channel
+    const channel = supabase.channel(`notifications_${userId}`)
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_id=eq.${userId}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userId}` },
         (payload) => {
-          const newMessage = payload.new;
-          
-          // Create notification
-          const notification = {
-            id: `msg_${newMessage.id}`,
+          const m = payload.new as any;
+          pushNotification({
+            id: `msg_${m.id}`,
             type: 'message',
             title: 'New Message',
-            message: `You received a new message`,
+            message: 'You received a new message',
             timestamp: new Date().toISOString(),
-            read: false,
-          };
-
-          setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Keep only 10 notifications
-          
-          // Show browser notification if permission granted
-          if (Notification.permission === 'granted') {
-            new Notification('New Message', {
-              body: 'You received a new message',
-              icon: '/favicon.ico',
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'tasks' },
+        (payload) => {
+          const t = payload.new as any;
+          // If assigned_to matches user, notify
+          if (t.assigned_to === userId) {
+            pushNotification({
+              id: `task_${t.id}`,
+              type: 'task',
+              title: 'New Task Assigned',
+              message: t.task_name || 'A new task was assigned to you',
+              timestamp: new Date().toISOString(),
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'events' },
+        (payload) => {
+          const e = payload.new as any;
+          if (e.assigned_to === userId) {
+            pushNotification({
+              id: `event_${e.id}`,
+              type: 'event',
+              title: 'New Event Scheduled',
+              message: e.title || 'You have a new event',
+              timestamp: new Date().toISOString(),
             });
           }
         }
@@ -56,6 +70,13 @@ export function useNotifications(userId: string | null) {
       supabase.removeChannel(channel);
     };
   }, [userId, supabase]);
+
+  const pushNotification = (n: { id: string; type: string; title: string; message: string; timestamp: string }) => {
+    setNotifications(prev => [{ ...n, read: false }, ...prev.slice(0, 9)]);
+    if (typeof window !== 'undefined' && Notification.permission === 'granted') {
+      new Notification(n.title, { body: n.message, icon: '/favicon.ico' });
+    }
+  };
 
   const markAsRead = (notificationId: string) => {
     setNotifications(prev => 

@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { AddVehicleModal } from '@/components/inventory/AddVehicleModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
-import { Plus, Car, AlertTriangle, MapPin } from 'lucide-react';
+import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Upload, Download, FileText } from 'lucide-react';
 
 export default function InventoryPage() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
@@ -93,11 +94,56 @@ export default function InventoryPage() {
         </motion.div>
       </div>
 
-      {/* Vehicle Table */}
+      {/* Search and Filters */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
+      >
+        <Card className="glass-card">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search by make, model, or VIN..."
+                    className="pl-9 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  />
+                </div>
+                <Button variant="outline" className="border-slate-600 text-slate-300">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filter
+                </Button>
+                <Button variant="outline" className="border-slate-600 text-slate-300">
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" className="border-slate-600 text-slate-300">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import CSV
+                </Button>
+                <Button variant="outline" className="border-slate-600 text-slate-300">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+                <Button variant="outline" className="border-slate-600 text-slate-300">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export PDF
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Vehicle Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
       >
         <VehicleTable />
       </motion.div>

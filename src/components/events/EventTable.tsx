@@ -50,7 +50,6 @@ export function EventTable({ events, onViewDetails, onEditEvent, onDeleteEvent }
             <tr className="border-b border-slate-700/50">
               <th className="text-left p-4 text-slate-300 font-medium">Event Date</th>
               <th className="text-left p-4 text-slate-300 font-medium">Event</th>
-              <th className="text-left p-4 text-slate-300 font-medium">Time</th>
               <th className="text-left p-4 text-slate-300 font-medium">User Name</th>
               <th className="text-left p-4 text-slate-300 font-medium">Status</th>
               <th className="text-left p-4 text-slate-300 font-medium">Actions</th>
@@ -79,14 +78,6 @@ export function EventTable({ events, onViewDetails, onEditEvent, onDeleteEvent }
                   <td className="p-4">
                     <div className="text-white font-medium">
                       {event.title}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-300">
-                        {formatTime(event.event_time)}
-                      </span>
                     </div>
                   </td>
                   <td className="p-4">

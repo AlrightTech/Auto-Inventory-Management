@@ -20,6 +20,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const router = useRouter();
   
   const {
@@ -51,7 +52,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      // Sign up user
+      // Sign up user with email confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -59,7 +60,8 @@ export default function RegisterPage() {
           data: {
             role: data.role,
             username: data.username,
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth/confirm`
         }
       });
 
@@ -97,7 +99,7 @@ export default function RegisterPage() {
           }
         } else {
           // Email confirmation required
-          setError('Please check your email for verification link before signing in.');
+          setSuccess('Registration successful! Please check your email for a verification link. Click the link to activate your account before signing in.');
         }
       }
     } catch {
@@ -251,6 +253,16 @@ export default function RegisterPage() {
                   className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm"
                 >
                   {error}
+                </motion.div>
+              )}
+
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm"
+                >
+                  {success}
                 </motion.div>
               )}
 

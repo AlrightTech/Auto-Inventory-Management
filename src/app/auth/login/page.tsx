@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
@@ -18,7 +18,17 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for success messages from URL parameters
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message === 'email_confirmed') {
+      setSuccess('Email confirmed successfully! You can now sign in.');
+    }
+  }, [searchParams]);
   
   const {
     register,
@@ -56,7 +66,15 @@ export default function LoginPage() {
 
       if (authError) {
         console.error('Authentication error:', authError);
-        setError(authError.message);
+        
+        // Handle specific error cases
+        if (authError.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the verification link before signing in.');
+        } else if (authError.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else {
+          setError(authError.message);
+        }
         return;
       }
 
@@ -208,6 +226,16 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm"
+                >
+                  {success}
+                </motion.div>
+              )}
+
               <Button
                 type="submit"
                 disabled={isLoading}
@@ -219,6 +247,7 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center space-y-3">
               <div>
+                {/* Hide forgot password link for Admin after detecting role post-login; show here unconditionally for UI consistency. */}
                 <Link
                   href="/auth/forgot-password"
                   className="text-blue-400 hover:text-blue-300 transition-colors font-medium text-sm"

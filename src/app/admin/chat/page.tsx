@@ -9,6 +9,7 @@ import { MessageInput } from '@/components/chat/MessageInput';
 import { MessageSquare, Users, Wifi, WifiOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { MessageWithSender, User } from '@/types';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 export default function AdminChatPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -17,6 +18,7 @@ export default function AdminChatPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const supabase = createClient();
+  const { markAsRead } = useUnreadMessages(currentUser?.id || null);
 
   // Load current user and other users
   useEffect(() => {
@@ -117,6 +119,15 @@ export default function AdminChatPage() {
             },
           }));
           setMessages(messagesWithSender);
+          
+          // Mark unread messages as read
+          const unreadMessages = messagesWithSender.filter(
+            msg => msg.receiver_id === currentUser.id && !msg.read
+          );
+          
+          for (const message of unreadMessages) {
+            await markAsRead(message.id);
+          }
         }
       } catch (error) {
         console.error('Error loading messages:', error);
@@ -124,7 +135,7 @@ export default function AdminChatPage() {
     };
 
     loadMessages();
-  }, [selectedUser, currentUser, supabase]);
+  }, [selectedUser, currentUser, supabase, markAsRead]);
 
   // Set up real-time subscription
   useEffect(() => {

@@ -85,7 +85,7 @@ export default function SellerLayout({
         
         {/* Main Content - col-9 on large screens, col-12 on mobile */}
         <div className="col-span-12 lg:col-span-9 flex flex-col min-h-screen">
-          <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <Header user={currentUser} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <main className="flex-1 overflow-auto p-6 lg:p-8">
             {children}
           </main>
