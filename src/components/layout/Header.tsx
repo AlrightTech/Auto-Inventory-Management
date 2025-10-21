@@ -132,11 +132,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               className="relative text-slate-400 hover:text-white"
                 >
                   <Bell className="w-5 h-5" />
-                  {totalUnreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
-                      {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
-                    </span>
-                  )}
+                  {/* Unread count temporarily removed until real-time tracking is fully working */}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-80 glass-card-strong border-slate-700" align="end" forceMount>

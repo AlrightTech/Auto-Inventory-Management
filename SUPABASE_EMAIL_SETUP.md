@@ -189,3 +189,4 @@ supabase db push
 2. Test email delivery
 3. Customize email templates
 4. Monitor email delivery rates
+

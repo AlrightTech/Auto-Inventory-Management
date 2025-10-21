@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { VehicleUpdate } from '@/types/vehicle';
 
-// GET /api/users/[id] - Get specific user (admin only)
+// GET /api/vehicles/[id] - Get specific vehicle (admin only)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -27,29 +28,32 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    // Get specific user
-    const { data: userData, error } = await supabase
-      .from('profiles')
-      .select('*')
+    // Get specific vehicle
+    const { data: vehicle, error } = await supabase
+      .from('vehicles')
+      .select(`
+        *,
+        created_by_user:profiles!vehicles_created_by_fkey(id, username, email)
+      `)
       .eq('id', id)
       .single();
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
       }
-      console.error('Error fetching user:', error);
-      return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 });
+      console.error('Error fetching vehicle:', error);
+      return NextResponse.json({ error: 'Failed to fetch vehicle' }, { status: 500 });
     }
 
-    return NextResponse.json({ data: userData });
+    return NextResponse.json({ data: vehicle });
   } catch (error) {
-    console.error('Error in GET /api/users/[id]:', error);
+    console.error('Error in GET /api/vehicles/[id]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// PATCH /api/users/[id] - Update user (admin only)
+// PATCH /api/vehicles/[id] - Update vehicle (admin only)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -75,43 +79,57 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { username, role, email } = body;
+    const body: Partial<VehicleUpdate> = await request.json();
 
-    // Validate role if provided
-    if (role && !['admin', 'seller', 'transporter'].includes(role)) {
+    // Validate VIN if provided
+    if (body.vin && body.vin.length !== 17) {
       return NextResponse.json(
-        { error: 'Invalid role. Must be admin, seller, or transporter' },
+        { error: 'VIN must be 17 characters' },
         { status: 400 }
       );
     }
 
-    // Update profile
-    const updateData: any = {};
-    if (username !== undefined) updateData.username = username;
-    if (role !== undefined) updateData.role = role;
-    if (email !== undefined) updateData.email = email;
+    // Check if VIN already exists (excluding current vehicle)
+    if (body.vin) {
+      const { data: existingVehicle } = await supabase
+        .from('vehicles')
+        .select('id')
+        .eq('vin', body.vin)
+        .neq('id', id)
+        .single();
 
-    const { data: updatedUser, error } = await supabase
-      .from('profiles')
-      .update(updateData)
+      if (existingVehicle) {
+        return NextResponse.json(
+          { error: 'Vehicle with this VIN already exists' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Update vehicle
+    const { data: vehicle, error } = await supabase
+      .from('vehicles')
+      .update(body)
       .eq('id', id)
-      .select()
+      .select(`
+        *,
+        created_by_user:profiles!vehicles_created_by_fkey(id, username, email)
+      `)
       .single();
 
     if (error) {
-      console.error('Error updating user:', error);
-      return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+      console.error('Error updating vehicle:', error);
+      return NextResponse.json({ error: 'Failed to update vehicle' }, { status: 500 });
     }
 
-    return NextResponse.json({ data: updatedUser });
+    return NextResponse.json({ data: vehicle });
   } catch (error) {
-    console.error('Error in PATCH /api/users/[id]:', error);
+    console.error('Error in PATCH /api/vehicles/[id]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// DELETE /api/users/[id] - Delete user (admin only)
+// DELETE /api/vehicles/[id] - Delete vehicle (admin only)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -137,44 +155,20 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    // Prevent admin from deleting themselves
-    if (id === user.id) {
-      return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
-    }
-
-    // Check if user being deleted is an admin
-    const { data: targetUser, error: targetError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', id)
-      .single();
-
-    if (targetError) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    if (targetUser.role === 'admin') {
-      return NextResponse.json({ error: 'Cannot delete admin users' }, { status: 400 });
-    }
-
-    // Delete profile (this will cascade to related records)
-    const { error: deleteError } = await supabase
-      .from('profiles')
+    // Delete vehicle
+    const { error } = await supabase
+      .from('vehicles')
       .delete()
       .eq('id', id);
 
-    if (deleteError) {
-      console.error('Error deleting user:', deleteError);
-      return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+    if (error) {
+      console.error('Error deleting vehicle:', error);
+      return NextResponse.json({ error: 'Failed to delete vehicle' }, { status: 500 });
     }
 
-    // Note: In a real application, you might also want to delete from auth.users
-    // This requires admin privileges and should be done carefully
-
-    return NextResponse.json({ message: 'User deleted successfully' });
+    return NextResponse.json({ message: 'Vehicle deleted successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/users/[id]:', error);
+    console.error('Error in DELETE /api/vehicles/[id]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

@@ -224,3 +224,4 @@ export function UserDetailsModal({ user, isOpen, onClose }: UserDetailsModalProp
     </Dialog>
   );
 }
+

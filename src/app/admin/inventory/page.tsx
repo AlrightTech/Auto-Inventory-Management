@@ -1,16 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AddVehicleModal } from '@/components/inventory/AddVehicleModal';
+import { ImportModal } from '@/components/inventory/ImportModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
 import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Upload, Download, FileText } from 'lucide-react';
+import { VehicleWithRelations } from '@/types/vehicle';
 
 export default function InventoryPage() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  // Load vehicles for stats
+  useEffect(() => {
+    const loadVehicles = async () => {
+      try {
+        setIsLoadingStats(true);
+        const response = await fetch('/api/vehicles');
+        
+        if (response.ok) {
+          const { data } = await response.json();
+          setVehicles(data || []);
+        }
+      } catch (error) {
+        console.error('Error loading vehicles for stats:', error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    loadVehicles();
+  }, [refreshTrigger]);
+
+  // Calculate stats
+  const stats = {
+    totalVehicles: vehicles.length,
+    missingTitles: vehicles.filter(v => v.title_status === 'Absent').length,
+    missingCars: vehicles.filter(v => !v.vehicle_location && !v.pickup_location_city).length,
+  };
 
   return (
     <div className="space-y-6">
@@ -49,7 +83,9 @@ export default function InventoryPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-300">Total Vehicles</p>
-                  <p className="text-3xl font-bold text-white">3</p>
+                  <p className="text-3xl font-bold text-white">
+                    {isLoadingStats ? '...' : stats.totalVehicles}
+                  </p>
                 </div>
                 <Car className="h-8 w-8 text-blue-400" />
               </div>
@@ -67,7 +103,9 @@ export default function InventoryPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-300">Missing Titles</p>
-                  <p className="text-3xl font-bold text-white">1</p>
+                  <p className="text-3xl font-bold text-white">
+                    {isLoadingStats ? '...' : stats.missingTitles}
+                  </p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-red-400" />
               </div>
@@ -85,7 +123,9 @@ export default function InventoryPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-300">Missing Cars</p>
-                  <p className="text-3xl font-bold text-white">1</p>
+                  <p className="text-3xl font-bold text-white">
+                    {isLoadingStats ? '...' : stats.missingCars}
+                  </p>
                 </div>
                 <MapPin className="h-8 w-8 text-yellow-400" />
               </div>
@@ -121,15 +161,19 @@ export default function InventoryPage() {
                 </Button>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="border-slate-600 text-slate-300">
+                <Button 
+                  variant="outline" 
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
+                  onClick={() => setIsImportModalOpen(true)}
+                >
                   <Upload className="w-4 h-4 mr-2" />
-                  Import CSV
+                  Import CSV/PDF
                 </Button>
-                <Button variant="outline" className="border-slate-600 text-slate-300">
+                <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700/50">
                   <Download className="w-4 h-4 mr-2" />
                   Export CSV
                 </Button>
-                <Button variant="outline" className="border-slate-600 text-slate-300">
+                <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700/50">
                   <FileText className="w-4 h-4 mr-2" />
                   Export PDF
                 </Button>
@@ -145,13 +189,28 @@ export default function InventoryPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <VehicleTable />
+        <VehicleTable 
+          onVehicleAdded={() => setRefreshTrigger(prev => prev + 1)} 
+          refreshTrigger={refreshTrigger}
+        />
       </motion.div>
 
       {/* Add Vehicle Modal */}
       <AddVehicleModal 
         isOpen={isAddVehicleModalOpen}
         onClose={() => setIsAddVehicleModalOpen(false)}
+        onVehicleAdded={() => {
+          setRefreshTrigger(prev => prev + 1);
+        }}
+      />
+
+      {/* Import Modal */}
+      <ImportModal 
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportComplete={() => {
+          setRefreshTrigger(prev => prev + 1);
+        }}
       />
     </div>
   );

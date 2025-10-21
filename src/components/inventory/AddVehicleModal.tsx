@@ -11,22 +11,56 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X, Plus, Car } from 'lucide-react';
+import { CalendarIcon, X, Plus, Car, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { z } from 'zod';
+import { toast } from 'sonner';
+import { VehicleInsert } from '@/types/vehicle';
 
 const vehicleSchema = z.object({
+  // Basic Vehicle Information
   make: z.string().min(1, 'Make is required'),
   model: z.string().min(1, 'Model is required'),
   year: z.number().min(1900, 'Invalid year').max(new Date().getFullYear() + 1, 'Year cannot be in the future'),
-  vin: z.string().min(17, 'VIN must be 17 characters').max(17, 'VIN must be 17 characters').optional(),
-  purchaseDate: z.string().min(1, 'Purchase date is required'),
-  status: z.string().min(1, 'Status is required'),
-  pickupLocation: z.string().min(1, 'Pickup location is required'),
+  vin: z.string().min(17, 'VIN must be 17 characters').max(17, 'VIN must be 17 characters').optional().or(z.literal('')),
+  trim: z.string().optional(),
+  exterior_color: z.string().optional(),
+  interior_color: z.string().optional(),
+  
+  // Vehicle Status and Details
+  status: z.enum(['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress']).default('Pending'),
   odometer: z.number().min(0, 'Odometer must be positive').optional(),
-  boughtPrice: z.number().min(0, 'Price must be positive').optional(),
-  titleStatus: z.string().min(1, 'Title status is required'),
-  arbStatus: z.string().min(1, 'ARB status is required'),
+  title_status: z.enum(['Present', 'Absent']).default('Absent'),
+  psi_status: z.string().optional(),
+  dealshield_arbitration_status: z.string().optional(),
+  
+  // Financial Information
+  bought_price: z.number().min(0, 'Price must be positive').optional(),
+  buy_fee: z.number().min(0, 'Fee must be positive').optional(),
+  other_charges: z.number().min(0, 'Charges must be positive').optional(),
+  
+  // Sale Information
+  sale_date: z.string().optional(),
+  lane: z.number().min(1, 'Lane must be positive').optional(),
+  run: z.number().min(1, 'Run must be positive').optional(),
+  channel: z.string().optional(),
+  
+  // Location Information
+  facilitating_location: z.string().optional(),
+  vehicle_location: z.string().optional(),
+  pickup_location_address1: z.string().optional(),
+  pickup_location_city: z.string().optional(),
+  pickup_location_state: z.string().optional(),
+  pickup_location_zip: z.string().optional(),
+  pickup_location_phone: z.string().optional(),
+  
+  // Seller and Buyer Information
+  seller_name: z.string().optional(),
+  buyer_dealership: z.string().optional(),
+  buyer_contact_name: z.string().optional(),
+  buyer_aa_id: z.string().optional(),
+  buyer_reference: z.string().optional(),
+  sale_invoice_status: z.enum(['PAID', 'UNPAID']).default('UNPAID'),
 });
 
 type VehicleInput = z.infer<typeof vehicleSchema>;
@@ -34,6 +68,7 @@ type VehicleInput = z.infer<typeof vehicleSchema>;
 interface AddVehicleModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onVehicleAdded?: () => void;
 }
 
 const statusOptions = [
@@ -73,7 +108,7 @@ const arbStatusOptions = [
   'Failed',
 ];
 
-export function AddVehicleModal({ isOpen, onClose }: AddVehicleModalProps) {
+export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -87,25 +122,60 @@ export function AddVehicleModal({ isOpen, onClose }: AddVehicleModalProps) {
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
       status: 'Pending',
-      titleStatus: 'Absent',
-      arbStatus: 'Absent',
+      title_status: 'Absent',
+      sale_invoice_status: 'UNPAID',
+      channel: 'Simulcast',
+      psi_status: 'Not Eligible',
+      dealshield_arbitration_status: '--',
     },
   });
 
   const onSubmit = async (data: VehicleInput) => {
     setIsSubmitting(true);
     try {
-      // Here you would typically call your API to create the vehicle
-      console.log('Creating vehicle:', data);
+      // Clean up the data - remove empty strings and convert to proper types
+      const cleanedData: VehicleInsert = {
+        ...data,
+        vin: data.vin && data.vin.trim() !== '' ? data.vin.trim() : undefined,
+        sale_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(cleanedData).forEach(key => {
+        if (cleanedData[key as keyof VehicleInsert] === undefined || cleanedData[key as keyof VehicleInsert] === '') {
+          delete cleanedData[key as keyof VehicleInsert];
+        }
+      });
+
+      const response = await fetch('/api/vehicles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cleanedData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create vehicle');
+      }
+
+      const result = await response.json();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Vehicle added successfully!');
       
       // Reset form and close modal
       reset();
+      setSelectedDate(new Date());
       onClose();
+      
+      // Notify parent component to refresh the vehicle list
+      if (onVehicleAdded) {
+        onVehicleAdded();
+      }
     } catch (error) {
       console.error('Error creating vehicle:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create vehicle');
     } finally {
       setIsSubmitting(false);
     }
@@ -137,7 +207,7 @@ export function AddVehicleModal({ isOpen, onClose }: AddVehicleModalProps) {
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6 max-h-[70vh] overflow-y-auto">
                 {/* Vehicle Basic Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
@@ -195,64 +265,91 @@ export function AddVehicleModal({ isOpen, onClose }: AddVehicleModalProps) {
                     </div>
                   </div>
 
-                  {/* VIN */}
-                  <div className="space-y-2">
-                    <Label htmlFor="vin" className="text-slate-300">
-                      VIN Number
-                    </Label>
-                    <Input
-                      id="vin"
-                      placeholder="17-character VIN (optional)"
-                      maxLength={17}
-                      {...register('vin')}
-                      className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
-                    />
-                    {errors.vin && (
-                      <p className="text-red-400 text-sm">{errors.vin.message}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Purchase Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
-                    Purchase Information
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Purchase Date */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* VIN */}
                     <div className="space-y-2">
-                      <Label className="text-slate-300">Purchase Date *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 glass-card border-slate-700">
-                          <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={(date) => {
-                              setSelectedDate(date);
-                              if (date) {
-                                setValue('purchaseDate', format(date, 'yyyy-MM-dd'));
-                              }
-                            }}
-                            disabled={(date) => date > new Date()}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {errors.purchaseDate && (
-                        <p className="text-red-400 text-sm">{errors.purchaseDate.message}</p>
+                      <Label htmlFor="vin" className="text-slate-300">
+                        VIN Number
+                      </Label>
+                      <Input
+                        id="vin"
+                        placeholder="17-character VIN (optional)"
+                        maxLength={17}
+                        {...register('vin')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                      {errors.vin && (
+                        <p className="text-red-400 text-sm">{errors.vin.message}</p>
                       )}
                     </div>
 
+                    {/* Trim */}
+                    <div className="space-y-2">
+                      <Label htmlFor="trim" className="text-slate-300">
+                        Trim
+                      </Label>
+                      <Input
+                        id="trim"
+                        placeholder="e.g., LT, XLT"
+                        {...register('trim')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Odometer */}
+                    <div className="space-y-2">
+                      <Label htmlFor="odometer" className="text-slate-300">
+                        Odometer (miles)
+                      </Label>
+                      <Input
+                        id="odometer"
+                        type="number"
+                        placeholder="45000"
+                        {...register('odometer', { valueAsNumber: true })}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                      {errors.odometer && (
+                        <p className="text-red-400 text-sm">{errors.odometer.message}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Exterior Color */}
+                    <div className="space-y-2">
+                      <Label htmlFor="exterior_color" className="text-slate-300">
+                        Exterior Color
+                      </Label>
+                      <Input
+                        id="exterior_color"
+                        placeholder="e.g., Blue, White, Black"
+                        {...register('exterior_color')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Interior Color */}
+                    <div className="space-y-2">
+                      <Label htmlFor="interior_color" className="text-slate-300">
+                        Interior Color
+                      </Label>
+                      <Input
+                        id="interior_color"
+                        placeholder="e.g., Black, Gray, Beige"
+                        {...register('interior_color')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status and Financial Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
+                    Status & Financial Information
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Status */}
                     <div className="space-y-2">
                       <Label htmlFor="status" className="text-slate-300">
@@ -274,117 +371,334 @@ export function AddVehicleModal({ isOpen, onClose }: AddVehicleModalProps) {
                         <p className="text-red-400 text-sm">{errors.status.message}</p>
                       )}
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Pickup Location */}
-                    <div className="space-y-2">
-                      <Label htmlFor="pickupLocation" className="text-slate-300">
-                        Pickup Location *
-                      </Label>
-                      <Select onValueChange={(value) => setValue('pickupLocation', value)}>
-                        <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
-                          <SelectValue placeholder="Select location" />
-                        </SelectTrigger>
-                        <SelectContent className="glass-card border-slate-700">
-                          {pickupLocationOptions.map((location) => (
-                            <SelectItem key={location} value={location}>
-                              {location}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.pickupLocation && (
-                        <p className="text-red-400 text-sm">{errors.pickupLocation.message}</p>
-                      )}
-                    </div>
-
-                    {/* Odometer */}
-                    <div className="space-y-2">
-                      <Label htmlFor="odometer" className="text-slate-300">
-                        Odometer (miles)
-                      </Label>
-                      <Input
-                        id="odometer"
-                        type="number"
-                        placeholder="e.g., 50000"
-                        {...register('odometer', { valueAsNumber: true })}
-                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
-                      />
-                      {errors.odometer && (
-                        <p className="text-red-400 text-sm">{errors.odometer.message}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Bought Price */}
-                  <div className="space-y-2">
-                    <Label htmlFor="boughtPrice" className="text-slate-300">
-                      Bought Price ($)
-                    </Label>
-                    <Input
-                      id="boughtPrice"
-                      type="number"
-                      step="0.01"
-                      placeholder="e.g., 25000.00"
-                      {...register('boughtPrice', { valueAsNumber: true })}
-                      className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
-                    />
-                    {errors.boughtPrice && (
-                      <p className="text-red-400 text-sm">{errors.boughtPrice.message}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Title and ARB Status */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
-                    Title & ARB Status
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Title Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="titleStatus" className="text-slate-300">
-                        Title Status *
+                      <Label htmlFor="title_status" className="text-slate-300">
+                        Title Status
                       </Label>
-                      <Select onValueChange={(value) => setValue('titleStatus', value)}>
+                      <Select onValueChange={(value) => setValue('title_status', value as 'Present' | 'Absent')}>
                         <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
                           <SelectValue placeholder="Select title status" />
                         </SelectTrigger>
                         <SelectContent className="glass-card border-slate-700">
-                          {titleStatusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="Present">Present</SelectItem>
+                          <SelectItem value="Absent">Absent</SelectItem>
                         </SelectContent>
                       </Select>
-                      {errors.titleStatus && (
-                        <p className="text-red-400 text-sm">{errors.titleStatus.message}</p>
+                      {errors.title_status && (
+                        <p className="text-red-400 text-sm">{errors.title_status.message}</p>
                       )}
                     </div>
 
-                    {/* ARB Status */}
+                    {/* Sale Invoice Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="arbStatus" className="text-slate-300">
-                        ARB Status *
+                      <Label htmlFor="sale_invoice_status" className="text-slate-300">
+                        Sale Invoice Status
                       </Label>
-                      <Select onValueChange={(value) => setValue('arbStatus', value)}>
+                      <Select onValueChange={(value) => setValue('sale_invoice_status', value as 'PAID' | 'UNPAID')}>
                         <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
-                          <SelectValue placeholder="Select ARB status" />
+                          <SelectValue placeholder="Select invoice status" />
                         </SelectTrigger>
                         <SelectContent className="glass-card border-slate-700">
-                          {arbStatusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="PAID">PAID</SelectItem>
+                          <SelectItem value="UNPAID">UNPAID</SelectItem>
                         </SelectContent>
                       </Select>
-                      {errors.arbStatus && (
-                        <p className="text-red-400 text-sm">{errors.arbStatus.message}</p>
+                      {errors.sale_invoice_status && (
+                        <p className="text-red-400 text-sm">{errors.sale_invoice_status.message}</p>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Bought Price */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bought_price" className="text-slate-300">
+                        Bought Price ($)
+                      </Label>
+                      <Input
+                        id="bought_price"
+                        type="number"
+                        step="0.01"
+                        placeholder="25000.00"
+                        {...register('bought_price', { valueAsNumber: true })}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                      {errors.bought_price && (
+                        <p className="text-red-400 text-sm">{errors.bought_price.message}</p>
+                      )}
+                    </div>
+
+                    {/* Buy Fee */}
+                    <div className="space-y-2">
+                      <Label htmlFor="buy_fee" className="text-slate-300">
+                        Buy Fee ($)
+                      </Label>
+                      <Input
+                        id="buy_fee"
+                        type="number"
+                        step="0.01"
+                        placeholder="735.00"
+                        {...register('buy_fee', { valueAsNumber: true })}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                      {errors.buy_fee && (
+                        <p className="text-red-400 text-sm">{errors.buy_fee.message}</p>
+                      )}
+                    </div>
+
+                    {/* Other Charges */}
+                    <div className="space-y-2">
+                      <Label htmlFor="other_charges" className="text-slate-300">
+                        Other Charges ($)
+                      </Label>
+                      <Input
+                        id="other_charges"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...register('other_charges', { valueAsNumber: true })}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                      {errors.other_charges && (
+                        <p className="text-red-400 text-sm">{errors.other_charges.message}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sale Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
+                    Sale Information
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Sale Date */}
+                    <div className="space-y-2">
+                      <Label className="text-slate-300">Sale Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 glass-card border-slate-700">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            disabled={(date) => date > new Date()}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Lane */}
+                    <div className="space-y-2">
+                      <Label htmlFor="lane" className="text-slate-300">
+                        Lane
+                      </Label>
+                      <Input
+                        id="lane"
+                        type="number"
+                        placeholder="74"
+                        {...register('lane', { valueAsNumber: true })}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                      {errors.lane && (
+                        <p className="text-red-400 text-sm">{errors.lane.message}</p>
+                      )}
+                    </div>
+
+                    {/* Run */}
+                    <div className="space-y-2">
+                      <Label htmlFor="run" className="text-slate-300">
+                        Run
+                      </Label>
+                      <Input
+                        id="run"
+                        type="number"
+                        placeholder="71"
+                        {...register('run', { valueAsNumber: true })}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                      {errors.run && (
+                        <p className="text-red-400 text-sm">{errors.run.message}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
+                    Location Information
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Facilitating Location */}
+                    <div className="space-y-2">
+                      <Label htmlFor="facilitating_location" className="text-slate-300">
+                        Facilitating Location
+                      </Label>
+                      <Input
+                        id="facilitating_location"
+                        placeholder="Manheim Dallas"
+                        {...register('facilitating_location')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Vehicle Location */}
+                    <div className="space-y-2">
+                      <Label htmlFor="vehicle_location" className="text-slate-300">
+                        Vehicle Location
+                      </Label>
+                      <Input
+                        id="vehicle_location"
+                        placeholder="Manheim Dallas"
+                        {...register('vehicle_location')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Pickup Address */}
+                    <div className="space-y-2">
+                      <Label htmlFor="pickup_location_address1" className="text-slate-300">
+                        Pickup Address
+                      </Label>
+                      <Input
+                        id="pickup_location_address1"
+                        placeholder="5333 W Kiest Blvd"
+                        {...register('pickup_location_address1')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Pickup City */}
+                    <div className="space-y-2">
+                      <Label htmlFor="pickup_location_city" className="text-slate-300">
+                        Pickup City
+                      </Label>
+                      <Input
+                        id="pickup_location_city"
+                        placeholder="Dallas"
+                        {...register('pickup_location_city')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Pickup State */}
+                    <div className="space-y-2">
+                      <Label htmlFor="pickup_location_state" className="text-slate-300">
+                        Pickup State
+                      </Label>
+                      <Input
+                        id="pickup_location_state"
+                        placeholder="TX"
+                        {...register('pickup_location_state')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Pickup Zip */}
+                    <div className="space-y-2">
+                      <Label htmlFor="pickup_location_zip" className="text-slate-300">
+                        Pickup Zip
+                      </Label>
+                      <Input
+                        id="pickup_location_zip"
+                        placeholder="75236-1055"
+                        {...register('pickup_location_zip')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Pickup Phone */}
+                    <div className="space-y-2">
+                      <Label htmlFor="pickup_location_phone" className="text-slate-300">
+                        Pickup Phone
+                      </Label>
+                      <Input
+                        id="pickup_location_phone"
+                        placeholder="(214) 330-1800"
+                        {...register('pickup_location_phone')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seller and Buyer Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
+                    Seller & Buyer Information
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Seller Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="seller_name" className="text-slate-300">
+                        Seller Name
+                      </Label>
+                      <Input
+                        id="seller_name"
+                        placeholder="HILEY SUBARU OF FORT WORTH"
+                        {...register('seller_name')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Buyer Dealership */}
+                    <div className="space-y-2">
+                      <Label htmlFor="buyer_dealership" className="text-slate-300">
+                        Buyer Dealership
+                      </Label>
+                      <Input
+                        id="buyer_dealership"
+                        placeholder="AUTO PLANET"
+                        {...register('buyer_dealership')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Buyer Contact Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="buyer_contact_name" className="text-slate-300">
+                        Buyer Contact Name
+                      </Label>
+                      <Input
+                        id="buyer_contact_name"
+                        placeholder="MIAD KARIMI"
+                        {...register('buyer_contact_name')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Buyer AA ID */}
+                    <div className="space-y-2">
+                      <Label htmlFor="buyer_aa_id" className="text-slate-300">
+                        Buyer AA ID
+                      </Label>
+                      <Input
+                        id="buyer_aa_id"
+                        placeholder="****"
+                        {...register('buyer_aa_id')}
+                        className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      />
                     </div>
                   </div>
                 </div>

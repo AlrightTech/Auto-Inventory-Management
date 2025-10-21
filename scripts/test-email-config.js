@@ -100,3 +100,4 @@ async function testEmailConfiguration() {
 
 // Run the test
 testEmailConfiguration();
+

@@ -29,3 +29,4 @@ CREATE TRIGGER on_auth_user_created_immediate
   FOR EACH ROW
   WHEN (NEW.email_confirmed_at IS NOT NULL)
   EXECUTE PROCEDURE public.handle_new_user();
+

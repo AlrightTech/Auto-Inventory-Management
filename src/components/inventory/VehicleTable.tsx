@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,54 +28,17 @@ import {
   Download, 
   CheckCircle,
   AlertCircle,
-  Clock
+  Clock,
+  Loader2,
+  Trash2
 } from 'lucide-react';
+import { VehicleWithRelations } from '@/types/vehicle';
+import { toast } from 'sonner';
 
-// Mock data for demonstration
-const mockVehicles = [
-  {
-    id: '1',
-    make: 'Chevrolet',
-    model: 'Silverado',
-    year: 2021,
-    vin: '1GCHK29U4XZ123456',
-    purchaseDate: '2024-10-15',
-    status: 'Pending',
-    odometer: 45000,
-    boughtPrice: 25000,
-    titleStatus: 'Absent',
-    arbStatus: 'Absent',
-    location: 'Auction',
-  },
-  {
-    id: '2',
-    make: 'Ford',
-    model: 'F-150',
-    year: 2020,
-    vin: '1FTFW1ET5DFC12345',
-    purchaseDate: '2024-10-14',
-    status: 'Complete',
-    odometer: 52000,
-    boughtPrice: 28000,
-    titleStatus: 'Present',
-    arbStatus: 'Present',
-    location: 'Shop/Mechanic',
-  },
-  {
-    id: '3',
-    make: 'Honda',
-    model: 'Civic',
-    year: 2019,
-    vin: '2HGFC2F59KH123456',
-    purchaseDate: '2024-10-13',
-    status: 'ARB',
-    odometer: 38000,
-    boughtPrice: 18000,
-    titleStatus: 'In Transit',
-    arbStatus: 'Present',
-    location: 'Missing',
-  },
-];
+interface VehicleTableProps {
+  onVehicleAdded?: () => void;
+  refreshTrigger?: number;
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -105,15 +68,79 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-export function VehicleTable() {
+export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTableProps) {
+  const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [vehicles] = useState(mockVehicles);
+  const [filteredVehicles, setFilteredVehicles] = useState<VehicleWithRelations[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const filteredVehicles = vehicles.filter(vehicle =>
-    vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Load vehicles from API
+  useEffect(() => {
+    const loadVehicles = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/vehicles');
+        
+        if (!response.ok) {
+          throw new Error('Failed to load vehicles');
+        }
+        
+        const { data } = await response.json();
+        setVehicles(data || []);
+      } catch (error) {
+        console.error('Error loading vehicles:', error);
+        toast.error('Failed to load vehicles');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadVehicles();
+  }, [onVehicleAdded, refreshTrigger]);
+
+  // Filter vehicles based on search term
+  useEffect(() => {
+    let filtered = [...vehicles];
+
+    if (searchTerm) {
+      filtered = filtered.filter(vehicle =>
+        vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (vehicle.vin && vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    setFilteredVehicles(filtered);
+  }, [vehicles, searchTerm]);
+
+  // Handle vehicle deletion
+  const handleDeleteVehicle = async (vehicleId: string, vehicleInfo: string) => {
+    if (!confirm(`Are you sure you want to delete ${vehicleInfo}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setIsDeleting(vehicleId);
+      const response = await fetch(`/api/vehicles/${vehicleId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete vehicle');
+      }
+
+      // Remove vehicle from local state
+      setVehicles(prev => prev.filter(v => v.id !== vehicleId));
+      toast.success('Vehicle deleted successfully');
+    } catch (error) {
+      console.error('Error deleting vehicle:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete vehicle');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   return (
     <Card className="glass-card border-slate-700/50">
@@ -152,53 +179,72 @@ export function VehicleTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredVehicles.map((vehicle, index) => (
-                <motion.tr
-                  key={vehicle.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="border-slate-700/50 hover:bg-slate-800/30 transition-colors"
-                >
-                  <TableCell className="text-white">
-                    <div>
-                      <div className="font-medium">
-                        {vehicle.year} {vehicle.make} {vehicle.model}
-                      </div>
-                      <div className="text-sm text-slate-400">
-                        VIN: {vehicle.vin}
-                      </div>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <div className="flex items-center justify-center space-x-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+                      <span className="text-slate-400">Loading vehicles...</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-slate-300">
-                    {new Date(vehicle.purchaseDate).toLocaleDateString()}
+                </TableRow>
+              ) : filteredVehicles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <div className="text-slate-400">
+                      {searchTerm ? 'No vehicles found matching your search.' : 'No vehicles in inventory yet.'}
+                    </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="outline" 
-                      className={`${getStatusColor(vehicle.status)} flex items-center gap-1 w-fit`}
-                    >
-                      {getStatusIcon(vehicle.status)}
-                      {vehicle.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-slate-300">
-                    {vehicle.odometer ? `${vehicle.odometer.toLocaleString()} mi` : 'N/A'}
-                  </TableCell>
-                  <TableCell className="text-slate-300">
-                    {vehicle.location}
-                  </TableCell>
-                  <TableCell className="text-slate-300">
-                    {vehicle.boughtPrice ? `$${vehicle.boughtPrice.toLocaleString()}` : 'N/A'}
-                  </TableCell>
-                  <TableCell className="text-slate-300">
-                    <Badge 
-                      variant="outline" 
-                      className={vehicle.titleStatus === 'Absent' ? 'bg-red-500/20 text-red-400 border-red-500' : 'bg-green-500/20 text-green-400 border-green-500'}
-                    >
-                      {vehicle.titleStatus}
-                    </Badge>
-                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredVehicles.map((vehicle, index) => (
+                  <motion.tr
+                    key={vehicle.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="border-slate-700/50 hover:bg-slate-800/30 transition-colors"
+                  >
+                    <TableCell className="text-white">
+                      <div>
+                        <div className="font-medium">
+                          {vehicle.year} {vehicle.make} {vehicle.model}
+                          {vehicle.trim && <span className="text-slate-400 ml-1">({vehicle.trim})</span>}
+                        </div>
+                        <div className="text-sm text-slate-400">
+                          VIN: {vehicle.vin || 'N/A'}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-300">
+                      {vehicle.sale_date ? new Date(vehicle.sale_date).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={`${getStatusColor(vehicle.status)} flex items-center gap-1 w-fit`}
+                      >
+                        {getStatusIcon(vehicle.status)}
+                        {vehicle.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-slate-300">
+                      {vehicle.odometer ? `${vehicle.odometer.toLocaleString()} mi` : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-slate-300">
+                      {vehicle.pickup_location_city || vehicle.facilitating_location || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-slate-300">
+                      {vehicle.bought_price ? `$${vehicle.bought_price.toLocaleString()}` : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-slate-300">
+                      <Badge 
+                        variant="outline" 
+                        className={vehicle.title_status === 'Absent' ? 'bg-red-500/20 text-red-400 border-red-500' : 'bg-green-500/20 text-green-400 border-green-500'}
+                      >
+                        {vehicle.title_status}
+                      </Badge>
+                    </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -215,19 +261,24 @@ export function VehicleTable() {
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Vehicle
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700/50">
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Mark as Sold
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700/50">
-                          <Download className="mr-2 h-4 w-4" />
-                          Download
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteVehicle(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
+                          disabled={isDeleting === vehicle.id}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/20 focus:bg-red-500/20"
+                        >
+                          {isDeleting === vehicle.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="mr-2 h-4 w-4" />
+                          )}
+                          {isDeleting === vehicle.id ? 'Deleting...' : 'Delete Vehicle'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-                </motion.tr>
-              ))}
+                  </motion.tr>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

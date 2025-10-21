@@ -20,6 +20,62 @@ export default function AdminChatPage() {
   const supabase = createClient();
   const { markAsRead } = useUnreadMessages(currentUser?.id || null);
 
+  // Function to refresh user list with latest message timestamps
+  const refreshUserList = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('id', currentUser.id);
+
+      if (allProfiles) {
+        const usersWithStatusAndLatestMessage = await Promise.all(
+          allProfiles.map(async (profile: any) => {
+            const { data: status } = await supabase
+              .from('user_status')
+              .select('is_online, last_seen')
+              .eq('user_id', profile.id)
+              .single();
+
+            // Get the latest message timestamp between current user and this user
+            const { data: latestMessage } = await supabase
+              .from('messages')
+              .select('created_at')
+              .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${profile.id}),and(sender_id.eq.${profile.id},receiver_id.eq.${currentUser.id})`)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            return {
+              id: profile.id,
+              email: profile.email,
+              username: profile.username || profile.email.split('@')[0],
+              role: profile.role,
+              isOnline: status?.is_online || false,
+              lastSeen: status?.last_seen || null,
+              created_at: profile.created_at,
+              latestMessageAt: latestMessage?.created_at || null,
+            };
+          })
+        );
+        
+        // Sort users by latest message timestamp (most recent first)
+        const sortedUsers = usersWithStatusAndLatestMessage.sort((a, b) => {
+          if (!a.latestMessageAt && !b.latestMessageAt) return 0;
+          if (!a.latestMessageAt) return 1;
+          if (!b.latestMessageAt) return -1;
+          return new Date(b.latestMessageAt).getTime() - new Date(a.latestMessageAt).getTime();
+        });
+        
+        setUsers(sortedUsers);
+      }
+    } catch (error) {
+      console.error('Error refreshing user list:', error);
+    }
+  };
+
   // Load current user and other users
   useEffect(() => {
     const loadUsers = async () => {
@@ -46,19 +102,28 @@ export default function AdminChatPage() {
           }
         }
 
-        // Get all other users
+        // Get all other users with their latest message timestamps
         const { data: allProfiles } = await supabase
           .from('profiles')
           .select('*')
           .neq('id', user?.id);
 
         if (allProfiles) {
-          const usersWithStatus = await Promise.all(
+          const usersWithStatusAndLatestMessage = await Promise.all(
             allProfiles.map(async (profile: any) => {
               const { data: status } = await supabase
                 .from('user_status')
                 .select('is_online, last_seen')
                 .eq('user_id', profile.id)
+                .single();
+
+              // Get the latest message timestamp between current user and this user
+              const { data: latestMessage } = await supabase
+                .from('messages')
+                .select('created_at')
+                .or(`and(sender_id.eq.${user?.id},receiver_id.eq.${profile.id}),and(sender_id.eq.${profile.id},receiver_id.eq.${user?.id})`)
+                .order('created_at', { ascending: false })
+                .limit(1)
                 .single();
 
               return {
@@ -69,12 +134,22 @@ export default function AdminChatPage() {
                 isOnline: status?.is_online || false,
                 lastSeen: status?.last_seen || null,
                 created_at: profile.created_at,
+                latestMessageAt: latestMessage?.created_at || null,
               };
             })
           );
-          setUsers(usersWithStatus);
-          if (usersWithStatus.length > 0) {
-            setSelectedUser(usersWithStatus[0]);
+          
+          // Sort users by latest message timestamp (most recent first)
+          const sortedUsers = usersWithStatusAndLatestMessage.sort((a, b) => {
+            if (!a.latestMessageAt && !b.latestMessageAt) return 0;
+            if (!a.latestMessageAt) return 1;
+            if (!b.latestMessageAt) return -1;
+            return new Date(b.latestMessageAt).getTime() - new Date(a.latestMessageAt).getTime();
+          });
+          
+          setUsers(sortedUsers);
+          if (sortedUsers.length > 0) {
+            setSelectedUser(sortedUsers[0]);
           }
         }
       } catch (error) {
@@ -189,6 +264,9 @@ export default function AdminChatPage() {
                     },
                   };
                   setMessages(prev => [...prev, messageWithSender]);
+                  
+                  // Refresh user list to update sorting
+                  refreshUserList();
                 }
               });
           }

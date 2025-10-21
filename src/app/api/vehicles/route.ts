@@ -1,83 +1,74 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { VehicleInsert } from '@/types';
+import { VehicleInsert } from '@/types/vehicle';
 
-// GET /api/vehicles - List all vehicles
+// GET /api/vehicles - Get all vehicles (admin only)
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { searchParams } = new URL(request.url);
     
-    // Get query parameters
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
-    const make = searchParams.get('make');
-    const model = searchParams.get('model');
-    const year = searchParams.get('year');
-    const search = searchParams.get('search');
-    
-    // Build query
-    let query = supabase
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user is admin
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || profile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    }
+
+    // Get all vehicles with creator information
+    const { data: vehicles, error } = await supabase
       .from('vehicles')
       .select(`
         *,
-        created_by_user:profiles!vehicles_created_by_fkey(*)
+        created_by_user:profiles!vehicles_created_by_fkey(id, username, email)
       `)
       .order('created_at', { ascending: false });
-    
-    // Apply filters
-    if (status) {
-      query = query.eq('status', status);
-    }
-    
-    if (make) {
-      query = query.eq('make', make);
-    }
-    
-    if (model) {
-      query = query.eq('model', model);
-    }
-    
-    if (year) {
-      query = query.eq('year', parseInt(year));
-    }
-    
-    if (search) {
-      query = query.or(`make.ilike.%${search}%,model.ilike.%${search}%,vin.ilike.%${search}%`);
-    }
-    
-    // Apply pagination
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    const { data, error, count } = await query.range(from, to);
-    
+
     if (error) {
       console.error('Error fetching vehicles:', error);
       return NextResponse.json({ error: 'Failed to fetch vehicles' }, { status: 500 });
     }
-    
-    return NextResponse.json({
-      data,
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-        pages: Math.ceil((count || 0) / limit)
-      }
-    });
+
+    return NextResponse.json({ data: vehicles });
   } catch (error) {
     console.error('Error in GET /api/vehicles:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// POST /api/vehicles - Create a new vehicle
+// POST /api/vehicles - Create new vehicle (admin only)
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const body: VehicleInsert = await request.json();
     
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user is admin
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || profile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    }
+
+    const body: VehicleInsert = await request.json();
+
     // Validate required fields
     if (!body.make || !body.model || !body.year) {
       return NextResponse.json(
@@ -85,32 +76,58 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Validate year
+    if (body.year < 1900 || body.year > new Date().getFullYear() + 1) {
+      return NextResponse.json(
+        { error: 'Invalid year' },
+        { status: 400 }
+      );
     }
-    
+
+    // Validate VIN if provided
+    if (body.vin && body.vin.length !== 17) {
+      return NextResponse.json(
+        { error: 'VIN must be 17 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Check if VIN already exists
+    if (body.vin) {
+      const { data: existingVehicle } = await supabase
+        .from('vehicles')
+        .select('id')
+        .eq('vin', body.vin)
+        .single();
+
+      if (existingVehicle) {
+        return NextResponse.json(
+          { error: 'Vehicle with this VIN already exists' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Create vehicle
-    const { data, error } = await supabase
+    const { data: vehicle, error } = await supabase
       .from('vehicles')
       .insert({
         ...body,
-        created_by: user.id
+        created_by: user.id,
       })
       .select(`
         *,
-        created_by_user:profiles!vehicles_created_by_fkey(*)
+        created_by_user:profiles!vehicles_created_by_fkey(id, username, email)
       `)
       .single();
-    
+
     if (error) {
       console.error('Error creating vehicle:', error);
       return NextResponse.json({ error: 'Failed to create vehicle' }, { status: 500 });
     }
-    
-    return NextResponse.json({ data }, { status: 201 });
+
+    return NextResponse.json({ data: vehicle }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/vehicles:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
