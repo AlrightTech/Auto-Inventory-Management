@@ -21,6 +21,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
       setThemeState(savedTheme);
+    } else {
+      // Check system preference if no saved theme
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setThemeState(prefersDark ? 'dark' : 'light');
     }
     setMounted(true);
   }, []);
@@ -45,14 +49,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
-    return <div className="dark">{children}</div>;
+    return <div>{children}</div>;
   }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      <div className={theme}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }

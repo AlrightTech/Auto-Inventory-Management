@@ -7,23 +7,23 @@
 @import "@fontsource/poppins/600.css";
 
 :root {
-  /* Light Theme */
+  /* Light Theme - Improved Contrast */
   --background: 0 0% 100%; /* White */
-  --foreground: 0 0% 3.9%;
+  --foreground: 0 0% 9%; /* Much darker for better contrast */
   --primary: 199 89% 48%; /* Electric blue */
   --primary-foreground: 0 0% 98%;
   --primary-glow: 199 89% 48% / 0.2;
   --secondary: 0 0% 96.1%;
-  --secondary-foreground: 0 0% 9%;
+  --secondary-foreground: 0 0% 9%; /* Darker for better contrast */
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
+  --card-foreground: 0 0% 9%; /* Much darker for better contrast */
   --border: 0 0% 89.8%;
   --input: 0 0% 96.1%;
   --ring: 199 89% 48%;
   --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
+  --muted-foreground: 0 0% 25%; /* Much darker for better contrast */
   --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
+  --accent-foreground: 0 0% 9%; /* Darker for better contrast */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
   --radius: 0.75rem;
@@ -34,23 +34,23 @@
 }
 
 .dark {
-  /* Dark Theme */
-  --background: 0 0% 5%; /* Deep black */
-  --foreground: 0 0% 95%;
+  /* Dark Theme - Improved Contrast */
+  --background: 0 0% 3%; /* Slightly lighter for better contrast */
+  --foreground: 0 0% 98%; /* Brighter for better contrast */
   --primary: 199 89% 48%; /* Electric blue */
   --primary-foreground: 0 0% 98%;
   --primary-glow: 199 89% 48% / 0.3;
   --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 90%;
-  --card: 0 0% 8%;
-  --card-foreground: 0 0% 95%;
+  --secondary-foreground: 0 0% 95%; /* Brighter for better contrast */
+  --card: 0 0% 6%; /* Slightly lighter for better contrast */
+  --card-foreground: 0 0% 98%; /* Brighter for better contrast */
   --border: 0 0% 15%;
   --input: 0 0% 12%;
   --ring: 199 89% 48%;
   --muted: 0 0% 10%;
-  --muted-foreground: 0 0% 65%;
+  --muted-foreground: 0 0% 75%; /* Brighter for better contrast */
   --accent: 0 0% 12%;
-  --accent-foreground: 0 0% 90%;
+  --accent-foreground: 0 0% 95%; /* Brighter for better contrast */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 }

@@ -72,7 +72,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               variant="ghost"
               size="sm"
               onClick={onMenuClick}
-              className="lg:hidden text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      className="lg:hidden text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white"
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -98,7 +98,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsSearchOpen(false)}
-                  className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        className="text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white"
                 >
                   ×
                 </Button>
@@ -108,7 +108,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSearchOpen(true)}
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        className="text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white"
               >
                 <Search className="w-4 h-4 mr-2" />
                 Search
