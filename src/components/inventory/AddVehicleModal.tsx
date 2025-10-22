@@ -28,9 +28,9 @@ const vehicleSchema = z.object({
   interior_color: z.string().optional(),
   
   // Vehicle Status and Details
-  status: z.enum(['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress']).default('Pending'),
+  status: z.enum(['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress']).optional().default('Pending'),
   odometer: z.number().min(0, 'Odometer must be positive').optional(),
-  title_status: z.enum(['Present', 'Absent']).default('Absent'),
+  title_status: z.enum(['Present', 'Absent']).optional().default('Absent'),
   psi_status: z.string().optional(),
   dealshield_arbitration_status: z.string().optional(),
   
@@ -60,7 +60,7 @@ const vehicleSchema = z.object({
   buyer_contact_name: z.string().optional(),
   buyer_aa_id: z.string().optional(),
   buyer_reference: z.string().optional(),
-  sale_invoice_status: z.enum(['PAID', 'UNPAID']).default('UNPAID'),
+  sale_invoice_status: z.enum(['PAID', 'UNPAID']).optional().default('UNPAID'),
 });
 
 type VehicleInput = z.infer<typeof vehicleSchema>;
@@ -355,7 +355,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                       <Label htmlFor="status" className="text-slate-700 dark:text-slate-300">
                         Status *
                       </Label>
-                      <Select onValueChange={(value) => setValue('status', value)}>
+                      <Select onValueChange={(value) => setValue('status', value as any)}>
                         <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>

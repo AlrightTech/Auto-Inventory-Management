@@ -136,3 +136,4 @@ CREATE TRIGGER calculate_vehicle_costs_trigger
 
 
 
+

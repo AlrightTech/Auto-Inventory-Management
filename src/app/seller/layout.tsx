@@ -71,7 +71,7 @@ export default function SellerLayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="grid grid-cols-12 min-h-screen gap-0">
         {/* Sidebar - col-3 on large screens, hidden on mobile */}
         <div className="hidden lg:block lg:col-span-3 h-screen overflow-hidden">
