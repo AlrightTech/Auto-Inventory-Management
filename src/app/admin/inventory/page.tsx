@@ -78,16 +78,16 @@ export default function InventoryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50 hover:shadow-blue-500/30 transition-shadow duration-300">
+          <Card className="card-enhanced hover:shadow-blue-500/20 transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Vehicles</p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Vehicles</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {isLoadingStats ? '...' : stats.totalVehicles}
                   </p>
                 </div>
-                <Car className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                <Car className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
             </CardContent>
           </Card>
@@ -98,12 +98,12 @@ export default function InventoryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50 hover:shadow-red-500/30 transition-shadow duration-300">
+          <Card className="card-enhanced hover:shadow-red-500/20 transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Missing Titles</p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Missing Titles</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {isLoadingStats ? '...' : stats.missingTitles}
                   </p>
                 </div>
@@ -118,16 +118,16 @@ export default function InventoryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50 hover:shadow-yellow-500/30 transition-shadow duration-300">
+          <Card className="card-enhanced hover:shadow-amber-500/20 transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Missing Cars</p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Missing Cars</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {isLoadingStats ? '...' : stats.missingCars}
                   </p>
                 </div>
-                <MapPin className="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
+                <MapPin className="h-8 w-8 text-amber-500 dark:text-amber-400" />
               </div>
             </CardContent>
           </Card>

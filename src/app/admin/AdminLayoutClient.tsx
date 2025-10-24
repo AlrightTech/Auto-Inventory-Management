@@ -18,7 +18,7 @@ export function AdminLayoutClient({ user, children }: AdminLayoutClientProps) {
   const { unreadCount } = useUnreadMessages(user.id);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="flex h-screen">
         {/* Sidebar - fixed width on large screens, hidden on mobile */}
         <div className="hidden lg:block w-64 flex-shrink-0">

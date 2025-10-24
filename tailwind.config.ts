@@ -40,6 +40,13 @@ const config: Config = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        // Auto Inventory Brand Colors
+        brand: {
+          accent: "hsl(var(--brand-accent))",
+          success: "hsl(var(--brand-success))",
+          info: "hsl(var(--brand-info))",
+          "info-foreground": "hsl(var(--brand-info-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

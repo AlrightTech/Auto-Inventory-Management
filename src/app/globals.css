@@ -7,26 +7,32 @@
 @import "@fontsource/poppins/600.css";
 
 :root {
-  /* Light Theme - Improved Contrast */
-  --background: 0 0% 100%; /* White */
-  --foreground: 0 0% 9%; /* Much darker for better contrast */
-  --primary: 199 89% 48%; /* Electric blue */
-  --primary-foreground: 0 0% 98%;
-  --primary-glow: 199 89% 48% / 0.2;
-  --secondary: 0 0% 96.1%;
-  --secondary-foreground: 0 0% 9%; /* Darker for better contrast */
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 9%; /* Much darker for better contrast */
-  --border: 0 0% 89.8%;
-  --input: 0 0% 96.1%;
-  --ring: 199 89% 48%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 25%; /* Much darker for better contrast */
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%; /* Darker for better contrast */
+  /* Light Theme - Enhanced Auto Inventory Palette */
+  --background: 0 0% 100%; /* #FFFFFF - Pure white */
+  --foreground: 220 13% 9%; /* #111827 - Dark gray for headings */
+  --primary: 220 100% 35%; /* #1E3A8A - Primary blue */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF - White text on primary */
+  --primary-glow: 220 100% 35% / 0.2;
+  --secondary: 220 9% 95%; /* #F3F4F6 - Light gray background */
+  --secondary-foreground: 220 13% 9%; /* #111827 - Dark text on secondary */
+  --card: 0 0% 100%; /* #FFFFFF - White card background */
+  --card-foreground: 220 13% 9%; /* #111827 - Dark text on cards */
+  --border: 220 13% 89%; /* #E5E7EB - Light border */
+  --input: 220 9% 95%; /* #F3F4F6 - Input background */
+  --ring: 220 100% 35%; /* #1E3A8A - Focus ring */
+  --muted: 220 9% 95%; /* #F3F4F6 - Muted background */
+  --muted-foreground: 220 9% 35%; /* #4B5563 - Subheading text */
+  --accent: 220 100% 97%; /* #EFF6FF - Accent background */
+  --accent-foreground: 220 100% 35%; /* #1E3A8A - Accent text */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
   --radius: 0.75rem;
+  
+  /* Auto Inventory Brand Colors */
+  --brand-accent: 38 92% 50%; /* #F59E0B - Amber accent */
+  --brand-success: 173 80% 40%; /* #0D9488 - Teal success */
+  --brand-info: 220 100% 97%; /* #EFF6FF - Light blue info */
+  --brand-info-foreground: 220 100% 35%; /* #1E3A8A - Info text */
   
   /* Font variables */
   --font-inter: 'Inter', system-ui, sans-serif;
@@ -66,13 +72,43 @@ body {
   min-height: 100vh;
 }
 
-/* Glassmorphism utility classes */
+/* Enhanced Card System */
 .glass-card {
   @apply bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl;
 }
 
 .glass-card-strong {
   @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/30 dark:border-white/15 rounded-2xl;
+}
+
+/* Auto Inventory Card System */
+.card-enhanced {
+  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+.card-enhanced-hover {
+  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800/50 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md transition-all duration-200;
+}
+
+/* Typography Enhancements */
+.text-heading {
+  @apply text-gray-900 dark:text-white font-semibold;
+}
+
+.text-subheading {
+  @apply text-gray-600 dark:text-gray-300 font-medium;
+}
+
+.text-body {
+  @apply text-gray-700 dark:text-gray-200;
+}
+
+.text-muted {
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+.text-accent {
+  @apply text-blue-600 dark:text-blue-400;
 }
 
 /* Glow effects */
@@ -177,6 +213,36 @@ body {
 .focus-ring:focus {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+/* Auto Inventory Button System */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-4 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+}
+
+.btn-accent {
+  @apply bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2;
+}
+
+/* Auto Inventory Badge System */
+.badge-success {
+  @apply bg-teal-600 text-white px-2 py-1 rounded-md text-xs font-medium;
+}
+
+.badge-warning {
+  @apply bg-amber-500 text-white px-2 py-1 rounded-md text-xs font-medium;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium;
+}
+
+.badge-error {
+  @apply bg-red-100 text-red-800 px-2 py-1 rounded-md text-xs font-medium;
 }
 
 /* React Big Calendar Dark Theme */

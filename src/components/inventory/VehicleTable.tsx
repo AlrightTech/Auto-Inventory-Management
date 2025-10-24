@@ -43,15 +43,15 @@ interface VehicleTableProps {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Complete':
-      return 'bg-green-500/20 text-green-400 border-green-500';
+      return 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/20 dark:text-teal-400 dark:border-teal-800';
     case 'Pending':
-      return 'bg-yellow-500/20 text-yellow-400 border-yellow-500';
+      return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800';
     case 'ARB':
-      return 'bg-red-500/20 text-red-400 border-red-500';
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
     case 'Sold':
-      return 'bg-blue-500/20 text-blue-400 border-blue-500';
+      return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
     default:
-      return 'bg-gray-500/20 text-gray-400 border-gray-500';
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
   }
 };
 
@@ -164,18 +164,18 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700/50 overflow-hidden">
+        <div className="rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/30">
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Vehicle</TableHead>
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Purchase Date</TableHead>
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Status</TableHead>
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Odometer</TableHead>
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Location</TableHead>
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Bought Price</TableHead>
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Title Status</TableHead>
-                <TableHead className="text-slate-700 dark:text-slate-300 font-medium">Actions</TableHead>
+              <TableRow className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/30">
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Vehicle</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Purchase Date</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Status</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Odometer</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Location</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Bought Price</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Title Status</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
