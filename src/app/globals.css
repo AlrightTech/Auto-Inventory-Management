@@ -92,7 +92,7 @@ body {
 
 /* Typography Enhancements */
 .text-heading {
-  @apply text-gray-900 dark:text-white font-semibold;
+  @apply text-black dark:text-white font-semibold;
 }
 
 .text-subheading {
@@ -100,7 +100,7 @@ body {
 }
 
 .text-body {
-  @apply text-gray-700 dark:text-gray-200;
+  @apply text-black dark:text-gray-200;
 }
 
 .text-muted {

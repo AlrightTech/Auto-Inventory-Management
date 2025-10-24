@@ -83,7 +83,7 @@ export default function InventoryPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Vehicles</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-3xl font-bold text-black dark:text-white">
                     {isLoadingStats ? '...' : stats.totalVehicles}
                   </p>
                 </div>
@@ -103,7 +103,7 @@ export default function InventoryPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Missing Titles</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-3xl font-bold text-black dark:text-white">
                     {isLoadingStats ? '...' : stats.missingTitles}
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export default function InventoryPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Missing Cars</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-3xl font-bold text-black dark:text-white">
                     {isLoadingStats ? '...' : stats.missingCars}
                   </p>
                 </div>

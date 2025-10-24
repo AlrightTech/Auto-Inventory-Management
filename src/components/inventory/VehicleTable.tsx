@@ -168,14 +168,14 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
           <Table>
             <TableHeader>
               <TableRow className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/30">
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Vehicle</TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Purchase Date</TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Status</TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Odometer</TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Location</TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Bought Price</TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Title Status</TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium">Actions</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Vehicle</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Purchase Date</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Status</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Odometer</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Location</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Bought Price</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Title Status</TableHead>
+                <TableHead className="text-black dark:text-gray-300 font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

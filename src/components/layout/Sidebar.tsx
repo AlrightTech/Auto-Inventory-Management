@@ -176,7 +176,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
               <Car className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Auto Inventory</h1>
+              <h1 className="text-lg font-bold text-black dark:text-white">Auto Inventory</h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">Dashboard</p>
             </div>
           </motion.div>
@@ -199,7 +199,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                     "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-blue-50 dark:hover:bg-slate-700/50",
                     isParentActive(item.children)
                       ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-                      : "text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                      : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
                   <div className="flex items-center space-x-3">
@@ -229,7 +229,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                             "block px-3 py-2 text-sm rounded-lg transition-all duration-200 hover:bg-blue-50 dark:hover:bg-slate-700/50",
                             isActive(child.href)
                               ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-                                  : "text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                                  : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                           )}
                         >
                           {child.name}
@@ -246,7 +246,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-blue-50 dark:hover:bg-slate-700/50",
                   isActive(item.href!)
                     ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 shadow-sm"
-                        : "text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                        : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                 )}
               >
                 <div className="flex items-center space-x-3">
