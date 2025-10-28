@@ -47,6 +47,12 @@ const config: Config = {
           info: "hsl(var(--brand-info))",
           "info-foreground": "hsl(var(--brand-info-foreground))",
         },
+        // Typography Colors
+        'dashboard-heading': '#111827',
+        'subtitle': '#4B5563',
+        'card-value': '#000000',
+        'link-primary': '#1E3A8A',
+        'link-hover': '#0D9488',
       },
       borderRadius: {
         lg: "var(--radius)",

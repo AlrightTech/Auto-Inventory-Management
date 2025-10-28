@@ -90,25 +90,46 @@ body {
   @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800/50 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md transition-all duration-200;
 }
 
-/* Typography Enhancements */
+/* Typography System - Auto Inventory */
 .text-heading {
-  @apply text-black dark:text-white font-semibold;
+  @apply text-[#111827] font-semibold;
 }
 
 .text-subheading {
-  @apply text-gray-600 dark:text-gray-300 font-medium;
+  @apply text-[#4B5563];
 }
 
 .text-body {
-  @apply text-black dark:text-gray-200;
+  @apply text-[#000000];
 }
 
 .text-muted {
-  @apply text-gray-500 dark:text-gray-400;
+  @apply text-[#4B5563];
 }
 
 .text-accent {
-  @apply text-blue-600 dark:text-blue-400;
+  @apply text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200;
+}
+
+/* Additional Typography Classes */
+.text-dashboard-heading {
+  @apply text-[#111827] font-semibold;
+}
+
+.text-subtitle {
+  @apply text-[#4B5563];
+}
+
+.text-card-value {
+  @apply text-[#000000];
+}
+
+.text-link {
+  @apply text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200 cursor-pointer;
+}
+
+.text-link-accent {
+  @apply text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200;
 }
 
 /* Glow effects */

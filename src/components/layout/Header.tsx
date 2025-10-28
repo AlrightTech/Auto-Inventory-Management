@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { textStyles, cn } from '@/lib/typography';
 
 interface User {
   id: string;
@@ -139,10 +140,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-80 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 shadow-lg" align="end" forceMount>
-                <DropdownMenuLabel className="text-black dark:text-white font-semibold">Notifications</DropdownMenuLabel>
+                <DropdownMenuLabel className={textStyles.h5}>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-200 dark:bg-slate-700" />
                 {notifications.length === 0 && (
-                  <div className="p-4 text-gray-500 dark:text-gray-400 text-sm">No notifications</div>
+                  <div className={cn("p-4", textStyles.muted)}>No notifications</div>
                 )}
                 {notifications.slice(0, 10).map(n => (
                   <DropdownMenuItem key={n.id} className="text-black dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700/50">
@@ -151,11 +152,11 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                         <span className={`inline-block w-2 h-2 rounded-full ${n.read ? 'bg-gray-400 dark:bg-gray-500' : 'bg-blue-500'}`} />
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-black dark:text-white">{n.title}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{n.message}</div>
+                        <div className={textStyles.bodySmall}>{n.title}</div>
+                        <div className={textStyles.muted}>{n.message}</div>
                       </div>
                       {!n.read && (
-                        <button onClick={() => markAsRead(n.id)} className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">Mark read</button>
+                        <button onClick={() => markAsRead(n.id)} className={textStyles.linkSmall}>Mark read</button>
                       )}
                     </div>
                   </DropdownMenuItem>
@@ -185,10 +186,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 <DropdownMenuContent className="w-56 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 shadow-lg" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none text-black dark:text-white">
+                      <p className={cn("text-sm font-medium leading-none", textStyles.bodySmall)}>
                         {user.email || 'User'}
                       </p>
-                      <p className="text-xs leading-none text-gray-500 dark:text-gray-400">
+                      <p className={cn("text-xs leading-none", textStyles.muted)}>
                         Administrator
                       </p>
                     </div>
