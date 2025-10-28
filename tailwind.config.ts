@@ -43,12 +43,51 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        hover: "hsl(var(--hover))",
+        // Automotive Dashboard Colors
+        neon: {
+          blue: "hsl(var(--neon-blue))",
+          green: "hsl(var(--neon-green))",
+          purple: "hsl(var(--neon-purple))",
+        },
+        gauge: {
+          bg: "hsl(var(--gauge-bg))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        'gauge': 'var(--panel-shadow)',
+        'gauge-glow': 'var(--panel-glow)',
+        'neon': '0 0 20px hsl(var(--neon-blue) / 0.3)',
+        'neon-lg': '0 0 30px hsl(var(--neon-blue) / 0.4)',
+      },
+      animation: {
+        'pulse-neon': 'pulse-neon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+      },
+      keyframes: {
+        'pulse-neon': {
+          '0%, 100%': {
+            boxShadow: '0 0 5px hsl(var(--neon-blue) / 0.5)',
+          },
+          '50%': {
+            boxShadow: '0 0 20px hsl(var(--neon-blue) / 0.8)',
+          },
+        },
+        'glow': {
+          '0%': {
+            boxShadow: '0 0 5px hsl(var(--neon-blue) / 0.3)',
+          },
+          '100%': {
+            boxShadow: '0 0 20px hsl(var(--neon-blue) / 0.6)',
+          },
+        },
       },
     },
   },

@@ -146,33 +146,33 @@ function LoginPageContent() {
     }
   };
 
-    return (
+  return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-          <Card className="bg-card border-border shadow-lg">
-            <CardHeader className="text-center space-y-4">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center"
-              >
-                <Car className="w-8 h-8 text-primary-foreground" />
-              </motion.div>
-              <div>
-                <CardTitle className="text-2xl font-bold text-foreground">
-                  Auto Inventory
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Sign in to your account
-                </CardDescription>
-              </div>
-            </CardHeader>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <Card className="gauge-card neon-glow instrument-panel">
+          <CardHeader className="text-center space-y-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="mx-auto w-16 h-16 bg-gradient-to-r from-neon-blue to-neon-green rounded-full flex items-center justify-center shadow-neon"
+            >
+              <Car className="w-8 h-8 text-primary-foreground" />
+            </motion.div>
+            <div>
+              <CardTitle className="text-3xl font-bold text-foreground bg-gradient-to-r from-foreground to-neon-blue bg-clip-text text-transparent">
+                Auto Inventory
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-lg">
+                Sign in to your account
+              </CardDescription>
+            </div>
+          </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
@@ -183,7 +183,7 @@ function LoginPageContent() {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300"
+                  className="bg-background border-border focus:border-neon-blue focus:ring-neon-blue/20 transition-all duration-300 instrument-panel"
                   {...register('email')}
                 />
                 {errors.email && (
@@ -200,7 +200,7 @@ function LoginPageContent() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
-                    className="bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300 pr-10"
+                    className="bg-background border-border focus:border-neon-blue focus:ring-neon-blue/20 transition-all duration-300 pr-10 instrument-panel"
                     {...register('password')}
                   />
                   <button
@@ -239,7 +239,7 @@ function LoginPageContent() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-primary hover:bg-hover text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
+                className="w-full bg-gradient-to-r from-neon-blue to-neon-green hover:from-neon-green hover:to-neon-purple text-primary-foreground transition-all duration-300 hover:shadow-neon-lg instrument-panel"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -250,7 +250,7 @@ function LoginPageContent() {
                 {/* Hide forgot password link for Admin after detecting role post-login; show here unconditionally for UI consistency. */}
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm text-primary hover:text-hover transition-colors duration-300"
+                  className="text-sm text-neon-blue hover:text-neon-green transition-colors duration-300"
                 >
                   Forgot your password?
                 </Link>
@@ -259,7 +259,7 @@ function LoginPageContent() {
                 Don&apos;t have an account?{' '}
                 <Link
                   href="/auth/register"
-                  className="text-primary hover:text-hover transition-colors duration-300"
+                  className="text-neon-blue hover:text-neon-green transition-colors duration-300"
                 >
                   Sign up
                 </Link>

@@ -128,38 +128,77 @@ const MetricCard = ({
   change?: number;
   icon: React.ComponentType<{ className?: string }>;
   delay?: number;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.5 }}
-  >
-    <Card className="bg-card border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <Icon className="h-4 w-4 text-primary" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
-        {change !== undefined && (
-          <div className="flex items-center space-x-1 text-xs">
-            {change > 0 ? (
-              <TrendingUp className="h-3 w-3 text-green-500" />
-            ) : (
-              <TrendingDown className="h-3 w-3 text-red-500" />
-            )}
-            <span className={change > 0 ? 'text-green-500' : 'text-red-500'}>
-              {change > 0 ? '+' : ''}{change}%
-            </span>
-            <span className="text-muted-foreground">from last week</span>
+}) => {
+  // Calculate gauge percentage for visual effect
+  const getGaugePercentage = () => {
+    if (typeof value === 'number') {
+      // Normalize large numbers to 0-100 range for gauge display
+      if (value > 1000000) return Math.min((value / 1000000) * 20, 100);
+      if (value > 1000) return Math.min((value / 1000) * 10, 100);
+      return Math.min(value, 100);
+    }
+    return 50; // Default for string values
+  };
+
+  const gaugePercentage = getGaugePercentage();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5 }}
+    >
+      <Card className="gauge-card neon-glow instrument-panel group">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            {title}
+          </CardTitle>
+          <div className="relative">
+            <Icon className="h-4 w-4 text-neon-blue group-hover:text-neon-green transition-colors duration-300" />
+            {/* Mini gauge ring around icon */}
+            <div className="absolute -inset-1 rounded-full border border-neon-blue/20 group-hover:border-neon-blue/40 transition-colors duration-300" />
           </div>
-        )}
-      </CardContent>
-    </Card>
-  </motion.div>
-);
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* Main gauge display */}
+          <div className="flex items-center space-x-4">
+            <div className="gauge-ring">
+              <div className="gauge-value text-sm font-bold">
+                {typeof value === 'number' ? Math.round(gaugePercentage) : '--'}
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="text-2xl font-bold text-foreground mb-1">{value}</div>
+              {change !== undefined && (
+                <div className="flex items-center space-x-1 text-xs">
+                  {change > 0 ? (
+                    <TrendingUp className="h-3 w-3 text-neon-green" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                  )}
+                  <span className={change > 0 ? 'text-neon-green' : 'text-red-500'}>
+                    {change > 0 ? '+' : ''}{change}%
+                  </span>
+                  <span className="text-muted-foreground">from last week</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Progress bar gauge */}
+          <div className="w-full bg-gauge-bg rounded-full h-1.5 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${gaugePercentage}%` }}
+              transition={{ delay: delay + 0.3, duration: 1, ease: "easeOut" }}
+              className="h-full bg-gradient-to-r from-neon-blue to-neon-green rounded-full"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<EventWithRelations[]>([]);
@@ -286,16 +325,16 @@ export default function AdminDashboard() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-neon-blue bg-clip-text text-transparent">
             Dashboard Overview
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground text-lg">
             Welcome back! Here&apos;s what&apos;s happening with your inventory.
           </p>
         </div>
-        <Button className="bg-primary hover:bg-hover text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button className="bg-gradient-to-r from-neon-blue to-neon-green hover:from-neon-green hover:to-neon-purple text-primary-foreground transition-all duration-300 hover:shadow-neon-lg group instrument-panel">
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
           Quick Add
         </Button>
       </motion.div>

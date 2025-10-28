@@ -1,56 +1,66 @@
 @import "tailwindcss";
 
 :root {
-  /* Light Mode Colors */
-  --background: 250 250 250; /* #FAFAFA */
-  --foreground: 51 51 51; /* #333333 */
-  --card: 238 238 238; /* #EEEEEE */
-  --card-foreground: 51 51 51; /* #333333 */
-  --popover: 250 250 250; /* #FAFAFA */
-  --popover-foreground: 51 51 51; /* #333333 */
-  --primary: 0 191 255; /* #00BFFF - Electric Blue */
+  /* Light Mode - Automotive Dashboard */
+  --background: 248 250 252; /* #F8FAFC - Off-white cockpit background */
+  --foreground: 15 23 42; /* #0F172A - Dark text for readability */
+  --card: 255 255 255; /* #FFFFFF - Clean white panels */
+  --card-foreground: 15 23 42; /* #0F172A */
+  --popover: 255 255 255; /* #FFFFFF */
+  --popover-foreground: 15 23 42; /* #0F172A */
+  --primary: 6 182 212; /* #06B6D4 - Cyan neon accent */
   --primary-foreground: 255 255 255; /* White */
-  --secondary: 238 238 238; /* #EEEEEE */
-  --secondary-foreground: 51 51 51; /* #333333 */
-  --muted: 245 245 245; /* #F5F5F5 */
-  --muted-foreground: 115 115 115; /* #737373 */
-  --accent: 0 191 255; /* #00BFFF - Electric Blue */
+  --secondary: 241 245 249; /* #F1F5F9 - Light grey */
+  --secondary-foreground: 15 23 42; /* #0F172A */
+  --muted: 248 250 252; /* #F8FAFC */
+  --muted-foreground: 100 116 139; /* #64748B */
+  --accent: 6 182 212; /* #06B6D4 - Cyan neon */
   --accent-foreground: 255 255 255; /* White */
-  --destructive: 239 68 68; /* #EF4444 - Red */
+  --destructive: 239 68 68; /* #EF4444 - Red alert */
   --destructive-foreground: 255 255 255; /* White */
-  --border: 228 228 228; /* #E4E4E4 */
-  --input: 228 228 228; /* #E4E4E4 */
-  --ring: 0 191 255; /* #00BFFF - Electric Blue */
-  --radius: 0.5rem;
+  --border: 226 232 240; /* #E2E8F0 - Subtle borders */
+  --input: 226 232 240; /* #E2E8F0 */
+  --ring: 6 182 212; /* #06B6D4 - Cyan focus ring */
+  --radius: 1.25rem; /* 20px - Rounded corners */
   
-  /* Custom hover colors */
-  --hover: 0 229 255; /* #00E5FF */
+  /* Automotive Dashboard Colors */
+  --neon-blue: 6 182 212; /* #06B6D4 */
+  --neon-green: 34 197 94; /* #22C55E */
+  --neon-purple: 168 85 247; /* #A855F7 */
+  --gauge-bg: 241 245 249; /* #F1F5F9 */
+  --panel-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --panel-glow: 0 0 0 rgba(6, 182, 212, 0);
 }
 
 .dark {
-  /* Dark Mode Colors */
-  --background: 8 8 8; /* #080808 */
-  --foreground: 250 250 250; /* #FAFAFA */
-  --card: 15 15 15; /* #0F0F0F */
-  --card-foreground: 250 250 250; /* #FAFAFA */
-  --popover: 8 8 8; /* #080808 */
-  --popover-foreground: 250 250 250; /* #FAFAFA */
-  --primary: 0 191 255; /* #00BFFF - Electric Blue */
-  --primary-foreground: 255 255 255; /* White */
-  --secondary: 15 15 15; /* #0F0F0F */
-  --secondary-foreground: 250 250 250; /* #FAFAFA */
-  --muted: 20 20 20; /* #141414 */
-  --muted-foreground: 163 163 163; /* #A3A3A3 */
-  --accent: 0 191 255; /* #00BFFF - Electric Blue */
-  --accent-foreground: 255 255 255; /* White */
-  --destructive: 239 68 68; /* #EF4444 - Red */
-  --destructive-foreground: 255 255 255; /* White */
-  --border: 38 38 38; /* #262626 */
-  --input: 38 38 38; /* #262626 */
-  --ring: 0 191 255; /* #00BFFF - Electric Blue */
+  /* Dark Mode - Automotive Dashboard */
+  --background: 2 6 23; /* #020617 - Deep space black */
+  --foreground: 248 250 252; /* #F8FAFC - Light text */
+  --card: 15 23 42; /* #0F172A - Dark charcoal panels */
+  --card-foreground: 248 250 252; /* #F8FAFC */
+  --popover: 15 23 42; /* #0F172A */
+  --popover-foreground: 248 250 252; /* #F8FAFC */
+  --primary: 6 182 212; /* #06B6D4 - Cyan neon */
+  --primary-foreground: 2 6 23; /* Dark background */
+  --secondary: 30 41 59; /* #1E293B - Darker grey */
+  --secondary-foreground: 248 250 252; /* #F8FAFC */
+  --muted: 30 41 59; /* #1E293B */
+  --muted-foreground: 148 163 184; /* #94A3B8 */
+  --accent: 6 182 212; /* #06B6D4 - Cyan neon */
+  --accent-foreground: 2 6 23; /* Dark background */
+  --destructive: 239 68 68; /* #EF4444 - Red alert */
+  --destructive-foreground: 248 250 252; /* Light text */
+  --border: 51 65 85; /* #334155 - Dark borders */
+  --input: 51 65 85; /* #334155 */
+  --ring: 6 182 212; /* #06B6D4 - Cyan focus ring */
   
-  /* Custom hover colors */
-  --hover: 0 229 255; /* #00E5FF */
+  /* Automotive Dashboard Colors - Dark */
+  --neon-blue: 6 182 212; /* #06B6D4 */
+  --neon-green: 34 197 94; /* #22C55E */
+  --neon-purple: 168 85 247; /* #A855F7 */
+  --gauge-bg: 30 41 59; /* #1E293B */
+  --panel-shadow: 0 0 0 rgba(6, 182, 212, 0);
+  --panel-glow: 0 0 20px rgba(6, 182, 212, 0.1);
 }
 
 * {
@@ -61,9 +71,115 @@ body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Smooth transitions for theme switching */
+/* Automotive Dashboard Effects */
+.gauge-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: var(--panel-shadow);
+  transition: all 0.3s ease;
+}
+
+.dark .gauge-card {
+  box-shadow: var(--panel-glow);
+  border-color: hsl(var(--neon-blue) / 0.2);
+}
+
+.gauge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .gauge-card:hover {
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.2), 0 8px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.neon-glow {
+  position: relative;
+}
+
+.neon-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(45deg, 
+    hsl(var(--neon-blue) / 0.1), 
+    hsl(var(--neon-green) / 0.1), 
+    hsl(var(--neon-purple) / 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.neon-glow:hover::before {
+  opacity: 1;
+}
+
+.instrument-panel {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+
+.instrument-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    hsl(var(--neon-blue) / 0.5), 
+    transparent
+  );
+}
+
+.gauge-ring {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    hsl(var(--neon-blue) / 0.8) 0deg,
+    hsl(var(--neon-blue) / 0.3) 180deg,
+    hsl(var(--border)) 180deg,
+    hsl(var(--border)) 360deg
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-ring::before {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: hsl(var(--card));
+}
+
+.gauge-value {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* Smooth transitions for all interactive elements */
 * {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, 
+              box-shadow 0.3s ease, transform 0.3s ease;
 }
