@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { VehicleInsert, ImportResult } from '@/types/vehicle';
 import * as XLSX from 'xlsx';
-import * as pdf from 'pdf-parse';
+const pdf = require('pdf-parse');
 
 // Helper function to parse CSV content
 function parseCSV(content: string): any[] {
@@ -196,8 +196,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert valid vehicles
+    let insertedVehicles: any[] = [];
+    
     if (vehicles.length > 0) {
-      const { data: insertedVehicles, error: insertError } = await supabase
+      const { data: insertedVehiclesData, error: insertError } = await supabase
         .from('vehicles')
         .insert(vehicles.map(v => ({ ...v, created_by: user.id })))
         .select();
@@ -206,7 +208,8 @@ export async function POST(request: NextRequest) {
         console.error('Error inserting vehicles:', insertError);
         errors.push(`Database error: ${insertError.message}`);
       } else {
-        imported = insertedVehicles?.length || 0;
+        imported = insertedVehiclesData?.length || 0;
+        insertedVehicles = insertedVehiclesData || [];
       }
     }
 

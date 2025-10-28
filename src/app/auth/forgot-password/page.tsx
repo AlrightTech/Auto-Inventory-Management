@@ -15,7 +15,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, Car } from 'lucide-react';
 import Link from 'next/link';
-import { textStyles } from '@/lib/typography';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),

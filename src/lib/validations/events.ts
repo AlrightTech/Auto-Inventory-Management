@@ -5,6 +5,7 @@ export const eventSchema = z.object({
   event_date: z.string().min(1, 'Event date is required'),
   event_time: z.string().min(1, 'Event time is required'),
   assigned_to: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export const eventFiltersSchema = z.object({

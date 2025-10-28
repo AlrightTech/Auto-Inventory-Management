@@ -10,7 +10,6 @@ import { ImportModal } from '@/components/inventory/ImportModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
 import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Upload, Download, FileText } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
-import { textStyles } from '@/lib/typography';
 
 export default function InventoryPage() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
@@ -56,10 +55,10 @@ export default function InventoryPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className={textStyles.h1}>
+          <h1 className="text-3xl font-bold text-foreground">
             Inventory Management
           </h1>
-          <p className={textStyles.subtitle}>
+          <p className="text-muted-foreground">
             Manage your vehicle inventory with comprehensive tracking and analytics.
           </p>
         </div>

@@ -16,7 +16,7 @@ import {
   Clock,
   Filter
 } from 'lucide-react';
-import { textStyles } from '@/lib/typography';
+import { cn } from '@/lib/utils';
 
 // Mock data for demonstration
 const mockMetrics = {
@@ -95,8 +95,8 @@ const MetricCard = ({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className={textStyles.subtitle}>{title}</p>
-            <p className={textStyles.cardValue}>{value}</p>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold text-foreground">{value}</p>
           </div>
           <Icon className="h-8 w-8 text-blue-400 glow-text" />
         </div>
@@ -175,10 +175,10 @@ export default function TransporterDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className={textStyles.h1}>
+          <h1 className="text-3xl font-bold text-foreground">
             Transporter Dashboard
           </h1>
-          <p className={textStyles.subtitle}>
+          <p className="text-muted-foreground">
             Discover and purchase vehicles from trusted sellers
           </p>
         </div>

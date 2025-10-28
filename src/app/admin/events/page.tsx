@@ -134,7 +134,7 @@ export default function AdminEventsPage() {
         .order('event_date', { ascending: true });
 
       if (eventsData) {
-        const eventsWithRelations: Event[] = eventsData.map(event => ({
+        const eventsWithRelations: EventWithRelations[] = eventsData.map(event => ({
           id: event.id,
           title: event.title,
           event_date: event.event_date,
@@ -194,17 +194,17 @@ export default function AdminEventsPage() {
   };
 
   // New handlers for table actions
-  const handleViewDetails = (event: Event) => {
+  const handleViewDetails = (event: EventWithRelations) => {
     setSelectedEvent(event);
     setIsDetailsModalOpen(true);
   };
 
-  const handleEditClick = (event: Event) => {
+  const handleEditClick = (event: EventWithRelations) => {
     setSelectedEvent(event);
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteClick = (event: Event) => {
+  const handleDeleteClick = (event: EventWithRelations) => {
     setSelectedEvent(event);
     setIsDeleteModalOpen(true);
   };

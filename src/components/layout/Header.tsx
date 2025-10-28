@@ -19,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { textStyles, cn } from '@/lib/typography';
 
 interface User {
   id: string;
@@ -140,10 +139,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-80 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 shadow-lg" align="end" forceMount>
-                <DropdownMenuLabel className={textStyles.h5}>Notifications</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-sm font-medium text-foreground">Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-200 dark:bg-slate-700" />
                 {notifications.length === 0 && (
-                  <div className={cn("p-4", textStyles.muted)}>No notifications</div>
+                  <div className="p-4 text-muted-foreground">No notifications</div>
                 )}
                 {notifications.slice(0, 10).map(n => (
                   <DropdownMenuItem key={n.id} className="text-black dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700/50">
@@ -152,11 +151,11 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                         <span className={`inline-block w-2 h-2 rounded-full ${n.read ? 'bg-gray-400 dark:bg-gray-500' : 'bg-blue-500'}`} />
                       </div>
                       <div className="flex-1">
-                        <div className={textStyles.bodySmall}>{n.title}</div>
-                        <div className={textStyles.muted}>{n.message}</div>
+                        <div className="text-sm text-foreground">{n.title}</div>
+                        <div className="text-xs text-muted-foreground">{n.message}</div>
                       </div>
                       {!n.read && (
-                        <button onClick={() => markAsRead(n.id)} className={textStyles.linkSmall}>Mark read</button>
+                        <button onClick={() => markAsRead(n.id)} className="text-xs text-primary hover:text-hover">Mark read</button>
                       )}
                     </div>
                   </DropdownMenuItem>
@@ -186,10 +185,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 <DropdownMenuContent className="w-56 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 shadow-lg" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className={cn("text-sm font-medium leading-none", textStyles.bodySmall)}>
+                      <p className="text-sm font-medium leading-none text-foreground">
                         {user.email || 'User'}
                       </p>
-                      <p className={cn("text-xs leading-none", textStyles.muted)}>
+                      <p className="text-xs leading-none text-muted-foreground">
                         Administrator
                       </p>
                     </div>

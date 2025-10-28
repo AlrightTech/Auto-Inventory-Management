@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Car, User, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
-import { textStyles, cn } from '@/lib/typography';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -129,10 +128,10 @@ export default function RegisterPage() {
               <Car className="w-8 h-8 text-white" />
             </motion.div>
             <div>
-              <CardTitle className={textStyles.h2}>
+              <CardTitle className="text-2xl font-bold text-foreground">
                 Auto Inventory
               </CardTitle>
-              <CardDescription className={textStyles.subtitle}>
+              <CardDescription className="text-muted-foreground">
                 Create your account
               </CardDescription>
             </div>
@@ -140,7 +139,7 @@ export default function RegisterPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
+                <Label htmlFor="email" className="text-foreground flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   Email
                 </Label>
@@ -157,7 +156,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
+                <Label htmlFor="username" className="text-foreground flex items-center gap-2">
                   <User className="w-4 h-4" />
                   Username (Optional)
                 </Label>
@@ -174,7 +173,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role" className={textStyles.subtitle}>
+                <Label htmlFor="role" className="text-foreground">
                   Role
                 </Label>
                 <Select onValueChange={(value) => setValue('role', value as 'seller' | 'transporter')}>
@@ -196,7 +195,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
+                <Label htmlFor="password" className="text-foreground flex items-center gap-2">
                   <Lock className="w-4 h-4" />
                   Password
                 </Label>
@@ -222,7 +221,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
+                <Label htmlFor="confirmPassword" className="text-foreground flex items-center gap-2">
                   <Lock className="w-4 h-4" />
                   Confirm Password
                 </Label>
@@ -277,11 +276,11 @@ export default function RegisterPage() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className={textStyles.muted}>
+              <p className="text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link
                   href="/auth/login"
-                  className={textStyles.link}
+                  className="text-primary hover:text-hover transition-colors duration-300"
                 >
                   Sign in
                 </Link>
