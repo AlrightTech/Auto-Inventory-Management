@@ -5,26 +5,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Typography utility functions
+// Typography utility functions with Electric Blue Dark Theme support
 export const typography = {
-  // Dashboard headings → text-[#111827] font-semibold
-  heading: (className?: string) => cn("text-[#111827] font-semibold", className),
+  // Dashboard headings → text-[#111827] dark:text-[#FAFAFA] font-semibold
+  heading: (className?: string) => cn("text-[#111827] dark:text-[#FAFAFA] font-semibold", className),
   
-  // Subtitles / small labels → text-[#4B5563]
-  subtitle: (className?: string) => cn("text-[#4B5563]", className),
+  // Subtitles / small labels → text-[#4B5563] dark:text-[#BFBFBF]
+  subtitle: (className?: string) => cn("text-[#4B5563] dark:text-[#BFBFBF]", className),
   
-  // Card and metric values → text-[#000000]
-  cardValue: (className?: string) => cn("text-[#000000]", className),
+  // Card and metric values → text-[#000000] dark:text-[#FAFAFA]
+  cardValue: (className?: string) => cn("text-[#000000] dark:text-[#FAFAFA]", className),
   
-  // Links / accents → text-[#1E3A8A] hover:text-[#0D9488]
-  link: (className?: string) => cn("text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200 cursor-pointer", className),
+  // Links / accents → text-[#1E3A8A] dark:text-[#00BFFF] hover:text-[#0D9488] dark:hover:text-[#00E5FF]
+  link: (className?: string) => cn("text-[#1E3A8A] dark:text-[#00BFFF] hover:text-[#0D9488] dark:hover:text-[#00E5FF] transition-colors duration-200 cursor-pointer", className),
   
   // Link accent without cursor pointer
-  linkAccent: (className?: string) => cn("text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200", className),
+  linkAccent: (className?: string) => cn("text-[#1E3A8A] dark:text-[#00BFFF] hover:text-[#0D9488] dark:hover:text-[#00E5FF] transition-colors duration-200", className),
   
-  // Additional utility classes
-  muted: (className?: string) => cn("text-[#4B5563]", className),
-  body: (className?: string) => cn("text-[#000000]", className),
+  // Additional utility classes with Electric Blue Dark Theme
+  muted: (className?: string) => cn("text-[#4B5563] dark:text-[#BFBFBF]", className),
+  body: (className?: string) => cn("text-[#000000] dark:text-[#FAFAFA]", className),
 } as const;
 
 // Predefined typography combinations

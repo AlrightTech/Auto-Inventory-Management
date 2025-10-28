@@ -47,12 +47,19 @@ const config: Config = {
           info: "hsl(var(--brand-info))",
           "info-foreground": "hsl(var(--brand-info-foreground))",
         },
-        // Typography Colors
+        // Typography Colors (Light Theme)
         'dashboard-heading': '#111827',
         'subtitle': '#4B5563',
         'card-value': '#000000',
         'link-primary': '#1E3A8A',
         'link-hover': '#0D9488',
+        
+        // Electric Blue Dark Theme Typography Colors
+        'dashboard-heading-dark': '#FAFAFA',
+        'subtitle-dark': '#BFBFBF',
+        'card-value-dark': '#FAFAFA',
+        'link-primary-dark': '#00BFFF',
+        'link-hover-dark': '#00E5FF',
       },
       borderRadius: {
         lg: "var(--radius)",

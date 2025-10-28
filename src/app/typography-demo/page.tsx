@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/button';
 
 export default function TypographyDemo() {
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-900 p-8 transition-colors duration-300">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header with theme toggle */}
         <div className="flex justify-between items-center">
           <h1 className={textStyles.h1}>Typography System Demo</h1>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            <span className={textStyles.subtitle}>Current theme: </span>
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Typography Examples */}
@@ -107,26 +110,57 @@ export default function TypographyDemo() {
             <CardTitle className={textStyles.h3}>Color Reference</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <div className="w-16 h-16 bg-[#111827] rounded"></div>
-                <p className={textStyles.subtitle}>#111827</p>
-                <p className={textStyles.muted}>Dashboard headings</p>
+            <div className="space-y-6">
+              <div>
+                <h4 className={textStyles.h5}>Light Theme Colors</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#111827] rounded"></div>
+                    <p className={textStyles.subtitle}>#111827</p>
+                    <p className={textStyles.muted}>Dashboard headings</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#4B5563] rounded"></div>
+                    <p className={textStyles.subtitle}>#4B5563</p>
+                    <p className={textStyles.muted}>Subtitles/labels</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#000000] rounded"></div>
+                    <p className={textStyles.subtitle}>#000000</p>
+                    <p className={textStyles.muted}>Card values</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#1E3A8A] rounded"></div>
+                    <p className={textStyles.subtitle}>#1E3A8A</p>
+                    <p className={textStyles.muted}>Links/accents</p>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <div className="w-16 h-16 bg-[#4B5563] rounded"></div>
-                <p className={textStyles.subtitle}>#4B5563</p>
-                <p className={textStyles.muted}>Subtitles/labels</p>
-              </div>
-              <div className="space-y-2">
-                <div className="w-16 h-16 bg-[#000000] rounded"></div>
-                <p className={textStyles.subtitle}>#000000</p>
-                <p className={textStyles.muted}>Card values</p>
-              </div>
-              <div className="space-y-2">
-                <div className="w-16 h-16 bg-[#1E3A8A] rounded"></div>
-                <p className={textStyles.subtitle}>#1E3A8A</p>
-                <p className={textStyles.muted}>Links/accents</p>
+              
+              <div>
+                <h4 className={textStyles.h5}>Dark Theme Colors</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#F8FAFC] rounded"></div>
+                    <p className={textStyles.subtitle}>#F8FAFC</p>
+                    <p className={textStyles.muted}>Dashboard headings</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#94A3B8] rounded"></div>
+                    <p className={textStyles.subtitle}>#94A3B8</p>
+                    <p className={textStyles.muted}>Subtitles/labels</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#F8FAFC] rounded"></div>
+                    <p className={textStyles.subtitle}>#F8FAFC</p>
+                    <p className={textStyles.muted}>Card values</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-16 h-16 bg-[#3B82F6] rounded"></div>
+                    <p className={textStyles.subtitle}>#3B82F6</p>
+                    <p className={textStyles.muted}>Links/accents</p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>

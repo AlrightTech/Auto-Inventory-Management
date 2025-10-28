@@ -40,7 +40,7 @@
 }
 
 .dark {
-  /* Dark Theme - Improved Contrast */
+  /* Dark Theme - Improved Contrast with Electric Blue Glow */
   --background: 0 0% 3%; /* Slightly lighter for better contrast */
   --foreground: 0 0% 98%; /* Brighter for better contrast */
   --primary: 199 89% 48%; /* Electric blue */
@@ -81,55 +81,55 @@ body {
   @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/30 dark:border-white/15 rounded-2xl;
 }
 
-/* Auto Inventory Card System */
+/* Auto Inventory Card System - Dark Theme with Glow */
 .card-enhanced {
-  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200;
+  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-shadow duration-200;
 }
 
 .card-enhanced-hover {
-  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800/50 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md transition-all duration-200;
+  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm dark:shadow-lg hover:bg-blue-50 dark:hover:bg-slate-800/50 hover:border-blue-200 dark:hover:border-blue-400 hover:shadow-md dark:hover:shadow-xl transition-all duration-200;
 }
 
-/* Typography System - Auto Inventory */
+/* Typography System - Auto Inventory with Electric Blue Dark Theme */
 .text-heading {
-  @apply text-[#111827] font-semibold;
+  @apply text-[#111827] dark:text-[#FAFAFA] font-semibold;
 }
 
 .text-subheading {
-  @apply text-[#4B5563];
+  @apply text-[#4B5563] dark:text-[#BFBFBF];
 }
 
 .text-body {
-  @apply text-[#000000];
+  @apply text-[#000000] dark:text-[#FAFAFA];
 }
 
 .text-muted {
-  @apply text-[#4B5563];
+  @apply text-[#4B5563] dark:text-[#BFBFBF];
 }
 
 .text-accent {
-  @apply text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200;
+  @apply text-[#1E3A8A] dark:text-[#00BFFF] hover:text-[#0D9488] dark:hover:text-[#00E5FF] transition-colors duration-200;
 }
 
-/* Additional Typography Classes */
+/* Additional Typography Classes with Electric Blue Dark Theme */
 .text-dashboard-heading {
-  @apply text-[#111827] font-semibold;
+  @apply text-[#111827] dark:text-[#FAFAFA] font-semibold;
 }
 
 .text-subtitle {
-  @apply text-[#4B5563];
+  @apply text-[#4B5563] dark:text-[#BFBFBF];
 }
 
 .text-card-value {
-  @apply text-[#000000];
+  @apply text-[#000000] dark:text-[#FAFAFA];
 }
 
 .text-link {
-  @apply text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200 cursor-pointer;
+  @apply text-[#1E3A8A] dark:text-[#00BFFF] hover:text-[#0D9488] dark:hover:text-[#00E5FF] transition-colors duration-200 cursor-pointer;
 }
 
 .text-link-accent {
-  @apply text-[#1E3A8A] hover:text-[#0D9488] transition-colors duration-200;
+  @apply text-[#1E3A8A] dark:text-[#00BFFF] hover:text-[#0D9488] dark:hover:text-[#00E5FF] transition-colors duration-200;
 }
 
 /* Glow effects */
