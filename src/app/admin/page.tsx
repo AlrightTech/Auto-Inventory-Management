@@ -135,15 +135,15 @@ const MetricCard = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
   >
-    <Card className="glass-card hover-glow transition-all duration-300 glow-border">
+    <Card className="glass-card hover:shadow-audi-glow transition-all duration-300 group">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className={textStyles.subtitle}>
+        <CardTitle className="text-sm font-medium text-audi-text-light/80 dark:text-audi-text-dark/80 font-inter">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-blue-400 glow-text" />
+        <Icon className="h-4 w-4 text-audi-neon glow-text group-hover:animate-glow" />
       </CardHeader>
       <CardContent>
-        <div className={textStyles.cardValue}>{value}</div>
+        <div className="text-2xl font-bold text-audi-text-light dark:text-audi-text-dark font-poppins">{value}</div>
         {change !== undefined && (
           <div className="flex items-center space-x-1 text-xs">
             {change > 0 ? (
@@ -154,7 +154,7 @@ const MetricCard = ({
             <span className={change > 0 ? 'text-green-400' : 'text-red-400'}>
               {change > 0 ? '+' : ''}{change}%
             </span>
-            <span className={textStyles.muted}>from last week</span>
+            <span className="text-audi-text-light/60 dark:text-audi-text-dark/60">from last week</span>
           </div>
         )}
       </CardContent>
@@ -288,14 +288,14 @@ export default function AdminDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className={textStyles.h1}>
+          <h1 className="text-3xl font-bold text-audi-text-light dark:text-audi-text-dark font-poppins glow-text">
             Dashboard Overview
           </h1>
-          <p className={textStyles.subtitle}>
+          <p className="text-audi-text-light/70 dark:text-audi-text-dark/70 mt-1 font-inter">
             Welcome back! Here&apos;s what&apos;s happening with your inventory.
           </p>
         </div>
-        <Button className="gradient-primary hover:opacity-90 glow-border">
+        <Button className="gradient-primary hover:opacity-90 glow-border animate-glow">
           <Plus className="w-4 h-4 mr-2" />
           Quick Add
         </Button>

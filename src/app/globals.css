@@ -7,32 +7,29 @@
 @import "@fontsource/poppins/600.css";
 
 :root {
-  /* Light Theme - Enhanced Auto Inventory Palette */
-  --background: 0 0% 100%; /* #FFFFFF - Pure white */
-  --foreground: 220 13% 9%; /* #111827 - Dark gray for headings */
-  --primary: 220 100% 35%; /* #1E3A8A - Primary blue */
-  --primary-foreground: 0 0% 100%; /* #FFFFFF - White text on primary */
-  --primary-glow: 220 100% 35% / 0.2;
-  --secondary: 220 9% 95%; /* #F3F4F6 - Light gray background */
-  --secondary-foreground: 220 13% 9%; /* #111827 - Dark text on secondary */
-  --card: 0 0% 100%; /* #FFFFFF - White card background */
-  --card-foreground: 220 13% 9%; /* #111827 - Dark text on cards */
-  --border: 220 13% 89%; /* #E5E7EB - Light border */
-  --input: 220 9% 95%; /* #F3F4F6 - Input background */
-  --ring: 220 100% 35%; /* #1E3A8A - Focus ring */
-  --muted: 220 9% 95%; /* #F3F4F6 - Muted background */
-  --muted-foreground: 220 9% 35%; /* #4B5563 - Subheading text */
-  --accent: 220 100% 97%; /* #EFF6FF - Accent background */
-  --accent-foreground: 220 100% 35%; /* #1E3A8A - Accent text */
+  /* Light Theme - Audi EV Dashboard Inspired */
+  --background: 0 0% 97.6%; /* #F9F9F9 */
+  --foreground: 0 0% 5.1%; /* #0D0D0D */
+  --primary: 195 100% 50%; /* #00E0FF - Neon blue accent */
+  --primary-foreground: 0 0% 98%;
+  --primary-glow: 195 100% 50% / 0.2;
+  --secondary: 0 0% 95%;
+  --secondary-foreground: 0 0% 9%;
+  --card: 0 0% 100% / 0.05; /* Glassmorphism card */
+  --card-foreground: 0 0% 5.1%;
+  --card-glass: 0 0% 100% / 0.1;
+  --border: 0 0% 90%;
+  --input: 0 0% 95%;
+  --ring: 195 100% 50%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 195 100% 50%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
+  --glass-bg: 0 0% 100% / 0.05;
+  --glass-border: 0 0% 100% / 0.1;
   --radius: 0.75rem;
-  
-  /* Auto Inventory Brand Colors */
-  --brand-accent: 38 92% 50%; /* #F59E0B - Amber accent */
-  --brand-success: 173 80% 40%; /* #0D9488 - Teal success */
-  --brand-info: 220 100% 97%; /* #EFF6FF - Light blue info */
-  --brand-info-foreground: 220 100% 35%; /* #1E3A8A - Info text */
   
   /* Font variables */
   --font-inter: 'Inter', system-ui, sans-serif;
@@ -40,25 +37,28 @@
 }
 
 .dark {
-  /* Dark Theme - Improved Contrast with Electric Blue Glow */
-  --background: 0 0% 3%; /* Slightly lighter for better contrast */
-  --foreground: 0 0% 98%; /* Brighter for better contrast */
-  --primary: 199 89% 48%; /* Electric blue */
+  /* Dark Theme - Audi EV Dashboard */
+  --background: 0 0% 5.1%; /* #0D0D0D */
+  --foreground: 0 0% 96.1%; /* #F5F5F5 */
+  --primary: 195 100% 50%; /* #00E0FF - Neon blue accent */
   --primary-foreground: 0 0% 98%;
-  --primary-glow: 199 89% 48% / 0.3;
-  --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 95%; /* Brighter for better contrast */
-  --card: 0 0% 6%; /* Slightly lighter for better contrast */
-  --card-foreground: 0 0% 98%; /* Brighter for better contrast */
+  --primary-glow: 195 100% 50% / 0.3;
+  --secondary: 0 0% 8%;
+  --secondary-foreground: 0 0% 95%;
+  --card: 0 0% 100% / 0.05; /* Glassmorphism card */
+  --card-foreground: 0 0% 96.1%;
+  --card-glass: 0 0% 100% / 0.08;
   --border: 0 0% 15%;
   --input: 0 0% 12%;
-  --ring: 199 89% 48%;
+  --ring: 195 100% 50%;
   --muted: 0 0% 10%;
-  --muted-foreground: 0 0% 75%; /* Brighter for better contrast */
-  --accent: 0 0% 12%;
-  --accent-foreground: 0 0% 95%; /* Brighter for better contrast */
+  --muted-foreground: 0 0% 70%;
+  --accent: 195 100% 50%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
+  --glass-bg: 0 0% 100% / 0.05;
+  --glass-border: 0 0% 100% / 0.1;
 }
 
 * {
@@ -72,27 +72,115 @@ body {
   min-height: 100vh;
 }
 
-/* Enhanced Card System */
+/* Audi EV Dashboard - Glassmorphism Card System */
 .glass-card {
-  @apply bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl;
+  @apply bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10 dark:border-white/10 rounded-2xl shadow-lg;
+  background: hsl(var(--glass-bg));
+  border: 1px solid hsl(var(--glass-border));
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .glass-card-strong {
-  @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/30 dark:border-white/15 rounded-2xl;
+  @apply bg-white/10 dark:bg-white/10 backdrop-blur-2xl border border-white/20 dark:border-white/20 rounded-2xl shadow-xl;
+  background: hsl(var(--card-glass));
+  border: 1px solid hsl(var(--glass-border));
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Auto Inventory Card System - Dark Theme with Glow */
+/* Audi EV Dashboard - Enhanced Cards with Neon Glow */
 .card-enhanced {
-  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-shadow duration-200;
+  @apply rounded-xl transition-all duration-300;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 224, 255, 0.1);
+}
+
+.card-enhanced:hover {
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 224, 255, 0.2),
+    0 0 20px rgba(0, 224, 255, 0.1);
+  transform: translateY(-2px);
 }
 
 .card-enhanced-hover {
-  @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm dark:shadow-lg hover:bg-blue-50 dark:hover:bg-slate-800/50 hover:border-blue-200 dark:hover:border-blue-400 hover:shadow-md dark:hover:shadow-xl transition-all duration-200;
+  @apply rounded-xl transition-all duration-300;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 224, 255, 0.1);
 }
 
-/* Typography System - Auto Inventory with Electric Blue Dark Theme */
+.card-enhanced-hover:hover {
+  background: hsl(var(--accent) / 0.05);
+  border-color: hsl(var(--primary));
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 224, 255, 0.3),
+    0 0 20px rgba(0, 224, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Audi EV Dashboard - Neon Glow Effects */
+.glow-text {
+  text-shadow: 0 0 10px hsl(var(--primary)), 0 0 20px hsl(var(--primary)), 0 0 30px hsl(var(--primary));
+}
+
+.glow-border {
+  box-shadow: 
+    0 0 0 1px hsl(var(--primary) / 0.3),
+    0 0 10px hsl(var(--primary) / 0.2),
+    inset 0 0 10px hsl(var(--primary) / 0.1);
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow-pulse {
+  from {
+    box-shadow: 
+      0 0 0 1px hsl(var(--primary) / 0.3),
+      0 0 10px hsl(var(--primary) / 0.2),
+      inset 0 0 10px hsl(var(--primary) / 0.1);
+  }
+  to {
+    box-shadow: 
+      0 0 0 1px hsl(var(--primary) / 0.5),
+      0 0 20px hsl(var(--primary) / 0.4),
+      0 0 30px hsl(var(--primary) / 0.3),
+      inset 0 0 20px hsl(var(--primary) / 0.2);
+  }
+}
+
+/* Audi EV Dashboard - Gradient Backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+  box-shadow: 
+    0 4px 16px hsl(var(--primary) / 0.3),
+    0 0 20px hsl(var(--primary) / 0.2);
+}
+
+.gradient-primary:hover {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--primary) / 0.7));
+  box-shadow: 
+    0 6px 20px hsl(var(--primary) / 0.4),
+    0 0 30px hsl(var(--primary) / 0.3);
+}
+
+/* Audi EV Dashboard - Typography System */
 .text-heading {
-  @apply text-[#111827] dark:text-[#FAFAFA] font-semibold;
+  @apply font-semibold;
+  color: hsl(var(--foreground));
 }
 
 .text-subheading {

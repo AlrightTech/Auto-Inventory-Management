@@ -147,44 +147,44 @@ function LoginPageContent() {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <Card className="glass-card-strong glow-border">
-          <CardHeader className="text-center space-y-4">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center glow-border animate-glow"
-            >
-              <Car className="w-8 h-8 text-white" />
-            </motion.div>
-            <div>
-              <CardTitle className={textStyles.h2}>
-                Auto Inventory
-              </CardTitle>
-              <CardDescription className={textStyles.subtitle}>
-                Sign in to your account
-              </CardDescription>
-            </div>
-          </CardHeader>
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-audi-light via-audi-light/90 to-audi-light dark:from-audi-dark dark:via-audi-dark/90 dark:to-audi-dark">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          <Card className="glass-card-strong glow-border">
+            <CardHeader className="text-center space-y-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="mx-auto w-16 h-16 bg-gradient-to-r from-audi-neon to-audi-neon/80 rounded-full flex items-center justify-center glow-border animate-glow"
+              >
+                <Car className="w-8 h-8 text-white" />
+              </motion.div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-audi-text-light dark:text-audi-text-dark font-poppins glow-text">
+                  Auto Inventory
+                </CardTitle>
+                <CardDescription className="text-audi-text-light/70 dark:text-audi-text-dark/70 font-inter">
+                  Sign in to your account
+                </CardDescription>
+              </div>
+            </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className={textStyles.subtitle}>
+                <Label htmlFor="email" className="text-audi-text-light/80 dark:text-audi-text-dark/80 font-inter">
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  className="bg-audi-glass-light dark:bg-audi-glass border-white/20 dark:border-white/10 text-audi-text-light dark:text-audi-text-dark placeholder:text-audi-text-light/50 dark:placeholder:text-audi-text-dark/50 focus:border-audi-neon focus:ring-audi-neon/20 backdrop-blur-sm"
                   {...register('email')}
                 />
                 {errors.email && (

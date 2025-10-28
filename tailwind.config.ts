@@ -40,26 +40,14 @@ const config: Config = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-        // Auto Inventory Brand Colors
-        brand: {
-          accent: "hsl(var(--brand-accent))",
-          success: "hsl(var(--brand-success))",
-          info: "hsl(var(--brand-info))",
-          "info-foreground": "hsl(var(--brand-info-foreground))",
-        },
-        // Typography Colors (Light Theme)
-        'dashboard-heading': '#111827',
-        'subtitle': '#4B5563',
-        'card-value': '#000000',
-        'link-primary': '#1E3A8A',
-        'link-hover': '#0D9488',
-        
-        // Electric Blue Dark Theme Typography Colors
-        'dashboard-heading-dark': '#FAFAFA',
-        'subtitle-dark': '#BFBFBF',
-        'card-value-dark': '#FAFAFA',
-        'link-primary-dark': '#00BFFF',
-        'link-hover-dark': '#00E5FF',
+        // Audi EV Dashboard Colors
+        'audi-neon': '#00E0FF',
+        'audi-dark': '#0D0D0D',
+        'audi-light': '#F9F9F9',
+        'audi-text-dark': '#F5F5F5',
+        'audi-text-light': '#0D0D0D',
+        'audi-glass': 'rgba(255,255,255,0.05)',
+        'audi-glass-light': 'rgba(0,0,0,0.05)',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -68,12 +56,24 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        poppins: ["var(--font-poppins)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+      boxShadow: {
+        'audi-glow': '0 0 20px rgba(0, 224, 255, 0.3)',
+        'audi-glow-lg': '0 0 40px rgba(0, 224, 255, 0.4)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        'glass-lg': '0 12px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)',
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-in-out",
         "slide-up": "slideUp 0.3s ease-out",
         "glow": "glow 2s ease-in-out infinite alternate",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite alternate",
+        "float": "float 3s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -87,6 +87,18 @@ const config: Config = {
         glow: {
           "0%": { boxShadow: "0 0 20px hsl(var(--primary-glow))" },
           "100%": { boxShadow: "0 0 30px hsl(var(--primary-glow))" },
+        },
+        'glow-pulse': {
+          '0%': {
+            boxShadow: '0 0 0 1px rgba(0, 224, 255, 0.3), 0 0 10px rgba(0, 224, 255, 0.2)',
+          },
+          '100%': {
+            boxShadow: '0 0 0 1px rgba(0, 224, 255, 0.5), 0 0 20px rgba(0, 224, 255, 0.4), 0 0 30px rgba(0, 224, 255, 0.3)',
+          },
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
       },
     },
