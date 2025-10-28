@@ -13,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Car } from 'lucide-react';
 import Link from 'next/link';
-import { textStyles } from '@/lib/typography';
 
 function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -148,28 +147,28 @@ function LoginPageContent() {
   };
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-audi-light via-audi-light/90 to-audi-light dark:from-audi-dark dark:via-audi-dark/90 dark:to-audi-dark">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          <Card className="glass-card-strong glow-border">
+          <Card className="bg-card border-border shadow-lg">
             <CardHeader className="text-center space-y-4">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="mx-auto w-16 h-16 bg-gradient-to-r from-audi-neon to-audi-neon/80 rounded-full flex items-center justify-center glow-border animate-glow"
+                className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center"
               >
-                <Car className="w-8 h-8 text-white" />
+                <Car className="w-8 h-8 text-primary-foreground" />
               </motion.div>
               <div>
-                <CardTitle className="text-2xl font-bold text-audi-text-light dark:text-audi-text-dark font-poppins glow-text">
+                <CardTitle className="text-2xl font-bold text-foreground">
                   Auto Inventory
                 </CardTitle>
-                <CardDescription className="text-audi-text-light/70 dark:text-audi-text-dark/70 font-inter">
+                <CardDescription className="text-muted-foreground">
                   Sign in to your account
                 </CardDescription>
               </div>
@@ -177,14 +176,14 @@ function LoginPageContent() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-audi-text-light/80 dark:text-audi-text-dark/80 font-inter">
+                <Label htmlFor="email" className="text-foreground">
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-audi-glass-light dark:bg-audi-glass border-white/20 dark:border-white/10 text-audi-text-light dark:text-audi-text-dark placeholder:text-audi-text-light/50 dark:placeholder:text-audi-text-dark/50 focus:border-audi-neon focus:ring-audi-neon/20 backdrop-blur-sm"
+                  className="bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300"
                   {...register('email')}
                 />
                 {errors.email && (
@@ -193,7 +192,7 @@ function LoginPageContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className={textStyles.subtitle}>
+                <Label htmlFor="password" className="text-foreground">
                   Password
                 </Label>
                 <div className="relative">
@@ -201,13 +200,13 @@ function LoginPageContent() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
-                    className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
+                    className="bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300 pr-10"
                     {...register('password')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -221,7 +220,7 @@ function LoginPageContent() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm"
+                  className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm"
                 >
                   {error}
                 </motion.div>
@@ -231,7 +230,7 @@ function LoginPageContent() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg text-green-600 dark:text-green-400 text-sm"
+                  className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-sm"
                 >
                   {success}
                 </motion.div>
@@ -240,7 +239,7 @@ function LoginPageContent() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full gradient-primary hover:opacity-90 transition-opacity glow-border"
+                className="w-full bg-primary hover:bg-hover text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -251,16 +250,16 @@ function LoginPageContent() {
                 {/* Hide forgot password link for Admin after detecting role post-login; show here unconditionally for UI consistency. */}
                 <Link
                   href="/auth/forgot-password"
-                  className={textStyles.linkSmall}
+                  className="text-sm text-primary hover:text-hover transition-colors duration-300"
                 >
                   Forgot your password?
                 </Link>
               </div>
-              <p className={textStyles.muted}>
+              <p className="text-sm text-muted-foreground">
                 Don&apos;t have an account?{' '}
                 <Link
                   href="/auth/register"
-                  className={textStyles.link}
+                  className="text-primary hover:text-hover transition-colors duration-300"
                 >
                   Sign up
                 </Link>

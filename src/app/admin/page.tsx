@@ -22,7 +22,6 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { createClient } from '@/lib/supabase/client';
 import { EventWithRelations } from '@/types';
 import { MessageCircle, Clock } from 'lucide-react';
-import { textStyles } from '@/lib/typography';
 
 // Mock data for demonstration
 const mockMetrics = {
@@ -135,26 +134,26 @@ const MetricCard = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
   >
-    <Card className="glass-card hover:shadow-audi-glow transition-all duration-300 group">
+    <Card className="bg-card border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-audi-text-light/80 dark:text-audi-text-dark/80 font-inter">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-audi-neon glow-text group-hover:animate-glow" />
+        <Icon className="h-4 w-4 text-primary" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-audi-text-light dark:text-audi-text-dark font-poppins">{value}</div>
+        <div className="text-2xl font-bold text-foreground">{value}</div>
         {change !== undefined && (
           <div className="flex items-center space-x-1 text-xs">
             {change > 0 ? (
-              <TrendingUp className="h-3 w-3 text-green-400" />
+              <TrendingUp className="h-3 w-3 text-green-500" />
             ) : (
-              <TrendingDown className="h-3 w-3 text-red-400" />
+              <TrendingDown className="h-3 w-3 text-red-500" />
             )}
-            <span className={change > 0 ? 'text-green-400' : 'text-red-400'}>
+            <span className={change > 0 ? 'text-green-500' : 'text-red-500'}>
               {change > 0 ? '+' : ''}{change}%
             </span>
-            <span className="text-audi-text-light/60 dark:text-audi-text-dark/60">from last week</span>
+            <span className="text-muted-foreground">from last week</span>
           </div>
         )}
       </CardContent>
@@ -288,14 +287,14 @@ export default function AdminDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-audi-text-light dark:text-audi-text-dark font-poppins glow-text">
+          <h1 className="text-3xl font-bold text-foreground">
             Dashboard Overview
           </h1>
-          <p className="text-audi-text-light/70 dark:text-audi-text-dark/70 mt-1 font-inter">
+          <p className="text-muted-foreground mt-1">
             Welcome back! Here&apos;s what&apos;s happening with your inventory.
           </p>
         </div>
-        <Button className="gradient-primary hover:opacity-90 glow-border animate-glow">
+        <Button className="bg-primary hover:bg-hover text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
           <Plus className="w-4 h-4 mr-2" />
           Quick Add
         </Button>
@@ -344,8 +343,8 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={textStyles.subtitle}>Scheduled</p>
-                  <p className={textStyles.cardValue}>
+                  <p className="text-sm text-muted-foreground">Scheduled</p>
+                  <p className="text-2xl font-bold">
                     {isLoading ? "..." : eventStats.scheduledEvents}
                   </p>
                 </div>
@@ -364,8 +363,8 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={textStyles.subtitle}>Completed</p>
-                  <p className={textStyles.cardValue}>
+                  <p className="text-sm text-muted-foreground">Completed</p>
+                  <p className="text-2xl font-bold">
                     {isLoading ? "..." : eventStats.completedEvents}
                   </p>
                 </div>
@@ -384,8 +383,8 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={textStyles.subtitle}>This Week</p>
-                  <p className={textStyles.cardValue}>
+                  <p className="text-sm text-muted-foreground">This Week</p>
+                  <p className="text-2xl font-bold">
                     {isLoading ? "..." : eventStats.thisWeekEvents}
                   </p>
                 </div>
