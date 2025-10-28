@@ -1,5 +1,5 @@
--- Auto Inventory Management Database Schema
--- This file contains all the necessary tables, RLS policies, and configurations
+-- Complete Database Setup for Auto Inventory Management
+-- This script creates all necessary tables and handles the vehicle creation issue
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -15,8 +15,11 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create vehicles table
-CREATE TABLE IF NOT EXISTS vehicles (
+-- Drop vehicles table if it exists (to recreate with proper schema)
+DROP TABLE IF EXISTS vehicles CASCADE;
+
+-- Create vehicles table with complete schema
+CREATE TABLE vehicles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
   -- Basic Vehicle Information
@@ -140,6 +143,11 @@ CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read);
+CREATE INDEX IF NOT EXISTS idx_vehicles_sale_date ON vehicles(sale_date);
+CREATE INDEX IF NOT EXISTS idx_vehicles_seller_name ON vehicles(seller_name);
+CREATE INDEX IF NOT EXISTS idx_vehicles_buyer_dealership ON vehicles(buyer_dealership);
+CREATE INDEX IF NOT EXISTS idx_vehicles_facilitating_location ON vehicles(facilitating_location);
+CREATE INDEX IF NOT EXISTS idx_vehicles_vehicle_location ON vehicles(vehicle_location);
 
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -355,6 +363,3 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Sample data will be created after users are registered in the application
--- The trigger function will automatically create profiles when users sign up
