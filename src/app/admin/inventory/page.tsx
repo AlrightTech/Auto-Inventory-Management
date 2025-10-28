@@ -56,16 +56,16 @@ export default function InventoryPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white glow-text">
+          <h1 className={textStyles.h1}>
             Inventory Management
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className={textStyles.subtitle}>
             Manage your vehicle inventory with comprehensive tracking and analytics.
           </p>
         </div>
         <Button 
           onClick={() => setIsAddVehicleModalOpen(true)}
-          className="gradient-primary hover:opacity-90"
+          className="gradient-primary hover:opacity-90 glow-border"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Vehicle
