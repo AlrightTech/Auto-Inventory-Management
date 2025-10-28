@@ -10,6 +10,7 @@ import { ImportModal } from '@/components/inventory/ImportModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
 import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Upload, Download, FileText } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
+import { textStyles } from '@/lib/typography';
 
 export default function InventoryPage() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);

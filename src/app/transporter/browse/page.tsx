@@ -15,6 +15,7 @@ import {
   Star,
   Package
 } from 'lucide-react';
+import { textStyles } from '@/lib/typography';
 
 // Mock data for demonstration
 const mockVehicles = [

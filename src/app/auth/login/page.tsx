@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Car } from 'lucide-react';
 import Link from 'next/link';
+import { textStyles } from '@/lib/typography';
 
 function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -160,15 +161,15 @@ function LoginPageContent() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center"
+              className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center glow-border animate-glow"
             >
               <Car className="w-8 h-8 text-white" />
             </motion.div>
             <div>
-              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white glow-text">
+              <CardTitle className={textStyles.h2}>
                 Auto Inventory
               </CardTitle>
-              <CardDescription className="text-slate-600 dark:text-slate-300">
+              <CardDescription className={textStyles.subtitle}>
                 Sign in to your account
               </CardDescription>
             </div>
@@ -176,7 +177,7 @@ function LoginPageContent() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 dark:text-slate-200">
+                <Label htmlFor="email" className={textStyles.subtitle}>
                   Email
                 </Label>
                 <Input
@@ -192,7 +193,7 @@ function LoginPageContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-700 dark:text-slate-200">
+                <Label htmlFor="password" className={textStyles.subtitle}>
                   Password
                 </Label>
                 <div className="relative">
@@ -239,7 +240,7 @@ function LoginPageContent() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full gradient-primary hover:opacity-90 transition-opacity"
+                className="w-full gradient-primary hover:opacity-90 transition-opacity glow-border"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -250,16 +251,16 @@ function LoginPageContent() {
                 {/* Hide forgot password link for Admin after detecting role post-login; show here unconditionally for UI consistency. */}
                 <Link
                   href="/auth/forgot-password"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium text-sm"
+                  className={textStyles.linkSmall}
                 >
                   Forgot your password?
                 </Link>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
+              <p className={textStyles.muted}>
                 Don&apos;t have an account?{' '}
                 <Link
                   href="/auth/register"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
+                  className={textStyles.link}
                 >
                   Sign up
                 </Link>

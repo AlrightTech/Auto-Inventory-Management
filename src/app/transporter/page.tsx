@@ -16,6 +16,7 @@ import {
   Clock,
   Filter
 } from 'lucide-react';
+import { textStyles } from '@/lib/typography';
 
 // Mock data for demonstration
 const mockMetrics = {
@@ -90,14 +91,14 @@ const MetricCard = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
   >
-    <Card className="glass-card hover-glow transition-all duration-300">
+    <Card className="glass-card hover-glow transition-all duration-300 glow-border">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-300">{title}</p>
-            <p className="text-2xl font-bold text-white">{value}</p>
+            <p className={textStyles.subtitle}>{title}</p>
+            <p className={textStyles.cardValue}>{value}</p>
           </div>
-          <Icon className="h-8 w-8 text-blue-400" />
+          <Icon className="h-8 w-8 text-blue-400 glow-text" />
         </div>
       </CardContent>
     </Card>
@@ -174,10 +175,10 @@ export default function TransporterDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white glow-text">
+          <h1 className={textStyles.h1}>
             Transporter Dashboard
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className={textStyles.subtitle}>
             Discover and purchase vehicles from trusted sellers
           </p>
         </div>
@@ -186,7 +187,7 @@ export default function TransporterDashboard() {
             <Filter className="w-4 h-4 mr-2" />
             Filters
           </Button>
-          <Button className="gradient-primary hover:opacity-90">
+          <Button className="gradient-primary hover:opacity-90 glow-border">
             <Search className="w-4 h-4 mr-2" />
             Browse All
           </Button>

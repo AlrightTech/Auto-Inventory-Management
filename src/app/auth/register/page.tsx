@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Car, User, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { textStyles, cn } from '@/lib/typography';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -110,7 +111,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -123,15 +124,15 @@ export default function RegisterPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center"
+              className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center glow-border animate-glow"
             >
               <Car className="w-8 h-8 text-white" />
             </motion.div>
             <div>
-              <CardTitle className="text-2xl font-bold text-white glow-text">
+              <CardTitle className={textStyles.h2}>
                 Auto Inventory
               </CardTitle>
-              <CardDescription className="text-slate-300">
+              <CardDescription className={textStyles.subtitle}>
                 Create your account
               </CardDescription>
             </div>
@@ -139,7 +140,7 @@ export default function RegisterPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-200 flex items-center gap-2">
+                <Label htmlFor="email" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
                   <Mail className="w-4 h-4" />
                   Email
                 </Label>
@@ -147,16 +148,16 @@ export default function RegisterPage() {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-red-400 text-sm">{errors.email.message}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.email.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-slate-200 flex items-center gap-2">
+                <Label htmlFor="username" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
                   <User className="w-4 h-4" />
                   Username (Optional)
                 </Label>
@@ -164,38 +165,38 @@ export default function RegisterPage() {
                   id="username"
                   type="text"
                   placeholder="Enter your username"
-                  className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                   {...register('username')}
                 />
                 {errors.username && (
-                  <p className="text-red-400 text-sm">{errors.username.message}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.username.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role" className="text-slate-200">
+                <Label htmlFor="role" className={textStyles.subtitle}>
                   Role
                 </Label>
                 <Select onValueChange={(value) => setValue('role', value as 'seller' | 'transporter')}>
-                  <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
+                  <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-blue-500/20">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-600">
-                    <SelectItem value="seller" className="text-white hover:bg-slate-700">
+                  <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                    <SelectItem value="seller" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">
                       Seller
                     </SelectItem>
-                    <SelectItem value="transporter" className="text-white hover:bg-slate-700">
+                    <SelectItem value="transporter" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">
                       Transporter
                     </SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.role && (
-                  <p className="text-red-400 text-sm">{errors.role.message}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.role.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-200 flex items-center gap-2">
+                <Label htmlFor="password" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
                   <Lock className="w-4 h-4" />
                   Password
                 </Label>
@@ -204,24 +205,24 @@ export default function RegisterPage() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
+                    className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
                     {...register('password')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-400 text-sm">{errors.password.message}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.password.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-slate-200 flex items-center gap-2">
+                <Label htmlFor="confirmPassword" className={cn(textStyles.subtitle, "flex items-center gap-2")}>
                   <Lock className="w-4 h-4" />
                   Confirm Password
                 </Label>
@@ -230,19 +231,19 @@ export default function RegisterPage() {
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Confirm your password"
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
+                    className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
                     {...register('confirmPassword')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-400 text-sm">{errors.confirmPassword.message}</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
@@ -269,18 +270,18 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full gradient-primary hover:opacity-90 transition-opacity"
+                className="w-full gradient-primary hover:opacity-90 transition-opacity glow-border"
               >
                 {isLoading ? 'Creating account...' : 'Create Account'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-slate-400 text-sm">
+              <p className={textStyles.muted}>
                 Already have an account?{' '}
                 <Link
                   href="/auth/login"
-                  className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                  className={textStyles.link}
                 >
                   Sign in
                 </Link>

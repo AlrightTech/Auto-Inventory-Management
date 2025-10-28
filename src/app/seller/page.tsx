@@ -11,6 +11,7 @@ import {
   DollarSign,
   BarChart3
 } from 'lucide-react';
+import { textStyles, cn } from '@/lib/typography';
 
 // Mock data for demonstration
 const mockMetrics = {
@@ -71,17 +72,17 @@ const MetricCard = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
   >
-    <Card className="glass-card hover-glow transition-all duration-300">
+    <Card className="glass-card hover-glow transition-all duration-300 glow-border">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-300">{title}</p>
-            <p className="text-2xl font-bold text-white">{value}</p>
+            <p className={textStyles.subtitle}>{title}</p>
+            <p className={textStyles.cardValue}>{value}</p>
             {change && (
-              <p className="text-xs text-green-400 mt-1">{change}</p>
+              <p className={cn(textStyles.muted, "text-green-400")}>{change}</p>
             )}
           </div>
-          <Icon className="h-8 w-8 text-blue-400" />
+          <Icon className="h-8 w-8 text-blue-400 glow-text" />
         </div>
       </CardContent>
     </Card>
@@ -122,10 +123,10 @@ export default function SellerDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white glow-text">
+          <h1 className={textStyles.h1}>
             Seller Dashboard
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className={textStyles.subtitle}>
             Manage your vehicle inventory and track sales performance
           </p>
         </div>
@@ -134,7 +135,7 @@ export default function SellerDashboard() {
             <BarChart3 className="w-4 h-4 mr-2" />
             View Reports
           </Button>
-          <Button className="gradient-primary hover:opacity-90">
+          <Button className="gradient-primary hover:opacity-90 glow-border">
             <Package className="w-4 h-4 mr-2" />
             Add Vehicle
           </Button>

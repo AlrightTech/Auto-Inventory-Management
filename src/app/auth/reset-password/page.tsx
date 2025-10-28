@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Car, Lock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { textStyles } from '@/lib/typography';
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),

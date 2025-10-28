@@ -22,6 +22,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { createClient } from '@/lib/supabase/client';
 import { EventWithRelations } from '@/types';
 import { MessageCircle, Clock } from 'lucide-react';
+import { textStyles } from '@/lib/typography';
 
 // Mock data for demonstration
 const mockMetrics = {
@@ -134,15 +135,15 @@ const MetricCard = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
   >
-    <Card className="glass-card hover-glow transition-all duration-300">
+    <Card className="glass-card hover-glow transition-all duration-300 glow-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-slate-300">
+        <CardTitle className={textStyles.subtitle}>
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-blue-400" />
+        <Icon className="h-4 w-4 text-blue-400 glow-text" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-white">{value}</div>
+        <div className={textStyles.cardValue}>{value}</div>
         {change !== undefined && (
           <div className="flex items-center space-x-1 text-xs">
             {change > 0 ? (
@@ -153,7 +154,7 @@ const MetricCard = ({
             <span className={change > 0 ? 'text-green-400' : 'text-red-400'}>
               {change > 0 ? '+' : ''}{change}%
             </span>
-            <span className="text-slate-400">from last week</span>
+            <span className={textStyles.muted}>from last week</span>
           </div>
         )}
       </CardContent>
@@ -287,14 +288,14 @@ export default function AdminDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white glow-text">
+          <h1 className={textStyles.h1}>
             Dashboard Overview
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className={textStyles.subtitle}>
             Welcome back! Here&apos;s what&apos;s happening with your inventory.
           </p>
         </div>
-        <Button className="gradient-primary hover:opacity-90">
+        <Button className="gradient-primary hover:opacity-90 glow-border">
           <Plus className="w-4 h-4 mr-2" />
           Quick Add
         </Button>
@@ -339,16 +340,16 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="glass-card border-slate-700/50">
+          <Card className="glass-card border-slate-700/50 glow-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-300">Scheduled</p>
-                  <p className="text-3xl font-bold text-white">
+                  <p className={textStyles.subtitle}>Scheduled</p>
+                  <p className={textStyles.cardValue}>
                     {isLoading ? "..." : eventStats.scheduledEvents}
                   </p>
                 </div>
-                <Calendar className="h-8 w-8 text-green-400" />
+                <Calendar className="h-8 w-8 text-green-400 glow-text" />
               </div>
             </CardContent>
           </Card>
@@ -359,16 +360,16 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card className="glass-card border-slate-700/50">
+          <Card className="glass-card border-slate-700/50 glow-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-300">Completed</p>
-                  <p className="text-3xl font-bold text-white">
+                  <p className={textStyles.subtitle}>Completed</p>
+                  <p className={textStyles.cardValue}>
                     {isLoading ? "..." : eventStats.completedEvents}
                   </p>
                 </div>
-                <BarChart3 className="h-8 w-8 text-blue-400" />
+                <BarChart3 className="h-8 w-8 text-blue-400 glow-text" />
               </div>
             </CardContent>
           </Card>
@@ -379,16 +380,16 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card className="glass-card border-slate-700/50">
+          <Card className="glass-card border-slate-700/50 glow-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-300">This Week</p>
-                  <p className="text-3xl font-bold text-white">
+                  <p className={textStyles.subtitle}>This Week</p>
+                  <p className={textStyles.cardValue}>
                     {isLoading ? "..." : eventStats.thisWeekEvents}
                   </p>
                 </div>
-                <Calendar className="h-8 w-8 text-orange-400" />
+                <Calendar className="h-8 w-8 text-orange-400 glow-text" />
               </div>
             </CardContent>
           </Card>
