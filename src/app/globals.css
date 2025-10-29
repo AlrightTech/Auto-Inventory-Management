@@ -444,6 +444,35 @@ body {
   max-height: none !important;
 }
 
+/* Force ALL children of DialogContent to not scroll - More aggressive */
+[data-radix-dialog-content] > * {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+  position: relative !important;
+}
+
+/* Target Radix-created internal divs and containers */
+[data-radix-portal] > [data-radix-dialog-content] > *,
+[data-radix-dialog-content] > div,
+[data-radix-dialog-content] .grid,
+[data-radix-dialog-content] .flex {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+}
+
+/* Universal rule for ALL elements inside DialogContent */
+[data-radix-dialog-content] * {
+  overflow-y: visible !important;
+  max-height: none !important;
+}
+
+/* Exception: Only the DialogContent itself should scroll */
+[data-radix-dialog-content] {
+  overflow-y: auto !important;
+}
+
 /* Enhanced Form Styling for Better Alignment */
 .form-container {
   display: flex;
