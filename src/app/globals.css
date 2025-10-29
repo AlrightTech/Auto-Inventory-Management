@@ -424,6 +424,26 @@ body {
   max-width: 100%;
 }
 
+/* Prevent nested scrollbars in modal forms - Only DialogContent should scroll */
+[data-radix-dialog-content] .form-container,
+[data-radix-dialog-content] .form-section,
+[data-radix-dialog-content] form,
+[data-radix-dialog-content] .form-row,
+[data-radix-dialog-content] .form-field {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Prevent any direct or nested children of DialogContent from creating scrollbars */
+[data-radix-dialog-content] > *,
+[data-radix-dialog-content] > * > * {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+}
+
 /* Enhanced Form Styling for Better Alignment */
 .form-container {
   display: flex;
@@ -431,6 +451,8 @@ body {
   gap: 1.5rem;
   max-width: 100%;
   overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: visible !important; /* Prevent inner vertical scroll */
+  height: auto !important; /* Let content determine height */
 }
 
 .form-section {
@@ -439,6 +461,8 @@ body {
   gap: 1rem;
   max-width: 100%;
   overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: visible !important; /* Prevent inner vertical scroll */
+  height: auto !important; /* Let content determine height */
 }
 
 .form-row {
@@ -448,6 +472,7 @@ body {
   align-items: start;
   max-width: 100%;
   overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: visible !important; /* Prevent inner vertical scroll */
 }
 
 .form-field {
