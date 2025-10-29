@@ -196,14 +196,28 @@ const MetricCard = ({
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<EventWithRelations[]>([]);
+  const [metrics, setMetrics] = useState({
+    totalSales: 0,
+    totalPurchases: 0,
+    arbVehicles: 0,
+    weeklyChange: {
+      sales: 0,
+      purchases: 0,
+      arb: 0,
+    },
+  });
+  const [auctions, setAuctions] = useState(mockAuctions);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
-  // Load events from database
+  // Load events and metrics from database
   useEffect(() => {
-    const loadEvents = async () => {
+    const loadData = async () => {
       try {
-        const { data: eventsData, error } = await supabase
+        setIsLoading(true);
+        
+        // Load events
+        const { data: eventsData, error: eventsError } = await supabase
           .from('events')
           .select(`
             *,
@@ -212,12 +226,7 @@ export default function AdminDashboard() {
           `)
           .order('event_date', { ascending: true });
 
-        if (error) {
-          console.error('Error loading events:', error);
-          return;
-        }
-
-        if (eventsData) {
+        if (!eventsError && eventsData) {
           const eventsWithRelations: EventWithRelations[] = eventsData.map(event => ({
             id: event.id,
             title: event.title,
@@ -234,14 +243,105 @@ export default function AdminDashboard() {
           }));
           setEvents(eventsWithRelations);
         }
+
+        // Load vehicle metrics
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        // Total Sales (sum of sale_invoice where status = 'Sold')
+        const { data: soldVehicles, error: salesError } = await supabase
+          .from('vehicles')
+          .select('sale_invoice, created_at')
+          .eq('status', 'Sold');
+
+        // Sales from last week
+        const { data: lastWeekSales } = await supabase
+          .from('vehicles')
+          .select('sale_invoice')
+          .eq('status', 'Sold')
+          .gte('created_at', oneWeekAgo.toISOString());
+
+        const totalSales = soldVehicles?.reduce((sum, v) => sum + (Number(v.sale_invoice) || 0), 0) || 0;
+        const lastWeekTotal = lastWeekSales?.reduce((sum, v) => sum + (Number(v.sale_invoice) || 0), 0) || 0;
+        const previousWeekTotal = totalSales - lastWeekTotal;
+        const salesChange = previousWeekTotal > 0 ? ((lastWeekTotal / previousWeekTotal) - 1) * 100 : 0;
+
+        // Total Purchases (sum of bought_price + buy_fee)
+        const { data: allVehicles, error: vehiclesError } = await supabase
+          .from('vehicles')
+          .select('bought_price, buy_fee, created_at');
+
+        // Purchases from last week
+        const { data: lastWeekPurchases } = await supabase
+          .from('vehicles')
+          .select('bought_price, buy_fee')
+          .gte('created_at', oneWeekAgo.toISOString());
+
+        const totalPurchases = allVehicles?.reduce((sum, v) => 
+          sum + (Number(v.bought_price) || 0) + (Number(v.buy_fee) || 0), 0) || 0;
+        const lastWeekPurchasesTotal = lastWeekPurchases?.reduce((sum, v) => 
+          sum + (Number(v.bought_price) || 0) + (Number(v.buy_fee) || 0), 0) || 0;
+        const previousWeekPurchasesTotal = totalPurchases - lastWeekPurchasesTotal;
+        const purchasesChange = previousWeekPurchasesTotal > 0 
+          ? ((lastWeekPurchasesTotal / previousWeekPurchasesTotal) - 1) * 100 : 0;
+
+        // ARB Vehicles
+        const { data: arbVehicles, error: arbError } = await supabase
+          .from('vehicles')
+          .select('id, created_at')
+          .eq('status', 'ARB');
+
+        // ARB from last week
+        const { data: lastWeekArb } = await supabase
+          .from('vehicles')
+          .select('id')
+          .eq('status', 'ARB')
+          .gte('created_at', oneWeekAgo.toISOString());
+
+        const arbCount = arbVehicles?.length || 0;
+        const lastWeekArbCount = lastWeekArb?.length || 0;
+        const previousWeekArbCount = arbCount - lastWeekArbCount;
+        const arbChange = previousWeekArbCount > 0 
+          ? ((lastWeekArbCount / previousWeekArbCount) - 1) * 100 : 0;
+
+        // Auction breakdown
+        const { data: auctionData } = await supabase
+          .from('vehicles')
+          .select('facilitating_location, sale_invoice')
+          .eq('status', 'Sold');
+
+        const auctionTotals: Record<string, number> = {};
+        auctionData?.forEach(v => {
+          const location = v.facilitating_location || 'Unknown';
+          const amount = Number(v.sale_invoice) || 0;
+          auctionTotals[location] = (auctionTotals[location] || 0) + amount;
+        });
+
+        const updatedAuctions = mockAuctions.map(auction => ({
+          ...auction,
+          value: auctionTotals[auction.name] || 0,
+        }));
+
+        setMetrics({
+          totalSales,
+          totalPurchases,
+          arbVehicles: arbCount,
+          weeklyChange: {
+            sales: Number(salesChange.toFixed(1)),
+            purchases: Number(purchasesChange.toFixed(1)),
+            arb: Number(arbChange.toFixed(1)),
+          },
+        });
+        setAuctions(updatedAuctions);
+
       } catch (error) {
-        console.error('Error loading events:', error);
+        console.error('Error loading data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadEvents();
+    loadData();
   }, [supabase]);
 
   // Calculate dynamic event statistics
@@ -296,22 +396,22 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Total Sales"
-          value={formatCurrency(mockMetrics.totalSales)}
-          change={mockMetrics.weeklyChange.sales}
+          value={formatCurrency(metrics.totalSales)}
+          change={metrics.weeklyChange.sales}
           icon={DollarSign}
           delay={0.1}
         />
         <MetricCard
           title="Total Purchases"
-          value={formatCurrency(mockMetrics.totalPurchases)}
-          change={mockMetrics.weeklyChange.purchases}
+          value={formatCurrency(metrics.totalPurchases)}
+          change={metrics.weeklyChange.purchases}
           icon={ShoppingCart}
           delay={0.2}
         />
         <MetricCard
           title="ARB Vehicles"
-          value={mockMetrics.arbVehicles}
-          change={mockMetrics.weeklyChange.arb}
+          value={metrics.arbVehicles}
+          change={metrics.weeklyChange.arb}
           icon={AlertTriangle}
           delay={0.3}
         />
@@ -465,7 +565,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockAuctions.map((auction) => (
+                {auctions.map((auction) => (
                   <div key={auction.name} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className={`w-3 h-3 rounded-full ${auction.color}`} />

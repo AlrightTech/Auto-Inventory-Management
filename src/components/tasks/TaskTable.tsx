@@ -18,9 +18,12 @@ import { TaskWithRelations } from '@/types';
 interface TaskTableProps {
   tasks: TaskWithRelations[];
   onTaskUpdate?: (taskId: string, updates: { status?: string; notes?: string }) => void;
+  onViewTask?: (task: TaskWithRelations) => void;
+  onEditTask?: (task: TaskWithRelations) => void;
+  onDeleteTask?: (taskId: string) => void;
 }
 
-export function TaskTable({ tasks, onTaskUpdate }: TaskTableProps) {
+export function TaskTable({ tasks, onTaskUpdate, onViewTask, onEditTask, onDeleteTask }: TaskTableProps) {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
   const handleTaskUpdate = (taskId: string, updates: { status?: string; notes?: string }) => {
@@ -205,11 +208,17 @@ export function TaskTable({ tasks, onTaskUpdate }: TaskTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="glass-card border-slate-700">
-                        <DropdownMenuItem className="text-slate-300 hover:text-white">
+                        <DropdownMenuItem 
+                          className="text-slate-300 hover:text-white"
+                          onClick={() => onViewTask && onViewTask(task)}
+                        >
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 hover:text-white">
+                        <DropdownMenuItem 
+                          className="text-slate-300 hover:text-white"
+                          onClick={() => onEditTask && onEditTask(task)}
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Task
                         </DropdownMenuItem>
@@ -220,7 +229,14 @@ export function TaskTable({ tasks, onTaskUpdate }: TaskTableProps) {
                           <CheckCircle className="mr-2 h-4 w-4" />
                           Mark as Completed
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-400 hover:text-red-300">
+                        <DropdownMenuItem 
+                          className="text-red-400 hover:text-red-300"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+                              onDeleteTask && onDeleteTask(task.id);
+                            }
+                          }}
+                        >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete Task
                         </DropdownMenuItem>

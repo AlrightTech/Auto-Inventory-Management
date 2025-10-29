@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TaskTable } from '@/components/tasks/TaskTable';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
+import { ViewTaskModal } from '@/components/tasks/ViewTaskModal';
+import { EditTaskModal } from '@/components/tasks/EditTaskModal';
 import { TaskFilters } from '@/components/tasks/TaskFilters';
+import { toast } from 'sonner';
 import {
   CheckSquare,
   FileText,
@@ -25,6 +28,9 @@ export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<TaskWithRelations[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<TaskWithRelations[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskWithRelations | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<TaskFiltersState>({
     status: 'all',
@@ -479,14 +485,49 @@ export default function AdminTasksPage() {
           <CardContent>
             <TaskTable
               tasks={filteredTasks}
-              onTaskUpdate={(taskId, updates) => {
-                setTasks(prev => prev.map(task => 
-                  task.id === taskId ? { 
-                    ...task, 
-                    ...updates,
-                    status: updates.status as 'pending' | 'completed' | 'cancelled' || task.status
-                  } : task
-                ));
+              onTaskUpdate={async (taskId, updates) => {
+                try {
+                  const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates),
+                  });
+
+                  if (!response.ok) throw new Error('Failed to update task');
+
+                  const { data } = await response.json();
+                  setTasks(prev => prev.map(task => 
+                    task.id === taskId ? {
+                      ...task,
+                      ...data,
+                    } : task
+                  ));
+                  toast.success('Task updated successfully!');
+                } catch (error) {
+                  toast.error('Failed to update task');
+                }
+              }}
+              onViewTask={(task) => {
+                setSelectedTask(task);
+                setIsViewModalOpen(true);
+              }}
+              onEditTask={(task) => {
+                setSelectedTask(task);
+                setIsEditModalOpen(true);
+              }}
+              onDeleteTask={async (taskId) => {
+                try {
+                  const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE',
+                  });
+
+                  if (!response.ok) throw new Error('Failed to delete task');
+
+                  setTasks(prev => prev.filter(task => task.id !== taskId));
+                  toast.success('Task deleted successfully!');
+                } catch (error) {
+                  toast.error('Failed to delete task');
+                }
               }}
             />
           </CardContent>
@@ -498,6 +539,74 @@ export default function AdminTasksPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddTask}
+      />
+
+      {/* View Task Modal */}
+      <ViewTaskModal
+        task={selectedTask}
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedTask(null);
+        }}
+      />
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={selectedTask}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedTask(null);
+        }}
+        onTaskUpdated={async () => {
+          // Reload tasks
+          const { data: tasksData, error } = await supabase
+            .from('tasks')
+            .select(`
+              *,
+              vehicle:vehicles(*),
+              assigned_user:profiles!tasks_assigned_to_fkey(*)
+            `)
+            .order('created_at', { ascending: false });
+
+          if (!error && tasksData) {
+            const tasksWithRelations: TaskWithRelations[] = tasksData.map(task => ({
+              id: task.id,
+              task_name: task.task_name,
+              vehicle_id: task.vehicle_id,
+              assigned_to: task.assigned_to,
+              assigned_by: task.assigned_by,
+              due_date: task.due_date,
+              notes: task.notes,
+              category: task.category,
+              status: task.status,
+              created_at: task.created_at,
+              updated_at: task.updated_at,
+              vehicle: task.vehicle ? {
+                id: task.vehicle.id,
+                make: task.vehicle.make,
+                model: task.vehicle.model,
+                year: task.vehicle.year,
+                vin: task.vehicle.vin,
+                status: task.vehicle.status,
+                created_by: task.vehicle.created_by,
+                created_at: task.vehicle.created_at,
+              } : undefined,
+              assigned_user: task.assigned_user ? {
+                id: task.assigned_user.id,
+                email: task.assigned_user.email,
+                username: task.assigned_user.username || task.assigned_user.email.split('@')[0],
+                role: task.assigned_user.role,
+                isOnline: false,
+                lastSeen: null,
+                created_at: task.assigned_user.created_at,
+              } : undefined,
+            }));
+            setTasks(tasksWithRelations);
+            setFilteredTasks(tasksWithRelations);
+          }
+        }}
       />
     </div>
   );
