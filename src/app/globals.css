@@ -240,7 +240,7 @@ body {
   font-size: 1.2rem;
 }
 
-/* Dark Mode Form Field Improvements - More Specific */
+/* Dark Mode Form Field Improvements - White Background for Inputs */
 .dark input[type="text"],
 .dark input[type="email"],
 .dark input[type="password"],
@@ -249,8 +249,8 @@ body {
 .dark textarea,
 .dark select,
 .dark .control-panel {
-  background-color: white !important;
-  color: black !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
   border-color: #e3e6ea !important;
 }
 
@@ -262,8 +262,8 @@ body {
 .dark textarea:focus,
 .dark select:focus,
 .dark .control-panel:focus {
-  background-color: white !important;
-  color: black !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2) !important;
 }
@@ -278,14 +278,14 @@ body {
   color: #666 !important;
 }
 
-/* Dark Mode Table Styling */
+/* Dark Mode Table Styling - White Text for All Elements */
 .dark table,
 .dark thead,
 .dark tbody,
 .dark tr,
 .dark td,
 .dark th {
-  color: white !important;
+  color: #FFFFFF !important;
 }
 
 .dark table {
@@ -294,13 +294,14 @@ body {
 
 .dark thead th {
   background-color: var(--card-bg) !important;
-  color: white !important;
+  color: #FFFFFF !important;
   border-color: var(--border) !important;
+  font-weight: 600;
 }
 
 .dark tbody tr {
   background-color: var(--card-bg) !important;
-  color: white !important;
+  color: #FFFFFF !important;
   border-color: var(--border) !important;
 }
 
@@ -309,25 +310,60 @@ body {
 }
 
 .dark tbody td {
-  color: white !important;
+  color: #FFFFFF !important;
   border-color: var(--border) !important;
 }
 
-/* Dark Mode Dropdown Menus */
+/* Dark Mode Dropdown Menus - White Text */
 .dark [data-radix-popper-content-wrapper] {
   background-color: var(--card-bg) !important;
   border-color: var(--border) !important;
 }
 
 .dark [data-radix-popper-content-wrapper] * {
-  color: white !important;
+  color: #FFFFFF !important;
 }
 
 .dark [data-radix-popper-content-wrapper] button:hover {
   background-color: rgba(0, 191, 255, 0.1) !important;
 }
 
-/* Table Styling - No horizontal scroll */
+/* Dark Mode Actions Dropdown */
+.dark [data-radix-dropdown-content] {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+
+.dark [data-radix-dropdown-content] * {
+  color: #FFFFFF !important;
+}
+
+.dark [data-radix-dropdown-content] button:hover {
+  background-color: rgba(0, 191, 255, 0.1) !important;
+}
+
+/* Inventory Table Styling - Horizontal Scroll Only for Inventory */
+.inventory-table-container {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.inventory-table-container table {
+  min-width: 1200px; /* Ensure all columns are visible */
+  width: 100%;
+}
+
+.inventory-table-container th,
+.inventory-table-container td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+/* General Table Styling - No horizontal scroll */
 .table-container {
   width: 100%;
   max-width: 100%;
@@ -349,8 +385,36 @@ body {
   max-width: 100%;
 }
 
+/* Custom Scrollbar Styling for Dark Theme */
+.inventory-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.inventory-table-container::-webkit-scrollbar-track {
+  background: var(--card-bg);
+  border-radius: 4px;
+}
+
+.inventory-table-container::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.inventory-table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
 /* Responsive Table Styling */
 @media (max-width: 768px) {
+  .inventory-table-container {
+    font-size: 0.875rem;
+  }
+  
+  .inventory-table-container th,
+  .inventory-table-container td {
+    padding: 8px 12px;
+  }
+  
   .table-container {
     font-size: 0.875rem;
   }

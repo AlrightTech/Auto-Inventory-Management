@@ -169,21 +169,21 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+        <div className="inventory-table-container rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
           <Table>
             <TableHeader>
               <TableRow style={{ borderColor: 'var(--border)' }}>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Vehicle</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Purchase Date</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Status</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Odometer</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Location</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Bought Price</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Title Status</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Exterior Color</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Interior Color</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Sale Invoice</TableHead>
-                <TableHead style={{ color: 'var(--text)', fontWeight: '600' }}>Actions</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Vehicle</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Purchase Date</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Status</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Odometer</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Location</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Bought Price</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Title Status</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Exterior Color</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Interior Color</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Sale Invoice</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -214,20 +214,20 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                     className="transition-colors"
                     style={{ borderColor: 'var(--border)' }}
                   >
-                    <TableCell style={{ color: 'var(--text)' }}>
-                      <div>
-                        <div className="font-medium">
-                          {vehicle.year} {vehicle.make} {vehicle.model}
-                          {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
+                      <TableCell className="dark:text-white text-gray-900">
+                        <div>
+                          <div className="font-medium">
+                            {vehicle.year} {vehicle.make} {vehicle.model}
+                            {vehicle.trim && <span className="ml-1 dark:text-gray-300 text-gray-600">({vehicle.trim})</span>}
+                          </div>
+                          <div className="text-sm dark:text-gray-300 text-gray-600">
+                            VIN: {vehicle.vin || 'N/A'}
+                          </div>
                         </div>
-                        <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                          VIN: {vehicle.vin || 'N/A'}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell style={{ color: 'var(--text)' }}>
-                      {vehicle.sale_date ? new Date(vehicle.sale_date).toLocaleDateString() : 'N/A'}
-                    </TableCell>
+                      </TableCell>
+                      <TableCell className="dark:text-white text-gray-900">
+                        {vehicle.sale_date ? new Date(vehicle.sale_date).toLocaleDateString() : 'N/A'}
+                      </TableCell>
                     <TableCell>
                       <Badge 
                         variant="outline" 
@@ -237,15 +237,15 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                         {vehicle.status}
                       </Badge>
                     </TableCell>
-                    <TableCell style={{ color: 'var(--text)' }}>
-                      {vehicle.odometer ? `${vehicle.odometer.toLocaleString()} mi` : 'N/A'}
-                    </TableCell>
-                    <TableCell style={{ color: 'var(--text)' }}>
-                      {vehicle.pickup_location_city || vehicle.facilitating_location || 'N/A'}
-                    </TableCell>
-                    <TableCell style={{ color: 'var(--text)' }}>
-                      {vehicle.bought_price ? `$${vehicle.bought_price.toLocaleString()}` : 'N/A'}
-                    </TableCell>
+                      <TableCell className="dark:text-white text-gray-900">
+                        {vehicle.odometer ? `${vehicle.odometer.toLocaleString()} mi` : 'N/A'}
+                      </TableCell>
+                      <TableCell className="dark:text-white text-gray-900">
+                        {vehicle.pickup_location_city || vehicle.facilitating_location || 'N/A'}
+                      </TableCell>
+                      <TableCell className="dark:text-white text-gray-900">
+                        {vehicle.bought_price ? `$${vehicle.bought_price.toLocaleString()}` : 'N/A'}
+                      </TableCell>
                     <TableCell>
                       <Badge 
                         variant="outline" 
@@ -254,12 +254,12 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                         {vehicle.title_status}
                       </Badge>
                     </TableCell>
-                    <TableCell style={{ color: 'var(--text)' }}>
-                      {vehicle.exterior_color || 'N/A'}
-                    </TableCell>
-                    <TableCell style={{ color: 'var(--text)' }}>
-                      {vehicle.interior_color || 'N/A'}
-                    </TableCell>
+                      <TableCell className="dark:text-white text-gray-900">
+                        {vehicle.exterior_color || 'N/A'}
+                      </TableCell>
+                      <TableCell className="dark:text-white text-gray-900">
+                        {vehicle.interior_color || 'N/A'}
+                      </TableCell>
                     <TableCell>
                       <Badge 
                         variant="outline" 
@@ -275,28 +275,28 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="dashboard-card neon-glow instrument-cluster">
-                          <DropdownMenuItem style={{ color: 'var(--text)' }}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem style={{ color: 'var(--text)' }}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Vehicle
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteVehicle(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
-                            disabled={isDeleting === vehicle.id}
-                            style={{ color: '#ef4444' }}
-                          >
-                            {isDeleting === vehicle.id ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="mr-2 h-4 w-4" />
-                            )}
-                            {isDeleting === vehicle.id ? 'Deleting...' : 'Delete Vehicle'}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
+                          <DropdownMenuContent align="end" className="dashboard-card neon-glow instrument-cluster">
+                            <DropdownMenuItem className="dark:text-white text-gray-900">
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="dark:text-white text-gray-900">
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Vehicle
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteVehicle(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
+                              disabled={isDeleting === vehicle.id}
+                              className="dark:text-red-400 text-red-600"
+                            >
+                              {isDeleting === vehicle.id ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="mr-2 h-4 w-4" />
+                              )}
+                              {isDeleting === vehicle.id ? 'Deleting...' : 'Delete Vehicle'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </motion.tr>
