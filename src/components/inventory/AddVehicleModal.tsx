@@ -144,23 +144,17 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
           <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-            >
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold flex items-center" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
-                  <Car className="w-6 h-6 mr-2" />
-                  Add New Vehicle
-                </DialogTitle>
-                <DialogDescription style={{ color: 'var(--subtext)' }}>
-                  Add a new vehicle to your inventory with complete details and tracking information.
-                </DialogDescription>
-              </DialogHeader>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold flex items-center" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                <Car className="w-6 h-6 mr-2" />
+                Add New Vehicle
+              </DialogTitle>
+              <DialogDescription style={{ color: 'var(--subtext)' }}>
+                Add a new vehicle to your inventory with complete details and tracking information.
+              </DialogDescription>
+            </DialogHeader>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6 max-h-[70vh] overflow-y-auto overflow-x-hidden">
+            <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6">
                 {/* Vehicle Basic Information */}
                 <div className="form-section">
                   <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
@@ -765,7 +759,6 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </Button>
                   </div>
               </form>
-            </motion.div>
           </DialogContent>
         </Dialog>
       )}

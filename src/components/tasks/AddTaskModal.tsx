@@ -183,23 +183,17 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-2xl">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-            >
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
-                  Add New Task
-                </DialogTitle>
-                <DialogDescription style={{ color: 'var(--subtext)' }}>
-                  Create a new task and assign it to a user
-                </DialogDescription>
-              </DialogHeader>
+          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                Add New Task
+              </DialogTitle>
+              <DialogDescription style={{ color: 'var(--subtext)' }}>
+                Create a new task and assign it to a user
+              </DialogDescription>
+            </DialogHeader>
 
-              <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Task Name */}
                   <div className="space-y-2">
@@ -454,7 +448,6 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                   </Button>
                 </div>
               </form>
-            </motion.div>
           </DialogContent>
         </Dialog>
       )}
