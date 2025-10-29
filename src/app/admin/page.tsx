@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   DollarSign,
   ShoppingCart,
@@ -11,17 +10,14 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar,
-  Plus,
   BarChart3,
   PieChart,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
-import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { createClient } from '@/lib/supabase/client';
 import { EventWithRelations } from '@/types';
-import { MessageCircle, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { format } from 'date-fns';
 
 // Mock data for demonstration
 const mockMetrics = {
@@ -104,8 +100,6 @@ const getCalendarEvents = (events: EventWithRelations[]) => {
     })
     .sort((a, b) => a.start.getTime() - b.start.getTime()); // Sort by date ascending
 };
-
-const localizer = momentLocalizer(moment);
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -202,7 +196,6 @@ const MetricCard = ({
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<EventWithRelations[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
@@ -251,36 +244,6 @@ export default function AdminDashboard() {
     loadEvents();
   }, [supabase]);
 
-  // Load recent messages
-  useEffect(() => {
-    const loadMessages = async () => {
-      try {
-        const { data: messagesData, error } = await supabase
-          .from('messages')
-          .select(`
-            *,
-            sender:profiles!messages_sender_id_fkey(*),
-            receiver:profiles!messages_receiver_id_fkey(*)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (error) {
-          console.error('Error loading messages:', error);
-          return;
-        }
-
-        if (messagesData) {
-          setMessages(messagesData);
-        }
-      } catch (error) {
-        console.error('Error loading messages:', error);
-      }
-    };
-
-    loadMessages();
-  }, [supabase]);
-
   // Calculate dynamic event statistics
   const getEventStats = () => {
     const now = new Date();
@@ -305,12 +268,6 @@ export default function AdminDashboard() {
 
   const eventStats = getEventStats();
 
-  const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
-    // This would open an event creation modal
-    console.log('Selected slot:', { start, end });
-    // In a real implementation, this would open the event creation modal
-  };
-
   const handleSelectEvent = (event: any) => {
     // This would open an event details modal
     console.log('Selected event:', event);
@@ -333,16 +290,6 @@ export default function AdminDashboard() {
             Welcome back! Here&apos;s what&apos;s happening with your inventory.
           </p>
         </div>
-        <Button className="control-panel neon-glow" style={{ 
-          backgroundColor: 'var(--accent)', 
-          color: 'white',
-          borderRadius: '25px',
-          fontWeight: '500',
-          transition: '0.3s'
-        }}>
-          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-          Quick Add
-        </Button>
       </motion.div>
 
       {/* Metrics Grid */}
@@ -439,68 +386,6 @@ export default function AdminDashboard() {
           </Card>
         </motion.div>
       </div>
-
-      {/* Recent Messages Widget */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-      >
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center">
-              <MessageCircle className="w-5 h-5 mr-2 text-blue-400" />
-              Recent Messages
-            </CardTitle>
-            <CardDescription className="text-slate-400">
-              Latest conversations and updates
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {messages.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No recent messages</p>
-                </div>
-              ) : (
-                messages.map((message, index) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    className="flex items-start space-x-3 p-3 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors"
-                  >
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                        {message.sender?.username?.charAt(0) || 'U'}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-white truncate">
-                          {message.sender?.username || 'Unknown User'}
-                        </p>
-                        <div className="flex items-center text-xs text-slate-400">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {new Date(message.created_at).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </div>
-                      </div>
-                      <p className="text-sm text-slate-300 truncate mt-1">
-                        {message.content}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
 
       {/* Charts and Calendar Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -605,51 +490,69 @@ export default function AdminDashboard() {
         </motion.div>
       </div>
 
-      {/* Calendar Integration */}
+      {/* Upcoming Events - Card Style */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
       >
-        <Card className="glass-card">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardHeader>
-            <CardTitle className="text-white flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-blue-400" />
+            <CardTitle className="flex items-center" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
+              <Calendar className="w-5 h-5 mr-2" />
               Upcoming Events
             </CardTitle>
-            <CardDescription className="text-slate-400">
-              Click on any date to schedule an event
+            <CardDescription style={{ color: 'var(--subtext)' }}>
+              Your scheduled events and appointments
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-96">
-              <BigCalendar
-                localizer={localizer}
-                events={getCalendarEvents(events)}
-                startAccessor="start"
-                endAccessor="end"
-                onSelectSlot={handleSelectSlot}
-                onSelectEvent={handleSelectEvent}
-                selectable
-                style={{ height: '100%' }}
-                className="calendar-dark"
-                eventPropGetter={(event) => ({
-                  style: {
-                    backgroundColor: '#3B82F6',
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: 'white',
-                    fontSize: '12px',
-                    padding: '2px 4px'
-                  }
-                })}
-                dayPropGetter={(date) => ({
-                  style: {
-                    backgroundColor: date.getDay() === 0 || date.getDay() === 6 ? '#1F2937' : '#111827'
-                  }
-                })}
-              />
-            </div>
+            {isLoading ? (
+              <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>
+                Loading events...
+              </div>
+            ) : getCalendarEvents(events).length === 0 ? (
+              <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>
+                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No upcoming events scheduled</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getCalendarEvents(events).slice(0, 6).map((event, index) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    className="dashboard-card neon-glow p-4 hover:shadow-[0_0_25px_rgba(0,191,255,0.3)] transition-all duration-300 cursor-pointer"
+                    onClick={() => handleSelectEvent(event)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>
+                        {event.title}
+                      </h3>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 8px var(--accent)' }} />
+                    </div>
+                    <div className="space-y-1" style={{ color: 'var(--subtext)' }}>
+                      <div className="flex items-center text-sm">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        {format(new Date(event.start), 'MMM dd, yyyy')}
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Clock className="w-4 h-4 mr-2" />
+                        {format(new Date(event.start), 'h:mm a')}
+                      </div>
+                      {event.resource && (
+                        <div className="flex items-center text-sm">
+                          <span className="mr-2">👤</span>
+                          {event.resource}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

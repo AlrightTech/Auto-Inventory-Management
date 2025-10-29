@@ -473,8 +473,14 @@ body {
   height: auto !important;
 }
 
-/* Exception: ONLY DialogContent itself can scroll */
-[data-radix-dialog-content] {
+/* Exception: ONLY DialogContent itself can scroll - BUT disable for Add Vehicle form */
+[data-radix-dialog-content].no-scroll {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+}
+
+[data-radix-dialog-content]:not(.no-scroll) {
   overflow-y: auto !important;
   overflow-x: hidden !important;
 }

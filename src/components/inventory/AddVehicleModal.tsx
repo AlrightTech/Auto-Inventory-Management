@@ -143,7 +143,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-4xl no-scroll">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold flex items-center" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
                 <Car className="w-6 h-6 mr-2" />
