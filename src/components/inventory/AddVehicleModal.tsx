@@ -160,7 +160,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="form-content space-y-6 mt-6 max-h-[70vh] overflow-y-auto">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6 max-h-[70vh] overflow-y-auto">
                 {/* Vehicle Basic Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>

@@ -169,7 +169,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
         </div>
       </CardHeader>
       <CardContent>
-        <div className="table-container rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+        <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
           <Table>
             <TableHeader>
               <TableRow style={{ borderColor: 'var(--border)' }}>
