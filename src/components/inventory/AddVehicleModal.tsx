@@ -143,7 +143,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -160,7 +160,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6 max-h-[70vh] overflow-y-auto">
+              <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6 max-h-[70vh] overflow-y-auto overflow-x-hidden">
                 {/* Vehicle Basic Information */}
                 <div className="form-section">
                   <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>

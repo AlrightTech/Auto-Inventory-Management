@@ -67,6 +67,7 @@ const DialogContent = React.forwardRef<
           boxShadow: 'var(--shadow)',
           maxHeight: '90vh',
           overflowY: 'auto',
+          overflowX: 'hidden',
           width: '100%',
           maxWidth: maxWidthMap[maxWidth] || '32rem'
         }}
