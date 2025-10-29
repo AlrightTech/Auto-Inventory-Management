@@ -30,39 +30,64 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-xl",
-        className
-      )}
-      style={{
-        backgroundColor: 'var(--card-bg)',
-        borderColor: 'var(--border)',
-        boxShadow: 'var(--shadow)',
-        maxHeight: '90vh',
-        overflowY: 'auto'
-      }}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close 
-        className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none"
-        style={{ 
-          color: 'var(--text)',
-          backgroundColor: 'transparent',
-          border: 'none'
+>(({ className, children, ...props }, ref) => {
+  // Extract max-width from className to handle custom widths
+  const maxWidthMatch = className?.match(/max-w-(\w+)/);
+  const maxWidth = maxWidthMatch ? maxWidthMatch[1] : 'lg';
+  
+  const maxWidthMap: Record<string, string> = {
+    'sm': '24rem',
+    'md': '28rem', 
+    'lg': '32rem',
+    'xl': '36rem',
+    '2xl': '42rem',
+    '3xl': '48rem',
+    '4xl': '56rem',
+    '5xl': '64rem',
+    '6xl': '72rem',
+    '7xl': '80rem'
+  };
+
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed z-50 grid w-full gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+          className
+        )}
+        style={{
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'var(--card-bg)',
+          borderColor: 'var(--border)',
+          boxShadow: 'var(--shadow)',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          width: '100%',
+          maxWidth: maxWidthMap[maxWidth] || '32rem'
         }}
+        {...props}
       >
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-));
+        {children}
+        <DialogPrimitive.Close 
+          className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none"
+          style={{ 
+            color: 'var(--text)',
+            backgroundColor: 'transparent',
+            border: 'none'
+          }}
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({
