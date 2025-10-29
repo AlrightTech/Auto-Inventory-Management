@@ -148,22 +148,22 @@ const MetricCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
     >
-      <Card className="gauge-card neon-glow instrument-panel group">
+      <Card className="dashboard-card neon-glow instrument-cluster group">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {title}
           </CardTitle>
           <div className="relative">
-            <Icon className="h-4 w-4 text-neon-blue group-hover:text-neon-green transition-colors duration-300" />
+            <Icon className="h-4 w-4 text-primary group-hover:text-accent transition-colors duration-300" />
             {/* Mini gauge ring around icon */}
-            <div className="absolute -inset-1 rounded-full border border-neon-blue/20 group-hover:border-neon-blue/40 transition-colors duration-300" />
+            <div className="absolute -inset-1 rounded-full border border-primary/20 group-hover:border-primary/40 transition-colors duration-300" />
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {/* Main gauge display */}
           <div className="flex items-center space-x-4">
-            <div className="gauge-ring">
-              <div className="gauge-value text-sm font-bold">
+            <div className="radial-gauge">
+              <div className="gauge-value">
                 {typeof value === 'number' ? Math.round(gaugePercentage) : '--'}
               </div>
             </div>
@@ -172,11 +172,11 @@ const MetricCard = ({
               {change !== undefined && (
                 <div className="flex items-center space-x-1 text-xs">
                   {change > 0 ? (
-                    <TrendingUp className="h-3 w-3 text-neon-green" />
+                    <TrendingUp className="h-3 w-3 text-green-500" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-500" />
                   )}
-                  <span className={change > 0 ? 'text-neon-green' : 'text-red-500'}>
+                  <span className={change > 0 ? 'text-green-500' : 'text-red-500'}>
                     {change > 0 ? '+' : ''}{change}%
                   </span>
                   <span className="text-muted-foreground">from last week</span>
@@ -186,12 +186,12 @@ const MetricCard = ({
           </div>
           
           {/* Progress bar gauge */}
-          <div className="w-full bg-gauge-bg rounded-full h-1.5 overflow-hidden">
+          <div className="gauge-progress">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${gaugePercentage}%` }}
               transition={{ delay: delay + 0.3, duration: 1, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-neon-blue to-neon-green rounded-full"
+              className="gauge-progress-bar"
             />
           </div>
         </CardContent>
@@ -326,14 +326,20 @@ export default function AdminDashboard() {
         className="flex items-center justify-between"
       >
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-neon-blue bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold text-foreground" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
             Dashboard Overview
           </h1>
           <p className="text-muted-foreground text-lg">
             Welcome back! Here&apos;s what&apos;s happening with your inventory.
           </p>
         </div>
-        <Button className="bg-gradient-to-r from-neon-blue to-neon-green hover:from-neon-green hover:to-neon-purple text-primary-foreground transition-all duration-300 hover:shadow-neon-lg group instrument-panel">
+        <Button className="control-panel neon-glow" style={{ 
+          backgroundColor: 'var(--accent)', 
+          color: 'white',
+          borderRadius: '25px',
+          fontWeight: '500',
+          transition: '0.3s'
+        }}>
           <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
           Quick Add
         </Button>

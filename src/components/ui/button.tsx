@@ -8,17 +8,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-neon-blue to-neon-green text-primary-foreground hover:from-neon-green hover:to-neon-purple shadow-gauge hover:shadow-neon-lg instrument-panel",
+        default: "control-panel neon-glow",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-gauge hover:shadow-lg hover:shadow-destructive/20",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-dashboard hover:shadow-lg hover:shadow-destructive/20",
         outline:
-          "border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground shadow-gauge hover:shadow-neon",
+          "border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground shadow-dashboard hover:shadow-neon",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-gauge hover:shadow-lg",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-dashboard hover:shadow-lg",
         ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
-        link: "text-neon-blue underline-offset-4 hover:text-neon-green hover:underline",
-        accent: "bg-gradient-to-r from-neon-green to-neon-purple text-accent-foreground hover:from-neon-purple hover:to-neon-blue shadow-gauge hover:shadow-neon-lg",
-        success: "bg-gradient-to-r from-neon-green to-green-600 text-white hover:from-green-600 hover:to-neon-green shadow-gauge hover:shadow-lg hover:shadow-green-500/20",
+        link: "text-primary underline-offset-4 hover:text-accent hover:underline",
+        accent: "control-panel neon-glow",
+        success: "control-panel neon-glow",
       },
       size: {
         default: "h-10 px-4 py-2",

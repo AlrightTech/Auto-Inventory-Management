@@ -154,18 +154,19 @@ function LoginPageContent() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="gauge-card neon-glow instrument-panel">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardHeader className="text-center space-y-4">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mx-auto w-16 h-16 bg-gradient-to-r from-neon-blue to-neon-green rounded-full flex items-center justify-center shadow-neon"
+              className="mx-auto w-16 h-16 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' }}
             >
-              <Car className="w-8 h-8 text-primary-foreground" />
+              <Car className="w-8 h-8 text-white" />
             </motion.div>
             <div>
-              <CardTitle className="text-3xl font-bold text-foreground bg-gradient-to-r from-foreground to-neon-blue bg-clip-text text-transparent">
+              <CardTitle className="text-3xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
                 Auto Inventory
               </CardTitle>
               <CardDescription className="text-muted-foreground text-lg">
@@ -183,7 +184,7 @@ function LoginPageContent() {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-background border-border focus:border-neon-blue focus:ring-neon-blue/20 transition-all duration-300 instrument-panel"
+                  className="bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300 control-panel"
                   {...register('email')}
                 />
                 {errors.email && (
@@ -200,7 +201,7 @@ function LoginPageContent() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
-                    className="bg-background border-border focus:border-neon-blue focus:ring-neon-blue/20 transition-all duration-300 pr-10 instrument-panel"
+                    className="bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300 pr-10 control-panel"
                     {...register('password')}
                   />
                   <button
@@ -239,7 +240,14 @@ function LoginPageContent() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-neon-blue to-neon-green hover:from-neon-green hover:to-neon-purple text-primary-foreground transition-all duration-300 hover:shadow-neon-lg instrument-panel"
+                className="w-full control-panel neon-glow"
+                style={{
+                  backgroundColor: 'var(--accent)',
+                  color: 'white',
+                  borderRadius: '25px',
+                  fontWeight: '500',
+                  transition: '0.3s'
+                }}
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -250,7 +258,8 @@ function LoginPageContent() {
                 {/* Hide forgot password link for Admin after detecting role post-login; show here unconditionally for UI consistency. */}
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm text-neon-blue hover:text-neon-green transition-colors duration-300"
+                  className="text-sm transition-colors duration-300"
+                  style={{ color: 'var(--accent)' }}
                 >
                   Forgot your password?
                 </Link>
@@ -259,7 +268,8 @@ function LoginPageContent() {
                 Don&apos;t have an account?{' '}
                 <Link
                   href="/auth/register"
-                  className="text-neon-blue hover:text-neon-green transition-colors duration-300"
+                  className="transition-colors duration-300"
+                  style={{ color: 'var(--accent)' }}
                 >
                   Sign up
                 </Link>

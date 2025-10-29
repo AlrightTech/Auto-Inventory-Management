@@ -43,15 +43,6 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        // Automotive Dashboard Colors
-        neon: {
-          blue: "hsl(var(--neon-blue))",
-          green: "hsl(var(--neon-green))",
-          purple: "hsl(var(--neon-purple))",
-        },
-        gauge: {
-          bg: "hsl(var(--gauge-bg))",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -59,34 +50,27 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Poppins', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'gauge': 'var(--panel-shadow)',
-        'gauge-glow': 'var(--panel-glow)',
-        'neon': '0 0 20px hsl(var(--neon-blue) / 0.3)',
-        'neon-lg': '0 0 30px hsl(var(--neon-blue) / 0.4)',
+        'dashboard': 'var(--shadow)',
+        'dashboard-glow': 'var(--glow)',
+        'neon': '0 0 20px rgba(0, 191, 255, 0.3)',
+        'neon-lg': '0 0 30px rgba(0, 191, 255, 0.5)',
+        'neon-hover': '0 0 25px rgba(0, 191, 255, 0.2)',
       },
       animation: {
-        'pulse-neon': 'pulse-neon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
+        'shimmer': 'shimmer 2s infinite',
+        'glow-pulse': 'glow-pulse 2s ease-in-out infinite alternate',
       },
       keyframes: {
-        'pulse-neon': {
-          '0%, 100%': {
-            boxShadow: '0 0 5px hsl(var(--neon-blue) / 0.5)',
-          },
-          '50%': {
-            boxShadow: '0 0 20px hsl(var(--neon-blue) / 0.8)',
-          },
+        'shimmer': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
         },
-        'glow': {
-          '0%': {
-            boxShadow: '0 0 5px hsl(var(--neon-blue) / 0.3)',
-          },
-          '100%': {
-            boxShadow: '0 0 20px hsl(var(--neon-blue) / 0.6)',
-          },
+        'glow-pulse': {
+          '0%': { boxShadow: '0 0 5px rgba(0, 191, 255, 0.3)' },
+          '100%': { boxShadow: '0 0 20px rgba(0, 191, 255, 0.6)' },
         },
       },
     },
