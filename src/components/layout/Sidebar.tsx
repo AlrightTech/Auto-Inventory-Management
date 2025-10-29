@@ -163,12 +163,15 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       
       <div className={cn(
         "fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col transform transition-transform duration-300 ease-in-out h-full",
-        "bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700",
-        "shadow-lg",
+        "border-r shadow-lg",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
+      )}
+      style={{ 
+        backgroundColor: 'var(--card-bg)', 
+        borderColor: 'var(--border)' 
+      }}>
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
+        <div className="p-6 border-b flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -199,12 +202,12 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   onClick={() => toggleExpanded(item.name)}
                   className={cn(
                     "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                    "hover:bg-blue-50 dark:hover:bg-slate-700/50",
+                    "hover:bg-opacity-10",
                     isParentActive(item.children)
                       ? "text-white border border-transparent shadow-sm"
                       : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                   )}
-                  style={isParentActive(item.children) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : {}}
+                  style={isParentActive(item.children) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : { backgroundColor: 'transparent' }}
                 >
                   <div className="flex items-center space-x-3">
                     {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
@@ -231,12 +234,12 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                           href={child.href}
                           className={cn(
                             "block px-3 py-2 text-sm rounded-lg transition-all duration-200",
-                            "hover:bg-blue-50 dark:hover:bg-slate-700/50",
+                            "hover:bg-opacity-10",
                             isActive(child.href)
                               ? "text-white border border-transparent shadow-sm"
                               : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                           )}
-                          style={isActive(child.href) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : {}}
+                          style={isActive(child.href) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : { backgroundColor: 'transparent' }}
                         >
                           {child.name}
                         </Link>
@@ -250,12 +253,12 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                 href={item.href!}
                 className={cn(
                   "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                  "hover:bg-blue-50 dark:hover:bg-slate-700/50",
+                  "hover:bg-opacity-10",
                   isActive(item.href!)
                     ? "text-white border border-transparent shadow-sm"
                     : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                 )}
-                style={isActive(item.href!) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : {}}
+                style={isActive(item.href!) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : { backgroundColor: 'transparent' }}
               >
                 <div className="flex items-center space-x-3">
                   {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
@@ -273,7 +276,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex-shrink-0">
+        <div className="p-4 border-t flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
           <div className="text-xs text-center" style={{ color: 'var(--subtext)' }}>
             <p>Auto Inventory v1.0</p>
             <p className="mt-1">© 2024 All rights reserved</p>
