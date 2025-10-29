@@ -54,7 +54,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed z-50 grid w-full gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+          "fixed z-50 w-full border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
           className
         )}
         style={{
@@ -69,7 +69,9 @@ const DialogContent = React.forwardRef<
           overflowY: 'auto',
           overflowX: 'hidden',
           width: '100%',
-          maxWidth: maxWidthMap[maxWidth] || '32rem'
+          maxWidth: maxWidthMap[maxWidth] || '32rem',
+          display: 'flex',
+          flexDirection: 'column'
         }}
         {...props}
       >
@@ -93,6 +95,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({
   className,
+  style,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
@@ -100,6 +103,13 @@ const DialogHeader = ({
       "flex flex-col space-y-1.5 text-left",
       className
     )}
+    style={{
+      overflowY: 'visible',
+      overflowX: 'hidden',
+      maxHeight: 'none',
+      height: 'auto',
+      ...style
+    }}
     {...props}
   />
 );

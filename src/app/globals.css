@@ -462,15 +462,30 @@ body {
   max-height: none !important;
 }
 
-/* Universal rule for ALL elements inside DialogContent */
-[data-radix-dialog-content] * {
+/* UNIVERSAL RULE: ALL elements inside DialogContent - NO SCROLLING */
+[data-radix-dialog-content] *,
+[data-radix-dialog-content] > *,
+[data-radix-dialog-content] > * > *,
+[data-radix-dialog-content] > * > * > * {
   overflow-y: visible !important;
+  overflow-x: hidden !important;
   max-height: none !important;
+  height: auto !important;
 }
 
-/* Exception: Only the DialogContent itself should scroll */
+/* Exception: ONLY DialogContent itself can scroll */
 [data-radix-dialog-content] {
   overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Force remove grid/flex scrollable behavior */
+[data-radix-dialog-content] .grid,
+[data-radix-dialog-content] .flex,
+[data-radix-dialog-content] [class*="grid"],
+[data-radix-dialog-content] [class*="flex"] {
+  overflow-y: visible !important;
+  max-height: none !important;
 }
 
 /* Enhanced Form Styling for Better Alignment */

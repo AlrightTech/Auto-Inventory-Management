@@ -154,7 +154,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6" style={{ overflowY: 'visible', overflowX: 'hidden', maxHeight: 'none', height: 'auto' }}>
                 {/* Vehicle Basic Information */}
                 <div className="form-section">
                   <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
