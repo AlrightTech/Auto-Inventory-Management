@@ -205,9 +205,16 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                     "hover:bg-opacity-10",
                     isParentActive(item.children)
                       ? "text-white border border-transparent shadow-sm"
-                      : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                      : "hover:text-gray-900 dark:hover:text-white"
                   )}
-                  style={isParentActive(item.children) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : { backgroundColor: 'transparent' }}
+                  style={isParentActive(item.children) ? { 
+                    backgroundColor: 'var(--accent)', 
+                    boxShadow: 'var(--glow)',
+                    color: 'white'
+                  } : { 
+                    backgroundColor: 'transparent',
+                    color: 'var(--text)'
+                  }}
                 >
                   <div className="flex items-center space-x-3">
                     {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
@@ -237,9 +244,16 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                             "hover:bg-opacity-10",
                             isActive(child.href)
                               ? "text-white border border-transparent shadow-sm"
-                              : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                              : "hover:text-gray-900 dark:hover:text-white"
                           )}
-                          style={isActive(child.href) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : { backgroundColor: 'transparent' }}
+                          style={isActive(child.href) ? { 
+                            backgroundColor: 'var(--accent)', 
+                            boxShadow: 'var(--glow)',
+                            color: 'white'
+                          } : { 
+                            backgroundColor: 'transparent',
+                            color: 'var(--text)'
+                          }}
                         >
                           {child.name}
                         </Link>
@@ -256,9 +270,16 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   "hover:bg-opacity-10",
                   isActive(item.href!)
                     ? "text-white border border-transparent shadow-sm"
-                    : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                    : "hover:text-gray-900 dark:hover:text-white"
                 )}
-                style={isActive(item.href!) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : { backgroundColor: 'transparent' }}
+                style={isActive(item.href!) ? { 
+                  backgroundColor: 'var(--accent)', 
+                  boxShadow: 'var(--glow)',
+                  color: 'white'
+                } : { 
+                  backgroundColor: 'transparent',
+                  color: 'var(--text)'
+                }}
               >
                 <div className="flex items-center space-x-3">
                   {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}

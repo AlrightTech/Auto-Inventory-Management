@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
 export const taskSchema = z.object({
-  vehicle_id: z.string().optional(),
+  vehicle_id: z.string().min(1, 'Vehicle selection is required'),
   task_name: z.string().min(1, 'Task name is required'),
   due_date: z.string().min(1, 'Due date is required'),
   notes: z.string().optional(),
-  assigned_to: z.string().optional(),
-  category: z.string().optional(),
-  status: z.enum(['pending', 'completed', 'cancelled']),
+  assigned_to: z.string().min(1, 'User assignment is required'),
+  category: z.string().min(1, 'Category is required'),
+  status: z.enum(['pending', 'completed', 'cancelled']).optional(),
 });
 
 export const taskFiltersSchema = z.object({

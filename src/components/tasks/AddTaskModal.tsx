@@ -183,7 +183,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className="glass-card-strong max-w-2xl">
+          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-2xl">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -191,10 +191,10 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
               transition={{ duration: 0.2 }}
             >
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-white glow-text">
+                <DialogTitle className="text-2xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
                   Add New Task
                 </DialogTitle>
-                <DialogDescription className="text-slate-300">
+                <DialogDescription style={{ color: 'var(--subtext)' }}>
                   Create a new task and assign it to a user
                 </DialogDescription>
               </DialogHeader>
@@ -203,13 +203,18 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Task Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="task_name" className="text-slate-200">
+                    <Label htmlFor="task_name" style={{ color: 'var(--text)' }}>
                       Task Name *
                     </Label>
                     <Input
                       id="task_name"
                       placeholder="Enter task name"
-                      className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="control-panel"
+                      style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)' 
+                      }}
                       {...register('task_name')}
                     />
                     {errors.task_name && (
@@ -219,22 +224,26 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
 
                   {/* Category */}
                   <div className="space-y-2">
-                    <Label htmlFor="category" className="text-slate-200">
+                    <Label htmlFor="category" style={{ color: 'var(--text)' }}>
                       Category *
                     </Label>
                     <Select
                       value={selectedCategory}
                       onValueChange={(value) => setValue('category', value)}
                     >
-                      <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
+                      <SelectTrigger className="control-panel" style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)' 
+                      }}>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-600">
+                      <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                         {taskCategories.map((category) => (
                           <SelectItem
                             key={category.value}
                             value={category.value}
-                            className="text-white hover:bg-slate-700"
+                            style={{ color: 'var(--text)' }}
                           >
                             {category.label}
                           </SelectItem>
@@ -250,19 +259,23 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Vehicle Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="vehicle_id" className="text-slate-200">
+                    <Label htmlFor="vehicle_id" style={{ color: 'var(--text)' }}>
                       Select Vehicle *
                     </Label>
                     <Select
                       value={selectedVehicleId}
                       onValueChange={(value) => setValue('vehicle_id', value)}
                     >
-                      <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
+                      <SelectTrigger className="control-panel" style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)' 
+                      }}>
                         <SelectValue placeholder="Select a vehicle" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-600 max-h-60">
+                      <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }} className="max-h-60">
                         {vehicles.length === 0 ? (
-                          <SelectItem value="no-vehicles" disabled className="text-slate-400">
+                          <SelectItem value="no-vehicles" disabled style={{ color: 'var(--subtext)' }}>
                             No vehicles available
                           </SelectItem>
                         ) : (
@@ -281,7 +294,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                               <SelectItem
                                 key={vehicle.id}
                                 value={vehicle.id}
-                                className="text-white hover:bg-slate-700"
+                                style={{ color: 'var(--text)' }}
                               >
                                 {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.vin ? `(${vehicle.vin})` : ''}
                               </SelectItem>
@@ -296,19 +309,23 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
 
                   {/* Assigned To */}
                   <div className="space-y-2">
-                    <Label htmlFor="assigned_to" className="text-slate-200">
+                    <Label htmlFor="assigned_to" style={{ color: 'var(--text)' }}>
                       Assign To *
                     </Label>
                     <Select
                       value={watch('assigned_to')}
                       onValueChange={(value) => setValue('assigned_to', value)}
                     >
-                      <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
+                      <SelectTrigger className="control-panel" style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)' 
+                      }}>
                         <SelectValue placeholder="Select user" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-600">
+                      <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                         {users.length === 0 ? (
-                          <SelectItem value="no-users" disabled className="text-slate-400">
+                          <SelectItem value="no-users" disabled style={{ color: 'var(--subtext)' }}>
                             No users available
                           </SelectItem>
                         ) : (
@@ -326,7 +343,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                               <SelectItem
                                 key={user.id}
                                 value={user.id}
-                                className="text-white hover:bg-slate-700"
+                                style={{ color: 'var(--text)' }}
                               >
                                 {user.username} ({user.role})
                               </SelectItem>
@@ -342,25 +359,30 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
 
                 {/* Due Date */}
                 <div className="space-y-2">
-                  <Label className="text-slate-200">Due Date *</Label>
+                  <Label style={{ color: 'var(--text)' }}>Due Date *</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700"
+                        className="w-full justify-start text-left font-normal control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-600">
+                    <PopoverContent className="w-auto p-0" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                       <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         disabled={(date) => date < new Date()}
                         initialFocus
-                        className="bg-slate-800"
+                        style={{ backgroundColor: 'var(--card-bg)' }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -371,13 +393,18 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
 
                 {/* Notes */}
                 <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-slate-200">
+                  <Label htmlFor="notes" style={{ color: 'var(--text)' }}>
                     Notes
                   </Label>
                   <Textarea
                     id="notes"
                     placeholder="Enter additional notes or instructions..."
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 min-h-[100px]"
+                    className="control-panel min-h-[100px]"
+                    style={{ 
+                      backgroundColor: 'var(--card-bg)', 
+                      borderColor: 'var(--border)', 
+                      color: 'var(--text)' 
+                    }}
                     {...register('notes')}
                   />
                   {errors.notes && (
@@ -391,7 +418,12 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                    className="control-panel"
+                    style={{ 
+                      backgroundColor: 'transparent', 
+                      borderColor: 'var(--border)', 
+                      color: 'var(--text)' 
+                    }}
                   >
                     <X className="w-4 h-4 mr-2" />
                     Cancel
@@ -399,7 +431,14 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="gradient-primary hover:opacity-90"
+                    className="control-panel neon-glow"
+                    style={{
+                      backgroundColor: 'var(--accent)',
+                      color: 'white',
+                      borderRadius: '25px',
+                      fontWeight: '500',
+                      transition: '0.3s'
+                    }}
                   >
                     {isSubmitting ? (
                       <>
