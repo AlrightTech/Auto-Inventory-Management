@@ -342,28 +342,47 @@ body {
   background-color: rgba(0, 191, 255, 0.1) !important;
 }
 
-/* Inventory Table Styling - Horizontal Scroll Only for Inventory */
-.inventory-table-container {
+/* Vehicle Inventory Table ONLY - Horizontal Scroll */
+.vehicle-inventory-table {
   overflow-x: auto;
   width: 100%;
   max-width: 100%;
   border-radius: 8px;
 }
 
-.inventory-table-container table {
+.vehicle-inventory-table table {
   min-width: 1200px; /* Ensure all columns are visible */
   width: 100%;
 }
 
-.inventory-table-container th,
-.inventory-table-container td {
+.vehicle-inventory-table th,
+.vehicle-inventory-table td {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
-/* General Table Styling - No horizontal scroll */
+/* Custom Scrollbar Styling for Vehicle Inventory Table Only */
+.vehicle-inventory-table::-webkit-scrollbar {
+  height: 8px;
+}
+
+.vehicle-inventory-table::-webkit-scrollbar-track {
+  background: var(--card-bg);
+  border-radius: 4px;
+}
+
+.vehicle-inventory-table::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.vehicle-inventory-table::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* All Other Tables - No horizontal scroll */
 .table-container {
   width: 100%;
   max-width: 100%;
@@ -380,38 +399,19 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-/* Form content styling - No horizontal scroll */
+/* All Forms - No horizontal scroll */
 .form-content {
   max-width: 100%;
 }
 
-/* Custom Scrollbar Styling for Dark Theme */
-.inventory-table-container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.inventory-table-container::-webkit-scrollbar-track {
-  background: var(--card-bg);
-  border-radius: 4px;
-}
-
-.inventory-table-container::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-
-.inventory-table-container::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
-
 /* Responsive Table Styling */
 @media (max-width: 768px) {
-  .inventory-table-container {
+  .vehicle-inventory-table {
     font-size: 0.875rem;
   }
   
-  .inventory-table-container th,
-  .inventory-table-container td {
+  .vehicle-inventory-table th,
+  .vehicle-inventory-table td {
     padding: 8px 12px;
   }
   
