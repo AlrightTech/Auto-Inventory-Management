@@ -240,14 +240,15 @@ body {
   font-size: 1.2rem;
 }
 
-/* Dark Mode Form Field Improvements */
+/* Dark Mode Form Field Improvements - More Specific */
 .dark input[type="text"],
 .dark input[type="email"],
 .dark input[type="password"],
 .dark input[type="search"],
 .dark input[type="number"],
 .dark textarea,
-.dark select {
+.dark select,
+.dark .control-panel {
   background-color: white !important;
   color: black !important;
   border-color: #e3e6ea !important;
@@ -259,7 +260,8 @@ body {
 .dark input[type="search"]:focus,
 .dark input[type="number"]:focus,
 .dark textarea:focus,
-.dark select:focus {
+.dark select:focus,
+.dark .control-panel:focus {
   background-color: white !important;
   color: black !important;
   border-color: var(--accent) !important;
@@ -271,7 +273,8 @@ body {
 .dark input[type="password"]::placeholder,
 .dark input[type="search"]::placeholder,
 .dark input[type="number"]::placeholder,
-.dark textarea::placeholder {
+.dark textarea::placeholder,
+.dark .control-panel::placeholder {
   color: #666 !important;
 }
 
@@ -324,10 +327,11 @@ body {
   background-color: rgba(0, 191, 255, 0.1) !important;
 }
 
-/* Horizontal Scroll for Tables */
+/* Horizontal Scroll for Tables - Only within table containers */
 .table-container {
   overflow-x: auto;
   width: 100%;
+  max-width: 100%;
 }
 
 .table-container table {
@@ -342,6 +346,16 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+/* Form-specific horizontal scroll - only for form content */
+.form-content {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.form-content .grid {
+  min-width: max-content;
+}
+
 /* Responsive Table Styling */
 @media (max-width: 768px) {
   .table-container {
@@ -351,6 +365,10 @@ body {
   .table-container th,
   .table-container td {
     padding: 8px 12px;
+  }
+  
+  .form-content {
+    overflow-x: auto;
   }
 }
 

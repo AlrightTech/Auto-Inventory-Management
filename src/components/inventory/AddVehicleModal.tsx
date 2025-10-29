@@ -143,7 +143,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className="glass-card border-slate-200/50 dark:border-slate-700/50 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-4xl max-h-[90vh] overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -151,33 +151,38 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
               transition={{ duration: 0.2 }}
             >
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-slate-900 dark:text-white glow-text flex items-center">
+                <DialogTitle className="text-2xl font-bold flex items-center" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
                   <Car className="w-6 h-6 mr-2" />
                   Add New Vehicle
                 </DialogTitle>
-                <DialogDescription className="text-slate-600 dark:text-slate-400">
+                <DialogDescription style={{ color: 'var(--subtext)' }}>
                   Add a new vehicle to your inventory with complete details and tracking information.
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6 max-h-[70vh] overflow-y-auto">
+              <form onSubmit={handleSubmit(onSubmit)} className="form-content space-y-6 mt-6 max-h-[70vh] overflow-y-auto">
                 {/* Vehicle Basic Information */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
+                  <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
                     Vehicle Information
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Make */}
                     <div className="space-y-2">
-                      <Label htmlFor="make" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="make" style={{ color: 'var(--text)' }}>
                         Make *
                       </Label>
                       <Input
                         id="make"
                         placeholder="e.g., Chevrolet"
                         {...register('make')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.make && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.make.message}</p>
@@ -186,14 +191,19 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Model */}
                     <div className="space-y-2">
-                      <Label htmlFor="model" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="model" style={{ color: 'var(--text)' }}>
                         Model *
                       </Label>
                       <Input
                         id="model"
                         placeholder="e.g., Silverado"
                         {...register('model')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.model && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.model.message}</p>
@@ -202,7 +212,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Year */}
                     <div className="space-y-2">
-                      <Label htmlFor="year" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="year" style={{ color: 'var(--text)' }}>
                         Year *
                       </Label>
                       <Input
@@ -210,7 +220,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         type="number"
                         placeholder="2021"
                         {...register('year', { valueAsNumber: true })}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.year && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.year.message}</p>
@@ -221,7 +236,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* VIN */}
                     <div className="space-y-2">
-                      <Label htmlFor="vin" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="vin" style={{ color: 'var(--text)' }}>
                         VIN Number
                       </Label>
                       <Input
@@ -229,7 +244,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         placeholder="17-character VIN (optional)"
                         maxLength={17}
                         {...register('vin')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.vin && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.vin.message}</p>
@@ -238,20 +258,25 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Trim */}
                     <div className="space-y-2">
-                      <Label htmlFor="trim" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="trim" style={{ color: 'var(--text)' }}>
                         Trim
                       </Label>
                       <Input
                         id="trim"
                         placeholder="e.g., LT, XLT"
                         {...register('trim')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                     </div>
 
                     {/* Odometer */}
                     <div className="space-y-2">
-                      <Label htmlFor="odometer" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="odometer" style={{ color: 'var(--text)' }}>
                         Odometer (miles)
                       </Label>
                       <Input
@@ -259,7 +284,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         type="number"
                         placeholder="45000"
                         {...register('odometer', { valueAsNumber: true })}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.odometer && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.odometer.message}</p>
@@ -270,27 +300,37 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Exterior Color */}
                     <div className="space-y-2">
-                      <Label htmlFor="exterior_color" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="exterior_color" style={{ color: 'var(--text)' }}>
                         Exterior Color
                       </Label>
                       <Input
                         id="exterior_color"
                         placeholder="e.g., Blue, White, Black"
                         {...register('exterior_color')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                     </div>
 
                     {/* Interior Color */}
                     <div className="space-y-2">
-                      <Label htmlFor="interior_color" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="interior_color" style={{ color: 'var(--text)' }}>
                         Interior Color
                       </Label>
                       <Input
                         id="interior_color"
                         placeholder="e.g., Black, Gray, Beige"
                         {...register('interior_color')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                     </div>
                   </div>
@@ -298,23 +338,27 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                 {/* Status and Financial Information */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
+                  <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
                     Status & Financial Information
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="status" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="status" style={{ color: 'var(--text)' }}>
                         Status *
                       </Label>
                       <Select onValueChange={(value) => setValue('status', value as any)}>
-                        <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
+                        <SelectTrigger className="control-panel" style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
-                        <SelectContent className="glass-card border-slate-700">
+                        <SelectContent className="dashboard-card neon-glow instrument-cluster">
                           {statusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
+                            <SelectItem key={status} value={status} style={{ color: 'var(--text)' }}>
                               {status}
                             </SelectItem>
                           ))}
@@ -327,16 +371,20 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Title Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="title_status" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="title_status" style={{ color: 'var(--text)' }}>
                         Title Status
                       </Label>
                       <Select onValueChange={(value) => setValue('title_status', value as 'Present' | 'Absent')}>
-                        <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
+                        <SelectTrigger className="control-panel" style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}>
                           <SelectValue placeholder="Select title status" />
                         </SelectTrigger>
-                        <SelectContent className="glass-card border-slate-700">
-                          <SelectItem value="Present">Present</SelectItem>
-                          <SelectItem value="Absent">Absent</SelectItem>
+                        <SelectContent className="dashboard-card neon-glow instrument-cluster">
+                          <SelectItem value="Present" style={{ color: 'var(--text)' }}>Present</SelectItem>
+                          <SelectItem value="Absent" style={{ color: 'var(--text)' }}>Absent</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.title_status && (
@@ -346,16 +394,20 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Sale Invoice Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="sale_invoice_status" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="sale_invoice_status" style={{ color: 'var(--text)' }}>
                         Sale Invoice Status
                       </Label>
                       <Select onValueChange={(value) => setValue('sale_invoice_status', value as 'PAID' | 'UNPAID')}>
-                        <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
+                        <SelectTrigger className="control-panel" style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}>
                           <SelectValue placeholder="Select invoice status" />
                         </SelectTrigger>
-                        <SelectContent className="glass-card border-slate-700">
-                          <SelectItem value="PAID">PAID</SelectItem>
-                          <SelectItem value="UNPAID">UNPAID</SelectItem>
+                        <SelectContent className="dashboard-card neon-glow instrument-cluster">
+                          <SelectItem value="PAID" style={{ color: 'var(--text)' }}>PAID</SelectItem>
+                          <SelectItem value="UNPAID" style={{ color: 'var(--text)' }}>UNPAID</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.sale_invoice_status && (
@@ -367,7 +419,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Bought Price */}
                     <div className="space-y-2">
-                      <Label htmlFor="bought_price" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="bought_price" style={{ color: 'var(--text)' }}>
                         Bought Price ($)
                       </Label>
                       <Input
@@ -376,7 +428,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         step="0.01"
                         placeholder="25000.00"
                         {...register('bought_price', { valueAsNumber: true })}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.bought_price && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.bought_price.message}</p>
@@ -385,7 +442,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Buy Fee */}
                     <div className="space-y-2">
-                      <Label htmlFor="buy_fee" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="buy_fee" style={{ color: 'var(--text)' }}>
                         Buy Fee ($)
                       </Label>
                       <Input
@@ -394,7 +451,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         step="0.01"
                         placeholder="735.00"
                         {...register('buy_fee', { valueAsNumber: true })}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.buy_fee && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.buy_fee.message}</p>
@@ -403,7 +465,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
                     {/* Other Charges */}
                     <div className="space-y-2">
-                      <Label htmlFor="other_charges" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="other_charges" style={{ color: 'var(--text)' }}>
                         Other Charges ($)
                       </Label>
                       <Input
@@ -412,7 +474,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                         step="0.01"
                         placeholder="0.00"
                         {...register('other_charges', { valueAsNumber: true })}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                       {errors.other_charges && (
                         <p className="text-red-600 dark:text-red-400 text-sm">{errors.other_charges.message}</p>
@@ -657,12 +724,17 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700/50">
+                <div className="flex justify-end space-x-3 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                    className="control-panel"
+                    style={{ 
+                      backgroundColor: 'transparent', 
+                      borderColor: 'var(--border)', 
+                      color: 'var(--text)' 
+                    }}
                   >
                     <X className="w-4 h-4 mr-2" />
                     Cancel
@@ -670,7 +742,14 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="gradient-primary hover:opacity-90"
+                    className="control-panel neon-glow"
+                    style={{
+                      backgroundColor: 'var(--accent)',
+                      color: 'white',
+                      borderRadius: '25px',
+                      fontWeight: '500',
+                      transition: '0.3s'
+                    }}
                   >
                     {isSubmitting ? (
                       <>
