@@ -55,16 +55,23 @@ export default function InventoryPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
             Inventory Management
           </h1>
-          <p className="text-muted-foreground">
+          <p style={{ color: 'var(--subtext)' }}>
             Manage your vehicle inventory with comprehensive tracking and analytics.
           </p>
         </div>
         <Button 
           onClick={() => setIsAddVehicleModalOpen(true)}
-          className="gradient-primary hover:opacity-90 glow-border"
+          className="control-panel neon-glow"
+          style={{
+            backgroundColor: 'var(--accent)',
+            color: 'white',
+            borderRadius: '25px',
+            fontWeight: '500',
+            transition: '0.3s'
+          }}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Vehicle
@@ -78,16 +85,16 @@ export default function InventoryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="card-enhanced hover:shadow-blue-500/20 transition-all duration-300">
+          <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Vehicles</p>
-                  <p className="text-3xl font-bold text-black dark:text-white">
+                  <p className="text-sm font-medium" style={{ color: 'var(--subtext)' }}>Total Vehicles</p>
+                  <p className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
                     {isLoadingStats ? '...' : stats.totalVehicles}
                   </p>
                 </div>
-                <Car className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                <Car className="h-8 w-8" style={{ color: 'var(--accent)' }} />
               </div>
             </CardContent>
           </Card>
@@ -98,16 +105,16 @@ export default function InventoryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="card-enhanced hover:shadow-red-500/20 transition-all duration-300">
+          <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Missing Titles</p>
-                  <p className="text-3xl font-bold text-black dark:text-white">
+                  <p className="text-sm font-medium" style={{ color: 'var(--subtext)' }}>Missing Titles</p>
+                  <p className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
                     {isLoadingStats ? '...' : stats.missingTitles}
                   </p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-red-500 dark:text-red-400" />
+                <AlertTriangle className="h-8 w-8" style={{ color: '#ef4444' }} />
               </div>
             </CardContent>
           </Card>
@@ -118,16 +125,16 @@ export default function InventoryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="card-enhanced hover:shadow-amber-500/20 transition-all duration-300">
+          <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Missing Cars</p>
-                  <p className="text-3xl font-bold text-black dark:text-white">
+                  <p className="text-sm font-medium" style={{ color: 'var(--subtext)' }}>Missing Cars</p>
+                  <p className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
                     {isLoadingStats ? '...' : stats.missingCars}
                   </p>
                 </div>
-                <MapPin className="h-8 w-8 text-amber-500 dark:text-amber-400" />
+                <MapPin className="h-8 w-8" style={{ color: '#f59e0b' }} />
               </div>
             </CardContent>
           </Card>

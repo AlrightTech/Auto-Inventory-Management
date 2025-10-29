@@ -323,16 +323,23 @@ export default function AdminTasksPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white glow-text">
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
             Task Management
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p style={{ color: 'var(--subtext)' }}>
             Track and manage vehicle-related tasks across all users
           </p>
         </div>
         <Button
           onClick={() => setIsAddModalOpen(true)}
-          className="gradient-primary hover:opacity-90"
+          className="control-panel neon-glow"
+          style={{
+            backgroundColor: 'var(--accent)',
+            color: 'white',
+            borderRadius: '25px',
+            fontWeight: '500',
+            transition: '0.3s'
+          }}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Task
@@ -346,71 +353,71 @@ export default function AdminTasksPage() {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
       >
-        <Card className="glass-card glow-border">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <CheckSquare className="w-5 h-5 text-blue-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(0, 191, 255, 0.2)' }}>
+                <CheckSquare className="w-5 h-5" style={{ color: 'var(--accent)' }} />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Accounting To Do</p>
-                <p className="text-2xl font-bold text-white">{taskCounts.accountingToDo}</p>
+                <p className="text-sm" style={{ color: 'var(--subtext)' }}>Accounting To Do</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--text)' }}>{taskCounts.accountingToDo}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card glow-border">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <FileText className="w-5 h-5 text-green-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)' }}>
+                <FileText className="w-5 h-5" style={{ color: '#22c55e' }} />
               </div>
               <div>
-                <p className="text-sm text-slate-400">All Tasks</p>
-                <p className="text-2xl font-bold text-white">{taskCounts.allTasks}</p>
+                <p className="text-sm" style={{ color: 'var(--subtext)' }}>All Tasks</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--text)' }}>{taskCounts.allTasks}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card glow-border">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-yellow-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(245, 158, 11, 0.2)' }}>
+                <AlertTriangle className="w-5 h-5" style={{ color: '#f59e0b' }} />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Missing Title</p>
-                <p className="text-2xl font-bold text-white">{taskCounts.missingTitle}</p>
+                <p className="text-sm" style={{ color: 'var(--subtext)' }}>Missing Title</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--text)' }}>{taskCounts.missingTitle}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card glow-border">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-500/20 rounded-lg">
-                <FileText className="w-5 h-5 text-red-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }}>
+                <FileText className="w-5 h-5" style={{ color: '#ef4444' }} />
               </div>
               <div>
-                <p className="text-sm text-slate-400">File ARB</p>
-                <p className="text-2xl font-bold text-white">{taskCounts.fileArb}</p>
+                <p className="text-sm" style={{ color: 'var(--subtext)' }}>File ARB</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--text)' }}>{taskCounts.fileArb}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card glow-border">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <MapPin className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(168, 85, 247, 0.2)' }}>
+                <MapPin className="w-5 h-5" style={{ color: '#a855f7' }} />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Location</p>
-                <p className="text-2xl font-bold text-white">{taskCounts.location}</p>
+                <p className="text-sm" style={{ color: 'var(--subtext)' }}>Location</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--text)' }}>{taskCounts.location}</p>
               </div>
             </div>
           </CardContent>

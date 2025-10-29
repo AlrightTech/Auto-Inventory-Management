@@ -62,7 +62,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-6 py-4 shadow-md">
+    <header className="border-b border-gray-200 dark:border-slate-700 px-6 py-4 shadow-md" style={{ backgroundColor: 'var(--card-bg)' }}>
       <div className="flex items-center justify-between">
         {/* Left side - Menu button and Search */}
         <div className="flex items-center space-x-4 flex-1">
@@ -72,7 +72,8 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               variant="ghost"
               size="sm"
               onClick={onMenuClick}
-                      className="lg:hidden text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
+              className="lg:hidden control-panel"
+              style={{ color: 'var(--text)' }}
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -91,14 +92,20 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               >
                 <Input
                   placeholder="Search vehicles, tasks, events..."
-                  className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  className="control-panel"
+                  style={{ 
+                    backgroundColor: 'var(--card-bg)', 
+                    borderColor: 'var(--border)', 
+                    color: 'var(--text)' 
+                  }}
                   autoFocus
                 />
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsSearchOpen(false)}
-                        className="text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
+                  className="control-panel"
+                  style={{ color: 'var(--text)' }}
                 >
                   ×
                 </Button>
@@ -108,7 +115,8 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSearchOpen(true)}
-                        className="text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
+                className="control-panel"
+                style={{ color: 'var(--text)' }}
               >
                 <Search className="w-4 h-4 mr-2" />
                 Search
@@ -132,30 +140,31 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 <Button
               variant="ghost"
               size="sm"
-              className="relative text-black dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
+              className="relative control-panel"
+              style={{ color: 'var(--text)' }}
                 >
                   <Bell className="w-5 h-5" />
                   {/* Unread count temporarily removed until real-time tracking is fully working */}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 shadow-lg" align="end" forceMount>
-                <DropdownMenuLabel className="text-sm font-medium text-foreground">Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-gray-200 dark:bg-slate-700" />
+              <DropdownMenuContent className="w-80 shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }} align="end" forceMount>
+                <DropdownMenuLabel className="text-sm font-medium" style={{ color: 'var(--text)' }}>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator style={{ backgroundColor: 'var(--border)' }} />
                 {notifications.length === 0 && (
-                  <div className="p-4 text-muted-foreground">No notifications</div>
+                  <div className="p-4" style={{ color: 'var(--subtext)' }}>No notifications</div>
                 )}
                 {notifications.slice(0, 10).map(n => (
-                  <DropdownMenuItem key={n.id} className="text-black dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700/50">
+                  <DropdownMenuItem key={n.id} className="control-panel" style={{ color: 'var(--text)' }}>
                     <div className="flex items-start gap-2 w-full">
                       <div className="mt-1">
                         <span className={`inline-block w-2 h-2 rounded-full ${n.read ? 'bg-gray-400 dark:bg-gray-500' : 'bg-blue-500'}`} />
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm text-foreground">{n.title}</div>
-                        <div className="text-xs text-muted-foreground">{n.message}</div>
+                        <div className="text-sm" style={{ color: 'var(--text)' }}>{n.title}</div>
+                        <div className="text-xs" style={{ color: 'var(--subtext)' }}>{n.message}</div>
                       </div>
                       {!n.read && (
-                        <button onClick={() => markAsRead(n.id)} className="text-xs text-primary hover:text-hover">Mark read</button>
+                        <button onClick={() => markAsRead(n.id)} className="text-xs" style={{ color: 'var(--accent)' }}>Mark read</button>
                       )}
                     </div>
                   </DropdownMenuItem>
@@ -182,30 +191,31 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 shadow-lg" align="end" forceMount>
+                <DropdownMenuContent className="w-56 shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }} align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none text-foreground">
+                      <p className="text-sm font-medium leading-none" style={{ color: 'var(--text)' }}>
                         {user.email || 'User'}
                       </p>
-                      <p className="text-xs leading-none text-muted-foreground">
+                      <p className="text-xs leading-none" style={{ color: 'var(--subtext)' }}>
                         Administrator
                       </p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-slate-700" />
-                  <DropdownMenuItem className="text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700/50">
+                  <DropdownMenuSeparator style={{ backgroundColor: 'var(--border)' }} />
+                  <DropdownMenuItem className="control-panel" style={{ color: 'var(--text)' }}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700/50">
+                  <DropdownMenuItem className="control-panel" style={{ color: 'var(--text)' }}>
                     <Bell className="mr-2 h-4 w-4" />
                     <span>Notifications</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-slate-700" />
+                  <DropdownMenuSeparator style={{ backgroundColor: 'var(--border)' }} />
                   <DropdownMenuItem 
                     onClick={handleSignOut}
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10"
+                    className="control-panel"
+                    style={{ color: '#ef4444' }}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>

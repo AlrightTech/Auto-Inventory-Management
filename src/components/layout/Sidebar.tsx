@@ -162,7 +162,9 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       )}
       
       <div className={cn(
-        "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex flex-col transform transition-transform duration-300 ease-in-out h-full shadow-lg",
+        "fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col transform transition-transform duration-300 ease-in-out h-full",
+        "bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700",
+        "shadow-lg",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Logo */}
@@ -172,12 +174,12 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center space-x-3"
           >
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md" style={{ backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' }}>
               <Car className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-black dark:text-white">Auto Inventory</h1>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Dashboard</p>
+              <h1 className="text-lg font-bold" style={{ color: 'var(--text)', letterSpacing: '0.5px' }}>Auto Inventory</h1>
+              <p className="text-xs" style={{ color: 'var(--subtext)' }}>Dashboard</p>
             </div>
           </motion.div>
         </div>
@@ -196,11 +198,13 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                 <button
                   onClick={() => toggleExpanded(item.name)}
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-blue-50 dark:hover:bg-slate-700/50",
+                    "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                    "hover:bg-blue-50 dark:hover:bg-slate-700/50",
                     isParentActive(item.children)
-                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+                      ? "text-white border border-transparent shadow-sm"
                       : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                   )}
+                  style={isParentActive(item.children) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : {}}
                 >
                   <div className="flex items-center space-x-3">
                     {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
@@ -226,11 +230,13 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                           key={child.name}
                           href={child.href}
                           className={cn(
-                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200 hover:bg-blue-50 dark:hover:bg-slate-700/50",
+                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200",
+                            "hover:bg-blue-50 dark:hover:bg-slate-700/50",
                             isActive(child.href)
-                              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-                                  : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                              ? "text-white border border-transparent shadow-sm"
+                              : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                           )}
+                          style={isActive(child.href) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : {}}
                         >
                           {child.name}
                         </Link>
@@ -243,18 +249,20 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
               <Link
                 href={item.href!}
                 className={cn(
-                  "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-blue-50 dark:hover:bg-slate-700/50",
+                  "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                  "hover:bg-blue-50 dark:hover:bg-slate-700/50",
                   isActive(item.href!)
-                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 shadow-sm"
-                        : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                    ? "text-white border border-transparent shadow-sm"
+                    : "text-black dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
                 )}
+                style={isActive(item.href!) ? { backgroundColor: 'var(--accent)', boxShadow: 'var(--glow)' } : {}}
               >
                 <div className="flex items-center space-x-3">
                   {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
                   <span>{item.name}</span>
                 </div>
                 {item.name === 'Chat' && unreadCount > 0 && (
-                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-medium">
+                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-medium" style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)' }}>
                     {unreadCount}
                   </span>
                 )}
@@ -266,7 +274,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex-shrink-0">
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+          <div className="text-xs text-center" style={{ color: 'var(--subtext)' }}>
             <p>Auto Inventory v1.0</p>
             <p className="mt-1">© 2024 All rights reserved</p>
           </div>
