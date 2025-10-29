@@ -91,7 +91,12 @@ export async function POST(request: NextRequest) {
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ 
+        success: false,
+        imported: 0,
+        errors: ['Unauthorized'],
+        vehicles: []
+      }, { status: 401 });
     }
 
     // Check if user is admin
@@ -102,14 +107,24 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profileError || profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+      return NextResponse.json({ 
+        success: false,
+        imported: 0,
+        errors: ['Forbidden - Admin access required'],
+        vehicles: []
+      }, { status: 403 });
     }
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false,
+        imported: 0,
+        errors: ['No file provided'],
+        vehicles: []
+      }, { status: 400 });
     }
 
     const fileBuffer = await file.arrayBuffer();
@@ -155,11 +170,21 @@ export async function POST(request: NextRequest) {
         });
       }
     } else {
-      return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false,
+        imported: 0,
+        errors: ['Unsupported file type'],
+        vehicles: []
+      }, { status: 400 });
     }
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: 'No data found in file' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false,
+        imported: 0,
+        errors: ['No data found in file'],
+        vehicles: []
+      }, { status: 400 });
     }
 
     // Process and validate data
@@ -224,9 +249,14 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in import:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Return properly formatted JSON response
     return NextResponse.json({ 
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      success: false,
+      imported: 0,
+      errors: [`Import failed: ${errorMessage}`],
+      vehicles: []
     }, { status: 500 });
   }
 }

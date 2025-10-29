@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,13 +15,14 @@ import { CalendarIcon, X, Plus, Car, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { VehicleInsert } from '@/types/vehicle';
+import { VehicleInsert, VehicleWithRelations } from '@/types/vehicle';
 import { vehicleSchema, VehicleInput } from '@/lib/validations/inventory';
 
 interface AddVehicleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onVehicleAdded?: () => void;
+  vehicleToEdit?: VehicleWithRelations;
 }
 
 const statusOptions = [
@@ -61,7 +62,7 @@ const arbStatusOptions = [
   'Failed',
 ];
 
-export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleModalProps) {
+export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit }: AddVehicleModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -71,6 +72,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
     formState: { errors },
     setValue,
     reset,
+    watch,
   } = useForm<VehicleInput>({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
@@ -82,6 +84,61 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
       dealshield_arbitration_status: '--',
     },
   });
+
+  // Populate form when editing
+  useEffect(() => {
+    if (vehicleToEdit && isOpen) {
+      reset({
+        make: vehicleToEdit.make || '',
+        model: vehicleToEdit.model || '',
+        year: vehicleToEdit.year || undefined,
+        vin: vehicleToEdit.vin || '',
+        trim: vehicleToEdit.trim || '',
+        exterior_color: vehicleToEdit.exterior_color || '',
+        interior_color: vehicleToEdit.interior_color || '',
+        status: vehicleToEdit.status || 'Pending',
+        odometer: vehicleToEdit.odometer || undefined,
+        title_status: vehicleToEdit.title_status || 'Absent',
+        psi_status: vehicleToEdit.psi_status || 'Not Eligible',
+        dealshield_arbitration_status: vehicleToEdit.dealshield_arbitration_status || '--',
+        bought_price: vehicleToEdit.bought_price || undefined,
+        buy_fee: vehicleToEdit.buy_fee || undefined,
+        other_charges: vehicleToEdit.other_charges || undefined,
+        sale_date: vehicleToEdit.sale_date || '',
+        lane: vehicleToEdit.lane || undefined,
+        run: vehicleToEdit.run || undefined,
+        channel: vehicleToEdit.channel || 'Simulcast',
+        facilitating_location: vehicleToEdit.facilitating_location || '',
+        vehicle_location: vehicleToEdit.vehicle_location || '',
+        pickup_location_address1: vehicleToEdit.pickup_location_address1 || '',
+        pickup_location_city: vehicleToEdit.pickup_location_city || '',
+        pickup_location_state: vehicleToEdit.pickup_location_state || '',
+        pickup_location_zip: vehicleToEdit.pickup_location_zip || '',
+        pickup_location_phone: vehicleToEdit.pickup_location_phone || '',
+        seller_name: vehicleToEdit.seller_name || '',
+        buyer_dealership: vehicleToEdit.buyer_dealership || '',
+        buyer_contact_name: vehicleToEdit.buyer_contact_name || '',
+        buyer_aa_id: vehicleToEdit.buyer_aa_id || '',
+        buyer_reference: vehicleToEdit.buyer_reference || '',
+        sale_invoice_status: vehicleToEdit.sale_invoice_status || 'UNPAID',
+      });
+
+      if (vehicleToEdit.sale_date) {
+        setSelectedDate(new Date(vehicleToEdit.sale_date));
+      }
+    } else if (!vehicleToEdit && isOpen) {
+      // Reset form for new vehicle
+      reset({
+        status: 'Pending',
+        title_status: 'Absent',
+        sale_invoice_status: 'UNPAID',
+        channel: 'Simulcast',
+        psi_status: 'Not Eligible',
+        dealshield_arbitration_status: '--',
+      });
+      setSelectedDate(new Date());
+    }
+  }, [vehicleToEdit, isOpen, reset]);
 
   const onSubmit = async (data: VehicleInput) => {
     setIsSubmitting(true);
@@ -100,8 +157,11 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
         }
       });
 
-      const response = await fetch('/api/vehicles', {
-        method: 'POST',
+      const url = vehicleToEdit ? `/api/vehicles/${vehicleToEdit.id}` : '/api/vehicles';
+      const method = vehicleToEdit ? 'PATCH' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -110,12 +170,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create vehicle');
+        throw new Error(errorData.error || `Failed to ${vehicleToEdit ? 'update' : 'create'} vehicle`);
       }
 
       const result = await response.json();
       
-      toast.success('Vehicle added successfully!');
+      toast.success(`Vehicle ${vehicleToEdit ? 'updated' : 'added'} successfully!`);
       
       // Reset form and close modal
       reset();
@@ -147,10 +207,12 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold flex items-center" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
                 <Car className="w-6 h-6 mr-2" />
-                Add New Vehicle
+                {vehicleToEdit ? 'Edit Vehicle' : 'Add New Vehicle'}
               </DialogTitle>
               <DialogDescription style={{ color: 'var(--subtext)' }}>
-                Add a new vehicle to your inventory with complete details and tracking information.
+                {vehicleToEdit 
+                  ? 'Update vehicle details and tracking information.'
+                  : 'Add a new vehicle to your inventory with complete details and tracking information.'}
               </DialogDescription>
             </DialogHeader>
 
@@ -753,7 +815,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                       ) : (
                         <>
                           <Plus className="w-4 h-4 mr-2" />
-                          Add Vehicle
+                          {vehicleToEdit ? 'Update Vehicle' : 'Add Vehicle'}
                         </>
                       )}
                     </Button>

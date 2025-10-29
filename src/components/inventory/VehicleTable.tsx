@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
+import { ViewVehicleModal } from './ViewVehicleModal';
+import { AddVehicleModal } from './AddVehicleModal';
 
 interface VehicleTableProps {
   onVehicleAdded?: () => void;
@@ -74,6 +76,9 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
   const [filteredVehicles, setFilteredVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithRelations | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Load vehicles from API
   useEffect(() => {
@@ -134,12 +139,25 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
       // Remove vehicle from local state
       setVehicles(prev => prev.filter(v => v.id !== vehicleId));
       toast.success('Vehicle deleted successfully');
+      if (onVehicleAdded) {
+        onVehicleAdded();
+      }
     } catch (error) {
       console.error('Error deleting vehicle:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete vehicle');
     } finally {
       setIsDeleting(null);
     }
+  };
+
+  const handleView = (vehicle: VehicleWithRelations) => {
+    setSelectedVehicle(vehicle);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEdit = (vehicle: VehicleWithRelations) => {
+    setSelectedVehicle(vehicle);
+    setIsEditModalOpen(true);
   };
 
   return (
@@ -276,11 +294,17 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                           </Button>
                         </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="dashboard-card neon-glow instrument-cluster">
-                            <DropdownMenuItem className="dark:text-white text-gray-900">
+                            <DropdownMenuItem 
+                              className="dark:text-white text-gray-900"
+                              onClick={() => handleView(vehicle)}
+                            >
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="dark:text-white text-gray-900">
+                            <DropdownMenuItem 
+                              className="dark:text-white text-gray-900"
+                              onClick={() => handleEdit(vehicle)}
+                            >
                               <Edit className="mr-2 h-4 w-4" />
                               Edit Vehicle
                             </DropdownMenuItem>
@@ -306,6 +330,46 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
           </Table>
         </div>
       </CardContent>
+
+      {/* View Vehicle Modal */}
+      <ViewVehicleModal
+        vehicle={selectedVehicle}
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedVehicle(null);
+        }}
+      />
+
+      {/* Edit Vehicle Modal - Reusing AddVehicleModal with vehicle prop */}
+      {selectedVehicle && (
+        <AddVehicleModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedVehicle(null);
+          }}
+          onVehicleAdded={() => {
+            if (onVehicleAdded) {
+              onVehicleAdded();
+            }
+            // Reload vehicles
+            const loadVehicles = async () => {
+              try {
+                const response = await fetch('/api/vehicles');
+                if (response.ok) {
+                  const { data } = await response.json();
+                  setVehicles(data || []);
+                }
+              } catch (error) {
+                console.error('Error reloading vehicles:', error);
+              }
+            };
+            loadVehicles();
+          }}
+          vehicleToEdit={selectedVehicle}
+        />
+      )}
     </Card>
   );
 }

@@ -88,11 +88,34 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
       setUploadProgress(100);
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Import failed');
+        let errorMessage = 'Import failed';
+        try {
+          const errorData = await response.json();
+          // Check if errorData has the ImportResult structure
+          if (errorData.errors && Array.isArray(errorData.errors)) {
+            errorMessage = errorData.errors.join(', ');
+          } else {
+            errorMessage = errorData.error || errorData.details || 'Import failed';
+          }
+        } catch (jsonError) {
+          // If JSON parsing fails, try to get text
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || 'Import failed';
+          } catch {
+            errorMessage = 'Import failed with unknown error';
+          }
+        }
+        throw new Error(errorMessage);
       }
 
-      const result: ImportResult = await response.json();
+      let result: ImportResult;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.error('Error parsing import response:', jsonError);
+        throw new Error('Invalid response from server');
+      }
       setImportResult(result);
 
       if (result.success) {
@@ -106,11 +129,12 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
 
     } catch (error) {
       console.error('Import error:', error);
-      toast.error(error instanceof Error ? error.message : 'Import failed');
+      const errorMessage = error instanceof Error ? error.message : 'Import failed';
+      toast.error(errorMessage);
       setImportResult({
         success: false,
         imported: 0,
-        errors: [error instanceof Error ? error.message : 'Unknown error'],
+        errors: [errorMessage],
         vehicles: []
       });
     } finally {
