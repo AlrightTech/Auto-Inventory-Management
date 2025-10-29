@@ -160,16 +160,16 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6 max-h-[70vh] overflow-y-auto">
+              <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6 max-h-[70vh] overflow-y-auto">
                 {/* Vehicle Basic Information */}
-                <div className="space-y-4">
+                <div className="form-section">
                   <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
                     Vehicle Information
                   </h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="form-row">
                     {/* Make */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="make" style={{ color: 'var(--text)' }}>
                         Make *
                       </Label>
@@ -190,7 +190,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </div>
 
                     {/* Model */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="model" style={{ color: 'var(--text)' }}>
                         Model *
                       </Label>
@@ -211,7 +211,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </div>
 
                     {/* Year */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="year" style={{ color: 'var(--text)' }}>
                         Year *
                       </Label>
@@ -233,9 +233,9 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="form-row">
                     {/* VIN */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="vin" style={{ color: 'var(--text)' }}>
                         VIN Number
                       </Label>
@@ -257,7 +257,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </div>
 
                     {/* Trim */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="trim" style={{ color: 'var(--text)' }}>
                         Trim
                       </Label>
@@ -275,7 +275,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </div>
 
                     {/* Odometer */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="odometer" style={{ color: 'var(--text)' }}>
                         Odometer (miles)
                       </Label>
@@ -297,9 +297,9 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="form-row">
                     {/* Exterior Color */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="exterior_color" style={{ color: 'var(--text)' }}>
                         Exterior Color
                       </Label>
@@ -317,7 +317,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                     </div>
 
                     {/* Interior Color */}
-                    <div className="space-y-2">
+                    <div className="form-field">
                       <Label htmlFor="interior_color" style={{ color: 'var(--text)' }}>
                         Interior Color
                       </Label>
@@ -723,47 +723,47 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded }: AddVehicleM
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-3 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleClose}
-                    className="control-panel"
-                    style={{ 
-                      backgroundColor: 'transparent', 
-                      borderColor: 'var(--border)', 
-                      color: 'var(--text)' 
-                    }}
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="control-panel neon-glow"
-                    style={{
-                      backgroundColor: 'var(--accent)',
-                      color: 'white',
-                      borderRadius: '25px',
-                      fontWeight: '500',
-                      transition: '0.3s'
-                    }}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-4 h-4 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Adding Vehicle...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Vehicle
-                      </>
-                    )}
-                  </Button>
-                </div>
+                  {/* Action Buttons */}
+                  <div className="form-actions">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleClose}
+                      className="control-panel"
+                      style={{ 
+                        backgroundColor: 'transparent', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)' 
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="control-panel neon-glow"
+                      style={{
+                        backgroundColor: 'var(--accent)',
+                        color: 'white',
+                        borderRadius: '25px',
+                        fontWeight: '500',
+                        transition: '0.3s'
+                      }}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Adding Vehicle...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Vehicle
+                        </>
+                      )}
+                    </Button>
+                  </div>
               </form>
             </motion.div>
           </DialogContent>
