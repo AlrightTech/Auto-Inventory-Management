@@ -174,43 +174,6 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
     onClose();
   };
 
-  const downloadTemplate = () => {
-    // Create a sample CSV template
-    const headers = [
-      'VIN', 'Year', 'Make', 'Model', 'Trim', 'Exterior Color', 'Interior Color',
-      'Status', 'Odometer', 'Title Status', 'PSI Status', 'Dealshield Arbitration Status',
-      'Bought Price', 'Buy Fee', 'Other Charges', 'Sale Date', 'Lane', 'Run', 'Channel',
-      'Facilitating Location', 'Vehicle Location', 'Pickup Location Address1',
-      'Pickup Location City', 'Pickup Location State', 'Pickup Location Zip',
-      'Pickup Location Phone', 'Seller Name', 'Buyer Dealership', 'Buyer Contact Name',
-      'Buyer AA ID', 'Buyer Reference', 'Sale Invoice Status'
-    ];
-
-    const sampleData = [
-      '1GCHK29U4XZ123456', '2021', 'Chevrolet', 'Silverado', 'LT', 'Blue', 'Black',
-      'Pending', '45000', 'Absent', 'Not Eligible', '--',
-      '25000', '735', '0', '2024-10-15', '74', '71', 'Simulcast',
-      'Manheim Dallas', 'Manheim Dallas', '5333 W Kiest Blvd',
-      'Dallas', 'TX', '75236-1055', '(214) 330-1800',
-      'HILEY SUBARU OF FORT WORTH', 'AUTO PLANET', 'MIAD KARIMI',
-      '****', '****', 'UNPAID'
-    ];
-
-    const csvContent = [headers, sampleData].map(row => 
-      row.map(field => `"${field}"`).join(',')
-    ).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'vehicle_import_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -227,25 +190,6 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
             </DialogHeader>
 
             <div className="space-y-6 mt-6">
-              {/* Template Download */}
-              <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-white font-medium">Need a template?</h3>
-                    <p className="text-slate-400 text-sm">Download our CSV template to get started</p>
-                  </div>
-                  <Button
-                    onClick={downloadTemplate}
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Template
-                  </Button>
-                </div>
-              </div>
-
               {/* File Upload Area */}
               <div
                 className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${

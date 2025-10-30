@@ -23,17 +23,20 @@ export interface Vehicle {
   sale_invoice?: number;
   total_vehicle_cost?: number;
   other_charges?: number;
+  other_charges2?: number;
   
   // Sale Information
   sale_date?: string;
   lane?: number;
   run?: number;
   channel?: string;
+  sale_invoice_paid_date?: string;
   
   // Location Information
   facilitating_location?: string;
   vehicle_location?: string;
   pickup_location_address1?: string;
+  pickup_location_address2?: string;
   pickup_location_city?: string;
   pickup_location_state?: string;
   pickup_location_zip?: string;
@@ -44,6 +47,7 @@ export interface Vehicle {
   buyer_dealership?: string;
   buyer_contact_name?: string;
   buyer_aa_id?: string;
+  buyer_rep_aa_id?: string;
   buyer_reference?: string;
   sale_invoice_status?: 'PAID' | 'UNPAID';
   
@@ -76,17 +80,20 @@ export interface VehicleInsert {
   sale_invoice?: number;
   total_vehicle_cost?: number;
   other_charges?: number;
+  other_charges2?: number;
   
   // Sale Information
   sale_date?: string;
   lane?: number;
   run?: number;
   channel?: string;
+  sale_invoice_paid_date?: string;
   
   // Location Information
   facilitating_location?: string;
   vehicle_location?: string;
   pickup_location_address1?: string;
+  pickup_location_address2?: string;
   pickup_location_city?: string;
   pickup_location_state?: string;
   pickup_location_zip?: string;
@@ -97,6 +104,7 @@ export interface VehicleInsert {
   buyer_dealership?: string;
   buyer_contact_name?: string;
   buyer_aa_id?: string;
+  buyer_rep_aa_id?: string;
   buyer_reference?: string;
   sale_invoice_status?: 'PAID' | 'UNPAID';
 }

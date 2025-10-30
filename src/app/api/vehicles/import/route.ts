@@ -26,41 +26,60 @@ function parseCSV(content: string): any[] {
   return rows;
 }
 
-// Helper function to map CSV/Excel data to vehicle schema
+function mmddyyyyToISO(dateStr: string): string | undefined {
+  if (!dateStr) return undefined;
+  const [month, day, year] = dateStr.split(/[\/\-]/); // handles MM/DD/YYYY or MM-DD-YYYY
+  if (!month || !day || !year) return undefined;
+  // pad month and day if necessary
+  const iso = `${year.trim()}-${month.trim().padStart(2,'0')}-${day.trim().padStart(2,'0')}`;
+  return iso;
+}
+
 function mapToVehicleSchema(row: any): VehicleInsert {
+  // Combine dealshield status and arbitration status
+  let dealshield = row['Dealshield status'] || '';
+  let arb = row['Arbitration status'] || '';
+  const dealshield_arbitration_status = [dealshield, arb].filter(Boolean).join(' / ') || undefined;
+
   return {
-    vin: row['VIN'] || row['vin'] || undefined,
-    year: parseInt(row['Year'] || row['year'] || '0') || undefined,
-    make: row['Make'] || row['make'] || undefined,
-    model: row['Model'] || row['model'] || undefined,
-    trim: row['Trim'] || row['trim'] || undefined,
-    exterior_color: row['Exterior Color'] || row['exterior_color'] || undefined,
-    interior_color: row['Interior Color'] || row['interior_color'] || undefined,
-    status: (row['Status'] || row['status'] || 'Pending') as any,
-    odometer: parseInt(row['Odometer'] || row['odometer'] || '0') || undefined,
-    title_status: (row['Title Status'] || row['title_status'] || 'Absent') as any,
-    psi_status: row['PSI Status'] || row['psi_status'] || 'Not Eligible',
-    dealshield_arbitration_status: row['Dealshield Arbitration Status'] || row['dealshield_arbitration_status'] || '--',
-    bought_price: parseFloat(row['Bought Price'] || row['bought_price'] || '0') || undefined,
-    buy_fee: parseFloat(row['Buy Fee'] || row['buy_fee'] || '0') || undefined,
-    other_charges: parseFloat(row['Other Charges'] || row['other_charges'] || '0') || undefined,
-    sale_date: row['Sale Date'] || row['sale_date'] || undefined,
-    lane: parseInt(row['Lane'] || row['lane'] || '0') || undefined,
-    run: parseInt(row['Run'] || row['run'] || '0') || undefined,
-    channel: row['Channel'] || row['channel'] || 'Simulcast',
-    facilitating_location: row['Facilitating Location'] || row['facilitating_location'] || undefined,
-    vehicle_location: row['Vehicle Location'] || row['vehicle_location'] || undefined,
-    pickup_location_address1: row['Pickup Location Address1'] || row['pickup_location_address1'] || undefined,
-    pickup_location_city: row['Pickup Location City'] || row['pickup_location_city'] || undefined,
-    pickup_location_state: row['Pickup Location State'] || row['pickup_location_state'] || undefined,
-    pickup_location_zip: row['Pickup Location Zip'] || row['pickup_location_zip'] || undefined,
-    pickup_location_phone: row['Pickup Location Phone'] || row['pickup_location_phone'] || undefined,
-    seller_name: row['Seller Name'] || row['seller_name'] || undefined,
-    buyer_dealership: row['Buyer Dealership'] || row['buyer_dealership'] || undefined,
-    buyer_contact_name: row['Buyer Contact Name'] || row['buyer_contact_name'] || undefined,
-    buyer_aa_id: row['Buyer AA ID'] || row['buyer_aa_id'] || undefined,
-    buyer_reference: row['Buyer Reference'] || row['buyer_reference'] || undefined,
-    sale_invoice_status: (row['Sale Invoice Status'] || row['sale_invoice_status'] || 'UNPAID') as any,
+    vin: row['Vin'] || undefined,
+    year: parseInt(row['Year'] || '0') || undefined,
+    make: row['Make'] || undefined,
+    model: row['Model'] || undefined,
+    trim: row['Trim'] || undefined,
+    exterior_color: row['Exterior color'] || undefined,
+    interior_color: row['Interior color'] || undefined,
+    status: row['Title status'] || 'Pending',
+    odometer: parseInt(row['Odometer'] || '0') || undefined,
+    title_status: row['Title status'] || undefined,
+    psi_status: row['PSI status'] || 'Not Eligible',
+    dealshield_arbitration_status,
+    bought_price: parseFloat(row['Sale price'] || '0') || undefined,
+    buy_fee: parseFloat(row['Buy fee'] || '0') || undefined,
+    sale_invoice: parseFloat(row['Sale invoice balance'] || '0') || undefined,
+    other_charges: parseFloat(row['Other charges'] || '0') || undefined,
+    other_charges2: parseFloat(row['Other charges2 balance'] || '0') || undefined,
+    total_vehicle_cost: parseFloat(row['Total vehicle balance'] || '0') || undefined,
+    sale_date: mmddyyyyToISO(row['Sale date']),
+    lane: parseInt(row['Lane'] || '0') || undefined,
+    run: parseInt(row['Run'] || '0') || undefined,
+    channel: row['Channel'] || undefined,
+    facilitating_location: row['Facilitating location'] || undefined,
+    vehicle_location: row['Vehicle location'] || undefined,
+    pickup_location_address1: row['Pickup location address1'] || undefined,
+    pickup_location_address2: row['Pickup location address2'] || undefined,
+    pickup_location_city: row['Pickup location city'] || undefined,
+    pickup_location_state: row['Pickup location2 state'] || undefined,
+    pickup_location_zip: row['zip code'] || undefined,
+    pickup_location_phone: row['Pickup location Phone Number'] || undefined,
+    seller_name: row['Seller name'] || undefined,
+    buyer_dealership: row['Buyer dealership'] || undefined,
+    buyer_contact_name: row['Buyer contact name'] || undefined,
+    buyer_aa_id: row['Buyer AA ID#'] || undefined,
+    buyer_rep_aa_id: row['Buyer Rep AA ID#'] || undefined,
+    sale_invoice_status: row['Sale invoice status'] || undefined,
+    sale_invoice_paid_date: mmddyyyyToISO(row['Sale invoice paid date']),
+    // Odometer Unit is ignored per spec
   };
 }
 
@@ -158,14 +177,15 @@ export async function POST(request: NextRequest) {
         rows = dataLines.map(line => {
           const values = line.split(/[,\t]/).map(v => v.trim());
           return {
-            'VIN': values[0] || '',
+            'Vin': values[0] || '',
             'Year': values[1] || '',
             'Make': values[2] || '',
             'Model': values[3] || '',
-            'Status': values[4] || 'Pending',
+            'Title status': values[4] || 'Pending',
             'Odometer': values[5] || '',
-            'Bought Price': values[6] || '',
-            'Title Status': values[7] || 'Absent',
+            'Sale price': values[6] || '',
+            'Dealshield status': values[7] || '',
+            'Arbitration status': values[8] || '',
           };
         });
       }
