@@ -125,6 +125,32 @@ export default function UserManagementPage() {
     setSelectedUser(null);
   };
 
+  const handleUserUpdated = async () => {
+    // Reload users after update
+    try {
+      const response = await fetch('/api/users');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to load users');
+      }
+
+      const { data: usersData } = await response.json();
+      setUsers(usersData || []);
+      
+      // Update selected user if modal is still open
+      if (selectedUser) {
+        const updatedUser = usersData?.find((u: UserProfile) => u.id === selectedUser.id);
+        if (updatedUser) {
+          setSelectedUser(updatedUser);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast.error('Failed to reload users');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -219,6 +245,7 @@ export default function UserManagementPage() {
         user={selectedUser}
         isOpen={isDetailsModalOpen}
         onClose={handleCloseDetailsModal}
+        onUserUpdated={handleUserUpdated}
       />
     </div>
   );

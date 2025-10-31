@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
   Clock,
   X,
 } from 'lucide-react';
+import { EditUserModal } from './EditUserModal';
 
 interface UserProfile {
   id: string;
@@ -27,10 +29,28 @@ interface UserDetailsModalProps {
   user: UserProfile | null;
   isOpen: boolean;
   onClose: () => void;
+  onUserUpdated?: () => void;
 }
 
-export function UserDetailsModal({ user, isOpen, onClose }: UserDetailsModalProps) {
+export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserDetailsModalProps) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   if (!user) return null;
+
+  const handleEditClick = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditClose = () => {
+    setIsEditModalOpen(false);
+  };
+
+  const handleUserUpdated = () => {
+    if (onUserUpdated) {
+      onUserUpdated();
+    }
+    setIsEditModalOpen(false);
+  };
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -211,16 +231,21 @@ export function UserDetailsModal({ user, isOpen, onClose }: UserDetailsModalProp
             </Button>
             <Button
               className="gradient-primary hover:opacity-90"
-              onClick={() => {
-                // TODO: Implement edit user functionality
-                console.log('Edit user:', user.id);
-              }}
+              onClick={handleEditClick}
             >
               Edit User
             </Button>
           </motion.div>
         </div>
       </DialogContent>
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        user={user}
+        isOpen={isEditModalOpen}
+        onClose={handleEditClose}
+        onUserUpdated={handleUserUpdated}
+      />
     </Dialog>
   );
 }
