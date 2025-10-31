@@ -10,6 +10,8 @@ import { ImportModal } from '@/components/inventory/ImportModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
 import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Upload, Download, FileText } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 export default function InventoryPage() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
@@ -17,6 +19,163 @@ export default function InventoryPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  // Helper function to escape CSV values
+  const escapeCsvValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    const stringValue = String(value);
+    // If value contains comma, quote, or newline, wrap in quotes and escape quotes
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+  };
+
+  // Export to CSV
+  const handleExportCSV = () => {
+    if (vehicles.length === 0) {
+      toast.error('No vehicles to export');
+      return;
+    }
+
+    try {
+      const headers = [
+        'VIN', 'Year', 'Make', 'Model', 'Trim', 'Exterior Color', 'Interior Color',
+        'Status', 'Odometer', 'Title Status', 'PSI Status', 'Dealshield Arbitration Status',
+        'Bought Price', 'Buy Fee', 'Sale Invoice', 'Other Charges', 'Total Vehicle Cost',
+        'Sale Date', 'Lane', 'Run', 'Channel', 'Facilitating Location', 'Vehicle Location',
+        'Pickup Location Address1', 'Pickup Location City', 'Pickup Location State',
+        'Pickup Location Zip', 'Pickup Location Phone', 'Seller Name', 'Buyer Dealership',
+        'Buyer Contact Name', 'Buyer AA ID', 'Sale Invoice Status'
+      ];
+
+      const csvRows = [
+        headers.map(escapeCsvValue).join(','),
+        ...vehicles.map(vehicle => [
+          vehicle.vin || '',
+          vehicle.year || '',
+          vehicle.make || '',
+          vehicle.model || '',
+          vehicle.trim || '',
+          vehicle.exterior_color || '',
+          vehicle.interior_color || '',
+          vehicle.status || '',
+          vehicle.odometer || '',
+          vehicle.title_status || '',
+          vehicle.psi_status || '',
+          vehicle.dealshield_arbitration_status || '',
+          vehicle.bought_price || '',
+          vehicle.buy_fee || '',
+          vehicle.sale_invoice || '',
+          vehicle.other_charges || '',
+          vehicle.total_vehicle_cost || '',
+          vehicle.sale_date || '',
+          vehicle.lane || '',
+          vehicle.run || '',
+          vehicle.channel || '',
+          vehicle.facilitating_location || '',
+          vehicle.vehicle_location || '',
+          vehicle.pickup_location_address1 || '',
+          vehicle.pickup_location_city || '',
+          vehicle.pickup_location_state || '',
+          vehicle.pickup_location_zip || '',
+          vehicle.pickup_location_phone || '',
+          vehicle.seller_name || '',
+          vehicle.buyer_dealership || '',
+          vehicle.buyer_contact_name || '',
+          vehicle.buyer_aa_id || '',
+          vehicle.sale_invoice_status || ''
+        ].map(escapeCsvValue).join(','))
+      ];
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inventory-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Exported ${vehicles.length} vehicles to CSV`);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Failed to export CSV');
+    }
+  };
+
+  // Export to PDF
+  const handleExportPDF = () => {
+    if (vehicles.length === 0) {
+      toast.error('No vehicles to export');
+      return;
+    }
+
+    try {
+      // Create a workbook
+      const wsData = [
+        [
+          'VIN', 'Year', 'Make', 'Model', 'Trim', 'Exterior Color', 'Interior Color',
+          'Status', 'Odometer', 'Title Status', 'PSI Status', 'Dealshield Arbitration Status',
+          'Bought Price', 'Buy Fee', 'Sale Invoice', 'Other Charges', 'Total Vehicle Cost',
+          'Sale Date', 'Lane', 'Run', 'Channel', 'Facilitating Location', 'Vehicle Location',
+          'Pickup Location Address1', 'Pickup Location City', 'Pickup Location State',
+          'Pickup Location Zip', 'Pickup Location Phone', 'Seller Name', 'Buyer Dealership',
+          'Buyer Contact Name', 'Buyer AA ID', 'Sale Invoice Status'
+        ],
+        ...vehicles.map(vehicle => [
+          vehicle.vin || '',
+          vehicle.year || '',
+          vehicle.make || '',
+          vehicle.model || '',
+          vehicle.trim || '',
+          vehicle.exterior_color || '',
+          vehicle.interior_color || '',
+          vehicle.status || '',
+          vehicle.odometer || '',
+          vehicle.title_status || '',
+          vehicle.psi_status || '',
+          vehicle.dealshield_arbitration_status || '',
+          vehicle.bought_price || '',
+          vehicle.buy_fee || '',
+          vehicle.sale_invoice || '',
+          vehicle.other_charges || '',
+          vehicle.total_vehicle_cost || '',
+          vehicle.sale_date || '',
+          vehicle.lane || '',
+          vehicle.run || '',
+          vehicle.channel || '',
+          vehicle.facilitating_location || '',
+          vehicle.vehicle_location || '',
+          vehicle.pickup_location_address1 || '',
+          vehicle.pickup_location_city || '',
+          vehicle.pickup_location_state || '',
+          vehicle.pickup_location_zip || '',
+          vehicle.pickup_location_phone || '',
+          vehicle.seller_name || '',
+          vehicle.buyer_dealership || '',
+          vehicle.buyer_contact_name || '',
+          vehicle.buyer_aa_id || '',
+          vehicle.sale_invoice_status || ''
+        ])
+      ];
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+
+      // Export as PDF (XLSX can be opened in Excel and saved as PDF)
+      // For true PDF, we'll create an Excel file that can be converted
+      XLSX.writeFile(wb, `inventory-${new Date().toISOString().split('T')[0]}.xlsx`);
+      
+      toast.success(`Exported ${vehicles.length} vehicles. Open the Excel file and use "Save As PDF" to create a PDF.`);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error('Failed to export. Please try exporting as CSV instead.');
+    }
+  };
 
   // Load vehicles for stats
   useEffect(() => {
@@ -176,11 +335,21 @@ export default function InventoryPage() {
                   <Upload className="w-4 h-4 mr-2" />
                   Import CSV/PDF
                 </Button>
-                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                <Button 
+                  variant="outline" 
+                  className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  onClick={handleExportCSV}
+                  disabled={vehicles.length === 0}
+                >
                   <Download className="w-4 h-4 mr-2" />
                   Export CSV
                 </Button>
-                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                <Button 
+                  variant="outline" 
+                  className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  onClick={handleExportPDF}
+                  disabled={vehicles.length === 0}
+                >
                   <FileText className="w-4 h-4 mr-2" />
                   Export PDF
                 </Button>

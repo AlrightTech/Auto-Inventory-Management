@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { TaskWithRelations, TaskFiltersState } from '@/types';
+import { toast } from 'sonner';
 
 export default function SellerTasksPage() {
   const [tasks, setTasks] = useState<TaskWithRelations[]>([]);
@@ -193,27 +194,54 @@ export default function SellerTasksPage() {
     setSearchTerm('');
   };
 
-  const handleExportCSV = () => {
-    const csvContent = [
-      ['Task ID', 'Task Name', 'Vehicle', 'Due Date', 'Category', 'Status', 'Notes'],
-      ...filteredTasks.map(task => [
-        task.id,
-        task.task_name,
-        task.vehicle ? `${task.vehicle.year} ${task.vehicle.make} ${task.vehicle.model}` : 'N/A',
-        task.due_date,
-        task.category,
-        task.status,
-        task.notes || '',
-      ])
-    ].map(row => row.join(',')).join('\n');
+  // Helper function to escape CSV values
+  const escapeCsvValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    const stringValue = String(value);
+    // If value contains comma, quote, or newline, wrap in quotes and escape quotes
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+  };
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `my-tasks-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleExportCSV = () => {
+    if (filteredTasks.length === 0) {
+      toast.error('No tasks to export');
+      return;
+    }
+
+    try {
+      const headers = ['Task ID', 'Task Name', 'Vehicle', 'Due Date', 'Category', 'Status', 'Notes'];
+      const csvRows = [
+        headers.map(escapeCsvValue).join(','),
+        ...filteredTasks.map(task => [
+          task.id,
+          task.task_name,
+          task.vehicle ? `${task.vehicle.year} ${task.vehicle.make} ${task.vehicle.model}` : 'N/A',
+          task.due_date,
+          task.category || '',
+          task.status,
+          task.notes || '',
+        ].map(escapeCsvValue).join(','))
+      ];
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `my-tasks-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Exported ${filteredTasks.length} tasks to CSV`);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Failed to export CSV');
+    }
   };
 
   const handleTaskUpdate = async (taskId: string, updates: { status?: string; notes?: string }) => {
