@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,15 +24,12 @@ import {
   Search, 
   MoreHorizontal, 
   Eye, 
-  Edit, 
   Download, 
   AlertTriangle,
-  DollarSign,
   History,
   ArrowLeft,
   ArrowRight
 } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 
 // Mock ARB data
 const mockARBVehicles = [
@@ -90,9 +87,7 @@ const getOutcomeColor = (outcome: string) => {
 export default function ARBPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicles, setVehicles] = useState(mockARBVehicles);
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [showBuyerHistory, setShowBuyerHistory] = useState(false);
-  const [adjustmentAmount, setAdjustmentAmount] = useState('');
 
   const filteredVehicles = vehicles.filter(vehicle =>
     vehicle.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -285,11 +280,8 @@ export default function ARBPage() {
               </TableHeader>
               <TableBody>
                 {filteredVehicles.map((vehicle, index) => (
-                  <motion.tr
+                  <TableRow
                     key={vehicle.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
                     className="border-slate-700/50 hover:bg-slate-800/30 transition-colors"
                   >
                     <TableCell className="text-white">
@@ -360,11 +352,17 @@ export default function ARBPage() {
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="bg-slate-800 border-slate-600">
+                          <DropdownMenuContent 
+                            style={{ 
+                              backgroundColor: 'var(--card-bg)', 
+                              borderColor: 'var(--border)',
+                              color: 'var(--text)'
+                            }}
+                          >
                             {vehicle.outcome === 'buyer_withdrew' && (
                               <DropdownMenuItem
                                 onClick={() => handleMoveToInventory(vehicle.id)}
-                                className="text-slate-300 hover:bg-slate-700"
+                                style={{ color: 'var(--text)' }}
                               >
                                 Move to Inventory
                               </DropdownMenuItem>
@@ -372,12 +370,12 @@ export default function ARBPage() {
                             {vehicle.outcome === 'buyer_bought' && (
                               <DropdownMenuItem
                                 onClick={() => handleMoveToSold(vehicle.id)}
-                                className="text-slate-300 hover:bg-slate-700"
+                                style={{ color: 'var(--text)' }}
                               >
                                 Move to Sold
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem className="text-slate-300 hover:bg-slate-700">
+                            <DropdownMenuItem style={{ color: 'var(--text)' }}>
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
@@ -385,7 +383,7 @@ export default function ARBPage() {
                         </DropdownMenu>
                       </div>
                     </TableCell>
-                  </motion.tr>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
