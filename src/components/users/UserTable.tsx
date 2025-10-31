@@ -80,7 +80,6 @@ export function UserTable({ users, onViewUser, onDeleteUser, isDeleting }: UserT
             <th className="text-left p-4 text-slate-300 font-medium">Email</th>
             <th className="text-left p-4 text-slate-300 font-medium">Role</th>
             <th className="text-left p-4 text-slate-300 font-medium">Created</th>
-            <th className="text-left p-4 text-slate-300 font-medium">Last Sign In</th>
             <th className="text-left p-4 text-slate-300 font-medium">Actions</th>
           </tr>
         </thead>
@@ -123,11 +122,6 @@ export function UserTable({ users, onViewUser, onDeleteUser, isDeleting }: UserT
               <td className="p-4">
                 <span className="text-slate-300">
                   {formatDate(user.created_at)}
-                </span>
-              </td>
-              <td className="p-4">
-                <span className="text-slate-300">
-                  {user.last_sign_in_at ? formatDate(user.last_sign_in_at) : 'Never'}
                 </span>
               </td>
               <td className="p-4">
