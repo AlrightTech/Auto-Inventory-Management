@@ -207,30 +207,37 @@ export function TaskTable({ tasks, onTaskUpdate, onViewTask, onEditTask, onDelet
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="glass-card border-slate-700">
+                      <DropdownMenuContent 
+                        align="end"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)',
+                          color: 'var(--text)'
+                        }}
+                      >
                         <DropdownMenuItem 
-                          className="text-slate-300 hover:text-white"
+                          style={{ color: 'var(--text)' }}
                           onClick={() => onViewTask && onViewTask(task)}
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          className="text-slate-300 hover:text-white"
+                          style={{ color: 'var(--text)' }}
                           onClick={() => onEditTask && onEditTask(task)}
                         >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Task
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          className="text-slate-300 hover:text-white"
+                          style={{ color: 'var(--text)' }}
                           onClick={() => handleTaskUpdate(task.id, { status: 'completed' })}
                         >
                           <CheckCircle className="mr-2 h-4 w-4" />
                           Mark as Completed
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          className="text-red-400 hover:text-red-300"
+                          style={{ color: '#ef4444' }}
                           onClick={() => {
                             if (confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
                               onDeleteTask && onDeleteTask(task.id);

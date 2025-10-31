@@ -82,6 +82,7 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
       const response = await fetch('/api/vehicles/import', {
         method: 'POST',
         body: formData,
+        // Don't set Content-Type header - browser will set it with boundary for FormData
       });
 
       clearInterval(progressInterval);
@@ -120,11 +121,19 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
 
       if (result.success) {
         toast.success(`Successfully imported ${result.imported} vehicles`);
+        // Reset file input on success
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         if (onImportComplete) {
           onImportComplete(result);
         }
       } else {
         toast.error(`Import completed with ${result.errors.length} errors`);
+        // Reset file input even on partial success
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
 
     } catch (error) {
@@ -137,6 +146,10 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
         errors: [errorMessage],
         vehicles: []
       });
+      // Reset file input on error
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setIsUploading(false);
     }
@@ -171,6 +184,11 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
   const handleClose = () => {
     setImportResult(null);
     setUploadProgress(0);
+    setIsUploading(false);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     onClose();
   };
 

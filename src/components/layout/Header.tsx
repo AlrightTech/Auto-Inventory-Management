@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import React from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -32,12 +33,36 @@ interface HeaderProps {
 
 export function Header({ user, onMenuClick }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [currentRole, setCurrentRole] = useState<string | null>(null);
   const router = useRouter();
   const { unreadCount } = useUnreadMessages(user?.id || null);
-  const { notifications, markAsRead, unreadCount: notificationUnreadCount } = useNotifications(user?.id || null);
+  const { notifications, markAsRead, markAllAsRead, unreadCount: notificationUnreadCount } = useNotifications(user?.id || null);
   
   // Total unread count from both messages and notifications
   const totalUnreadCount = unreadCount + notificationUnreadCount;
+
+  // Load user role to determine correct task link and display role
+  React.useEffect(() => {
+    const loadUserRole = async () => {
+      if (!user?.id) return;
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      if (profile) {
+        setCurrentRole(profile.role);
+      }
+    };
+    loadUserRole();
+  }, [user?.id]);
+
+  const getRoleDisplay = (role: string | null) => {
+    if (!role) return 'User';
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -138,37 +163,101 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-              variant="ghost"
-              size="sm"
-              className="relative control-panel"
-              style={{ color: 'var(--text)' }}
+                  variant="ghost"
+                  size="sm"
+                  className="relative control-panel"
+                  style={{ color: 'var(--text)' }}
                 >
                   <Bell className="w-5 h-5" />
-                  {/* Unread count temporarily removed until real-time tracking is fully working */}
+                  {notificationUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                      {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
+                    </span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }} align="end" forceMount>
-                <DropdownMenuLabel className="text-sm font-medium" style={{ color: 'var(--text)' }}>Notifications</DropdownMenuLabel>
+              <DropdownMenuContent className="w-80 shadow-lg max-h-[500px] overflow-y-auto" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }} align="end" forceMount>
+                <div className="flex items-center justify-between px-2 py-1.5">
+                  <DropdownMenuLabel className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                    Notifications {notificationUnreadCount > 0 && `(${notificationUnreadCount})`}
+                  </DropdownMenuLabel>
+                  {notificationUnreadCount > 0 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        markAllAsRead();
+                      }}
+                      className="text-xs hover:underline"
+                      style={{ color: 'var(--accent)' }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
                 <DropdownMenuSeparator style={{ backgroundColor: 'var(--border)' }} />
                 {notifications.length === 0 && (
-                  <div className="p-4" style={{ color: 'var(--subtext)' }}>No notifications</div>
+                  <div className="p-4 text-center" style={{ color: 'var(--subtext)' }}>No notifications</div>
                 )}
-                {notifications.slice(0, 10).map(n => (
-                  <DropdownMenuItem key={n.id} className="control-panel" style={{ color: 'var(--text)' }}>
-                    <div className="flex items-start gap-2 w-full">
-                      <div className="mt-1">
-                        <span className={`inline-block w-2 h-2 rounded-full ${n.read ? 'bg-gray-400 dark:bg-gray-500' : 'bg-blue-500'}`} />
+                {notifications.slice(0, 10).map(n => {
+                  // Determine correct link based on role and notification type
+                  let link = n.link;
+                  if (n.type === 'task' && link === '/tasks') {
+                    if (currentRole === 'seller') {
+                      link = '/seller/tasks';
+                    } else if (currentRole === 'transporter') {
+                      link = '/transporter/tasks';
+                    } else if (currentRole === 'admin') {
+                      link = '/admin/tasks';
+                    }
+                  }
+
+                  return (
+                    <DropdownMenuItem 
+                      key={n.id} 
+                      className="cursor-pointer" 
+                      style={{ 
+                        color: 'var(--text)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--muted)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                      onClick={() => {
+                        if (link && typeof window !== 'undefined') {
+                          router.push(link);
+                        }
+                        if (!n.read) {
+                          markAsRead(n.id);
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-2 w-full">
+                        <div className="mt-1 flex-shrink-0">
+                          <span className={`inline-block w-2 h-2 rounded-full ${n.read ? 'bg-gray-400 dark:bg-gray-500' : 'bg-blue-500'}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-sm font-medium ${!n.read ? 'font-semibold' : ''}`} style={{ color: 'var(--text)' }}>
+                            {n.title}
+                          </div>
+                          <div className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--subtext)' }}>{n.message}</div>
+                          <div className="text-xs mt-1" style={{ color: 'var(--subtext)' }}>
+                            {new Date(n.timestamp).toLocaleString()}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <div className="text-sm" style={{ color: 'var(--text)' }}>{n.title}</div>
-                        <div className="text-xs" style={{ color: 'var(--subtext)' }}>{n.message}</div>
-                      </div>
-                      {!n.read && (
-                        <button onClick={() => markAsRead(n.id)} className="text-xs" style={{ color: 'var(--accent)' }}>Mark read</button>
-                      )}
+                    </DropdownMenuItem>
+                  );
+                })}
+                {notifications.length > 10 && (
+                  <>
+                    <DropdownMenuSeparator style={{ backgroundColor: 'var(--border)' }} />
+                    <div className="p-2 text-center text-xs" style={{ color: 'var(--subtext)' }}>
+                      Showing 10 of {notifications.length} notifications
                     </div>
-                  </DropdownMenuItem>
-                ))}
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </motion.div>
@@ -191,31 +280,70 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }} align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
+                <DropdownMenuContent 
+                  className="w-56 shadow-lg" 
+                  style={{ 
+                    backgroundColor: 'var(--card-bg)', 
+                    borderColor: 'var(--border)',
+                    color: 'var(--text)'
+                  }} 
+                  align="end" 
+                  forceMount
+                >
+                  <DropdownMenuLabel className="font-normal" style={{ color: 'var(--text)' }}>
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none" style={{ color: 'var(--text)' }}>
                         {user.email || 'User'}
                       </p>
                       <p className="text-xs leading-none" style={{ color: 'var(--subtext)' }}>
-                        Administrator
+                        {getRoleDisplay(currentRole)}
                       </p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator style={{ backgroundColor: 'var(--border)' }} />
-                  <DropdownMenuItem className="control-panel" style={{ color: 'var(--text)' }}>
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    style={{ 
+                      color: 'var(--text)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--muted)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="control-panel" style={{ color: 'var(--text)' }}>
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    style={{ 
+                      color: 'var(--text)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--muted)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <Bell className="mr-2 h-4 w-4" />
                     <span>Notifications</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator style={{ backgroundColor: 'var(--border)' }} />
                   <DropdownMenuItem 
                     onClick={handleSignOut}
-                    className="control-panel"
-                    style={{ color: '#ef4444' }}
+                    className="cursor-pointer"
+                    style={{ 
+                      color: '#ef4444',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>

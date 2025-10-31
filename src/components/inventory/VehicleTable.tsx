@@ -293,16 +293,23 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="dashboard-card neon-glow instrument-cluster">
+                          <DropdownMenuContent 
+                            align="end" 
+                            style={{ 
+                              backgroundColor: 'var(--card-bg)', 
+                              borderColor: 'var(--border)',
+                              color: 'var(--text)'
+                            }}
+                          >
                             <DropdownMenuItem 
-                              className="dark:text-white text-gray-900"
+                              style={{ color: 'var(--text)' }}
                               onClick={() => handleView(vehicle)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              className="dark:text-white text-gray-900"
+                              style={{ color: 'var(--text)' }}
                               onClick={() => handleEdit(vehicle)}
                             >
                               <Edit className="mr-2 h-4 w-4" />
@@ -311,7 +318,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                             <DropdownMenuItem 
                               onClick={() => handleDeleteVehicle(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
                               disabled={isDeleting === vehicle.id}
-                              className="dark:text-red-400 text-red-600"
+                              style={{ color: isDeleting === vehicle.id ? 'var(--subtext)' : '#ef4444' }}
                             >
                               {isDeleting === vehicle.id ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

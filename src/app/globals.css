@@ -314,32 +314,59 @@ body {
   border-color: var(--border) !important;
 }
 
-/* Dark Mode Dropdown Menus - White Text */
+/* Dropdown Menus - Consistent Styling */
+[data-radix-dropdown-content],
+[data-radix-popper-content-wrapper] {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+[data-radix-dropdown-content] *,
+[data-radix-popper-content-wrapper] * {
+  color: var(--text) !important;
+}
+
+/* Dropdown Menu Items - Remove white backgrounds and add proper hover */
+[data-radix-dropdown-menu-item],
+[data-radix-dropdown-content] [role="menuitem"] {
+  background-color: transparent !important;
+  color: var(--text) !important;
+  transition: background-color 0.2s ease;
+}
+
+[data-radix-dropdown-menu-item]:hover,
+[data-radix-dropdown-content] [role="menuitem"]:hover,
+[data-radix-dropdown-menu-item][data-highlighted],
+[data-radix-dropdown-content] [role="menuitem"][data-highlighted] {
+  background-color: var(--muted) !important;
+  color: var(--text) !important;
+}
+
+/* Dark Mode Dropdown Menus - Ensure proper colors */
+.dark [data-radix-dropdown-content],
 .dark [data-radix-popper-content-wrapper] {
   background-color: var(--card-bg) !important;
   border-color: var(--border) !important;
 }
 
+.dark [data-radix-dropdown-content] *,
 .dark [data-radix-popper-content-wrapper] * {
-  color: #FFFFFF !important;
+  color: var(--text) !important;
 }
 
-.dark [data-radix-popper-content-wrapper] button:hover {
-  background-color: rgba(0, 191, 255, 0.1) !important;
+.dark [data-radix-dropdown-menu-item],
+.dark [data-radix-dropdown-content] [role="menuitem"] {
+  background-color: transparent !important;
+  color: var(--text) !important;
 }
 
-/* Dark Mode Actions Dropdown */
-.dark [data-radix-dropdown-content] {
-  background-color: var(--card-bg) !important;
-  border-color: var(--border) !important;
-}
-
-.dark [data-radix-dropdown-content] * {
-  color: #FFFFFF !important;
-}
-
-.dark [data-radix-dropdown-content] button:hover {
-  background-color: rgba(0, 191, 255, 0.1) !important;
+.dark [data-radix-dropdown-menu-item]:hover,
+.dark [data-radix-dropdown-content] [role="menuitem"]:hover,
+.dark [data-radix-dropdown-menu-item][data-highlighted],
+.dark [data-radix-dropdown-content] [role="menuitem"][data-highlighted] {
+  background-color: var(--muted) !important;
+  color: var(--text) !important;
 }
 
 /* Vehicle Inventory Table ONLY - Enhanced Horizontal Scroll */

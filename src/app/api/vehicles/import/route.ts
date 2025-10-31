@@ -4,6 +4,10 @@ import { VehicleInsert, ImportResult } from '@/types/vehicle';
 import * as XLSX from 'xlsx';
 const pdf = require('pdf-parse');
 
+// Configure runtime for file uploads
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Helper function to parse CSV content
 function parseCSV(content: string): any[] {
   const lines = content.split('\n').filter(line => line.trim());
@@ -134,19 +138,43 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
 
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
+    // Ensure we can read FormData
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch (error) {
+      console.error('Error parsing FormData:', error);
       return NextResponse.json({ 
         success: false,
         imported: 0,
-        errors: ['No file provided'],
+        errors: ['Failed to parse file upload'],
         vehicles: []
       }, { status: 400 });
     }
 
-    const fileBuffer = await file.arrayBuffer();
+    const file = formData.get('file') as File | null;
+
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json({ 
+        success: false,
+        imported: 0,
+        errors: ['No file provided or invalid file'],
+        vehicles: []
+      }, { status: 400 });
+    }
+
+    let fileBuffer: ArrayBuffer;
+    try {
+      fileBuffer = await file.arrayBuffer();
+    } catch (error) {
+      console.error('Error reading file:', error);
+      return NextResponse.json({ 
+        success: false,
+        imported: 0,
+        errors: ['Failed to read file'],
+        vehicles: []
+      }, { status: 400 });
+    }
     const fileName = file.name.toLowerCase();
     let rows: any[] = [];
 

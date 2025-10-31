@@ -2,13 +2,53 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import { CheckSquare, MessageCircle, Calendar } from 'lucide-react';
+
+interface Notification {
+  id: string;
+  type: 'task' | 'message' | 'event';
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  link?: string;
+  metadata?: any;
+}
 
 export function useNotifications(userId: string | null) {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const supabase = createClient();
+
+  // Load user role once
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadUserRole = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      if (profile) {
+        setUserRole(profile.role);
+      }
+    };
+
+    loadUserRole();
+  }, [userId, supabase]);
 
   useEffect(() => {
     if (!userId) return;
+
+    // Get task link based on role
+    const getTaskLink = (): string => {
+      if (userRole === 'seller') return '/seller/tasks';
+      if (userRole === 'transporter') return '/transporter/tasks';
+      if (userRole === 'admin') return '/admin/tasks';
+      return '/tasks'; // fallback
+    };
 
     // Combine messages, tasks, and events subscriptions into one channel
     const channel = supabase.channel(`notifications_${userId}`)
@@ -23,6 +63,9 @@ export function useNotifications(userId: string | null) {
             title: 'New Message',
             message: 'You received a new message',
             timestamp: new Date().toISOString(),
+            read: false,
+            link: userRole === 'seller' ? '/seller/chat' : userRole === 'transporter' ? '/transporter/chat' : '/chat',
+            metadata: { messageId: m.id },
           });
         }
       )
@@ -31,14 +74,33 @@ export function useNotifications(userId: string | null) {
         { event: 'INSERT', schema: 'public', table: 'tasks' },
         (payload) => {
           const t = payload.new as any;
-          // If assigned_to matches user, notify
+          // If assigned_to matches user, notify (works for both seller and transporter roles)
           if (t.assigned_to === userId) {
+            const taskLink = getTaskLink();
+            const dueDate = t.due_date ? new Date(t.due_date).toLocaleDateString() : '';
+            const categoryLabel = t.category 
+              ? t.category.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+              : '';
+            
+            const taskMessage = t.task_name 
+              ? `${t.task_name}${dueDate ? ` (Due: ${dueDate})` : ''}${categoryLabel ? ` - ${categoryLabel}` : ''}`
+              : 'A new task was assigned to you';
+
             pushNotification({
               id: `task_${t.id}`,
               type: 'task',
               title: 'New Task Assigned',
-              message: t.task_name || 'A new task was assigned to you',
+              message: taskMessage,
               timestamp: new Date().toISOString(),
+              read: false,
+              link: taskLink,
+              metadata: { 
+                taskId: t.id, 
+                taskName: t.task_name,
+                dueDate: t.due_date,
+                category: t.category,
+                vehicleId: t.vehicle_id,
+              },
             });
           }
         }
@@ -55,6 +117,9 @@ export function useNotifications(userId: string | null) {
               title: 'New Event Scheduled',
               message: e.title || 'You have a new event',
               timestamp: new Date().toISOString(),
+              read: false,
+              link: '/events',
+              metadata: { eventId: e.id },
             });
           }
         }
@@ -62,19 +127,54 @@ export function useNotifications(userId: string | null) {
       .subscribe();
 
     // Request notification permission
-    if (Notification.permission === 'default') {
+    if (typeof window !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission();
     }
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, supabase]);
+  }, [userId, userRole, supabase]);
 
-  const pushNotification = (n: { id: string; type: string; title: string; message: string; timestamp: string }) => {
-    setNotifications(prev => [{ ...n, read: false }, ...prev.slice(0, 9)]);
+  const pushNotification = (n: Notification) => {
+    setNotifications(prev => [n, ...prev.slice(0, 19)]); // Keep last 20 notifications
+    
+    // Show browser notification
     if (typeof window !== 'undefined' && Notification.permission === 'granted') {
-      new Notification(n.title, { body: n.message, icon: '/favicon.ico' });
+      new Notification(n.title, { 
+        body: n.message, 
+        icon: '/favicon.ico',
+        tag: n.id, // Prevent duplicate notifications
+      });
+    }
+
+    // Show toast notification for tasks
+    if (n.type === 'task') {
+      toast.success(n.title, {
+        description: n.message,
+        duration: 5000,
+        icon: <CheckSquare className="w-4 h-4" />,
+        action: n.link ? {
+          label: 'View Task',
+          onClick: () => {
+            if (typeof window !== 'undefined' && n.link) {
+              window.location.href = n.link;
+            }
+          },
+        } : undefined,
+      });
+    } else if (n.type === 'message') {
+      toast.info(n.title, {
+        description: n.message,
+        duration: 4000,
+        icon: <MessageCircle className="w-4 h-4" />,
+      });
+    } else if (n.type === 'event') {
+      toast.info(n.title, {
+        description: n.message,
+        duration: 4000,
+        icon: <Calendar className="w-4 h-4" />,
+      });
     }
   };
 
@@ -86,6 +186,12 @@ export function useNotifications(userId: string | null) {
     );
   };
 
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notif => ({ ...notif, read: true }))
+    );
+  };
+
   const clearAll = () => {
     setNotifications([]);
   };
@@ -93,6 +199,7 @@ export function useNotifications(userId: string | null) {
   return {
     notifications,
     markAsRead,
+    markAllAsRead,
     clearAll,
     unreadCount: notifications.filter(n => !n.read).length,
   };

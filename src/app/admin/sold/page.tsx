@@ -438,24 +438,30 @@ export default function SoldPage() {
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600">
+                          <DropdownMenuContent 
+                            style={{ 
+                              backgroundColor: 'var(--card-bg)', 
+                              borderColor: 'var(--border)',
+                              color: 'var(--text)'
+                            }}
+                          >
                             <DropdownMenuItem
                               onClick={() => handleMoveToARB(vehicle.id)}
-                              className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                              style={{ color: 'var(--text)' }}
                             >
                               Move to ARB
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleMoveToWithdrew(vehicle.id)}
-                              className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                              style={{ color: 'var(--text)' }}
                             >
                               Mark as Withdrew
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <DropdownMenuItem style={{ color: 'var(--text)' }}>
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <DropdownMenuItem style={{ color: 'var(--text)' }}>
                               <FileText className="w-4 h-4 mr-2" />
                               Add Notes
                             </DropdownMenuItem>
