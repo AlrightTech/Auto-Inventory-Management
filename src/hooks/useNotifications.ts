@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { CheckSquare, MessageCircle, Calendar } from 'lucide-react';
 
 interface Notification {
   id: string;
@@ -153,7 +152,6 @@ export function useNotifications(userId: string | null) {
       toast.success(n.title, {
         description: n.message,
         duration: 5000,
-        icon: <CheckSquare className="w-4 h-4" />,
         action: n.link ? {
           label: 'View Task',
           onClick: () => {
@@ -167,13 +165,11 @@ export function useNotifications(userId: string | null) {
       toast.info(n.title, {
         description: n.message,
         duration: 4000,
-        icon: <MessageCircle className="w-4 h-4" />,
       });
     } else if (n.type === 'event') {
       toast.info(n.title, {
         description: n.message,
         duration: 4000,
-        icon: <Calendar className="w-4 h-4" />,
       });
     }
   };
