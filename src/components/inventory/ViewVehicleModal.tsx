@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { EditTaskModal } from '@/components/tasks/EditTaskModal';
 import { AddAssessmentModal } from '@/components/inventory/AddAssessmentModal';
+import { AddExpenseModal } from '@/components/expenses/AddExpenseModal';
 import { createClient } from '@/lib/supabase/client';
 
 interface ViewVehicleModalProps {
@@ -59,8 +60,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   const [editingNoteText, setEditingNoteText] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [status, setStatus] = useState(vehicle?.status || 'Pending');
-  const [titleStatus, setTitleStatus] = useState(vehicle?.title_status || 'Absent');
+  const [status, setStatus] = useState<'Pending' | 'Sold' | 'Withdrew' | 'Complete' | 'ARB' | 'In Progress'>(vehicle?.status as any || 'Pending');
+  const [titleStatus, setTitleStatus] = useState<'Absent' | 'In Transit' | 'Received' | 'Available not Received' | 'Present' | 'Released' | 'Validated' | 'Sent but not Validated'>(vehicle?.title_status as any || 'Absent');
   const [arbStatus, setArbStatus] = useState((vehicle as any)?.arb_status || 'Absent');
   const [auctionName, setAuctionName] = useState((vehicle as any)?.auction_name || '');
   const [auctionDate, setAuctionDate] = useState<Date | undefined>(
@@ -94,6 +95,37 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   const [isEditAssessmentModalOpen, setIsEditAssessmentModalOpen] = useState(false);
   const [assessmentsCurrentPage, setAssessmentsCurrentPage] = useState(1);
   const assessmentsPerPage = 10;
+  
+  // Dispatch state
+  const [dispatchRecords, setDispatchRecords] = useState<any[]>([]);
+  const [isLoadingDispatch, setIsLoadingDispatch] = useState(false);
+  const [isSubmittingDispatch, setIsSubmittingDispatch] = useState(false);
+  const [dispatchForm, setDispatchForm] = useState({
+    location: '',
+    transportCompany: '',
+    transportCost: '',
+    notes: '',
+    address: '',
+    state: '',
+    zip: '',
+    acAssignCarrier: '',
+  });
+  const [dispatchFile, setDispatchFile] = useState<File | null>(null);
+  const [editingDispatch, setEditingDispatch] = useState<any | null>(null);
+  const dispatchFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Timeline state
+  const [timelineEntries, setTimelineEntries] = useState<any[]>([]);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
+  const [timelineCurrentPage, setTimelineCurrentPage] = useState(1);
+  const timelinePerPage = 10;
+
+  // Paginated assessments
+  const paginatedAssessments = assessments.slice(
+    (assessmentsCurrentPage - 1) * assessmentsPerPage,
+    assessmentsCurrentPage * assessmentsPerPage
+  );
+  const assessmentsTotalPages = Math.ceil(assessments.length / assessmentsPerPage);
 
   if (!vehicle) return null;
 
@@ -173,7 +205,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           const response = await fetch(`/api/vehicles/${vehicle.id}/timeline`);
           if (response.ok) {
             const { data } = await response.json();
-            // Sort by newest first (chronological order: newest → oldest)
+            // Sort by newest first (chronological order: newest â†’ oldest)
             const sorted = (data || []).sort((a: any, b: any) => {
               const dateA = new Date(a.created_at || a.date || 0).getTime();
               const dateB = new Date(b.created_at || b.date || 0).getTime();
@@ -661,7 +693,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         throw new Error(error.error || 'Failed to create task');
       }
 
-      toast.success('✅ Task added successfully');
+      toast.success('âœ… Task added successfully');
       setIsAddTaskModalOpen(false);
       
       // Reload tasks
@@ -868,6 +900,111 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     } catch (error) {
       console.error('Error exporting tasks:', error);
       toast.error('Failed to export tasks');
+    }
+  };
+
+  const handleExportAssessmentsPDF = () => {
+    try {
+      const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+      const vin = vehicle.vin || 'N/A';
+      const generatedDate = format(new Date(), 'MM/dd/yyyy HH:mm');
+
+      // Create HTML content for PDF
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Assessments - ${vehicleName}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #333; margin-bottom: 10px; }
+              h2 { color: #666; font-size: 14px; margin-bottom: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; font-weight: bold; }
+              tr:nth-child(even) { background-color: #f9f9f9; }
+              .pending { background-color: #fff3cd; }
+            </style>
+          </head>
+          <body>
+            <h1>Vehicle Assessments Report</h1>
+            <h2>Vehicle: ${vehicleName} | VIN: ${vin} | Generated: ${generatedDate}</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Assessment Date</th>
+                  <th>Assessment Time</th>
+                  <th>Conducted By</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${assessments.map((assessment, index) => `
+                  <tr class="${assessment.status === 'Pending' ? 'pending' : ''}">
+                    <td>${index + 1}</td>
+                    <td>${assessment.assessment_date ? format(new Date(assessment.assessment_date), 'dd-MM-yyyy') : 'N/A'}</td>
+                    <td>${assessment.assessment_time || 'N/A'}</td>
+                    <td>${assessment.conducted_by || 'N/A'}</td>
+                    <td>${assessment.status || 'N/A'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `;
+
+      // Create blob and download
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `assessments-${vehicleName.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Assessments exported successfully. Open the HTML file and print to PDF.');
+    } catch (error) {
+      console.error('Error exporting assessments:', error);
+      toast.error('Failed to export assessments');
+    }
+  };
+
+  const handleDownloadAssessment = (assessment: any) => {
+    if (assessment.assessment_file_url) {
+      window.open(assessment.assessment_file_url, '_blank');
+    } else {
+      toast.error('No file available for this assessment');
+    }
+  };
+
+  const handleEditAssessment = (assessment: any) => {
+    setEditingAssessment(assessment);
+    setIsEditAssessmentModalOpen(true);
+  };
+
+  const handleDeleteAssessment = async (assessmentId: string) => {
+    if (!confirm('Are you sure you want to delete this assessment?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/vehicles/${vehicle.id}/assessments/${assessmentId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete assessment');
+      }
+
+      toast.success('Assessment deleted successfully');
+      setAssessments(prev => prev.filter(a => a.id !== assessmentId));
+    } catch (error: any) {
+      console.error('Error deleting assessment:', error);
+      toast.error(error.message || 'Failed to delete assessment');
     }
   };
 
@@ -1272,7 +1409,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     <Select
                       value={status}
                       onValueChange={(value) => {
-                        setStatus(value);
+                        setStatus(value as any);
                         handleStatusUpdate('status', value);
                       }}
                       disabled={isUpdatingStatus}
@@ -1294,7 +1431,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     <Select
                       value={titleStatus}
                       onValueChange={(value) => {
-                        setTitleStatus(value);
+                        setTitleStatus(value as any);
                         handleStatusUpdate('title_status', value);
                       }}
                       disabled={isUpdatingStatus}
@@ -2632,1229 +2769,3 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     </Dialog>
   );
 }
-
-
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      onClick={handleAuctionUpdate}
-                      disabled={isUpdatingAuction}
-                      className="w-full"
-                      style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                    >
-                      {isUpdatingAuction ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Updating...
-                        </>
-                      ) : (
-                        'Update'
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Image Upload and Notes Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Image Upload - Left Side */}
-                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <ImageIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Images</h4>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png"
-                        multiple
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <label
-                        htmlFor="image-upload"
-                        className="cursor-pointer"
-                      >
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full"
-                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Choose Files
-                        </Button>
-                      </label>
-                      <p className="text-xs mt-2" style={{ color: 'var(--subtext)' }}>
-                        {selectedFiles.length > 0 
-                          ? `${selectedFiles.length} file(s) selected` 
-                          : 'No file chosen'}
-                      </p>
-                      {selectedFiles.length > 0 && (
-                        <div className="mt-2 space-y-2">
-                          {selectedFiles.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 rounded" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                              <span className="text-sm truncate flex-1" style={{ color: 'var(--text)' }}>{file.name}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== index))}
-                                className="ml-2"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {selectedFiles.length > 0 && (
-                      <Button
-                        onClick={handleImageUpload}
-                        disabled={isUploadingImage}
-                        className="w-full"
-                        style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                      >
-                        {isUploadingImage ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload Images
-                          </>
-                        )}
-                      </Button>
-                    )}
-
-                    {/* Display uploaded images */}
-                    {isLoadingImages ? (
-                      <div className="text-center py-4" style={{ color: 'var(--subtext)' }}>Loading images...</div>
-                    ) : images.length === 0 ? (
-                      <div className="text-center py-4 text-sm" style={{ color: 'var(--subtext)' }}>No images uploaded</div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-2 mt-4">
-                        {images.map((image) => (
-                          <div key={image.id} className="relative group">
-                            <img
-                              src={image.file_url}
-                              alt={image.file_name}
-                              className="w-full h-32 object-cover rounded"
-                              style={{ border: '1px solid var(--border)' }}
-                            />
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => handleDeleteImage(image.id)}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Notes - Right Side */}
-                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <FileText className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Notes</h4>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* Add new note */}
-                    <div>
-                      <Textarea
-                        placeholder="Enter your notes here"
-                        value={newNoteText}
-                        onChange={(e) => setNewNoteText(e.target.value)}
-                        className="min-h-[100px]"
-                        style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                      />
-                      <Button
-                        onClick={handleAddNote}
-                        disabled={isSavingNote || !newNoteText.trim()}
-                        className="mt-2 w-full"
-                        style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                      >
-                        {isSavingNote ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Note
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Display existing notes */}
-                    {isLoadingNotes ? (
-                      <div className="text-center py-4" style={{ color: 'var(--subtext)' }}>Loading notes...</div>
-                    ) : notes.length === 0 ? (
-                      <div className="text-center py-4 text-sm" style={{ color: 'var(--subtext)' }}>No notes available</div>
-                    ) : (
-                      <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                        {notes.map((note) => (
-                          <div
-                            key={note.id}
-                            className="p-3 rounded"
-                            style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
-                          >
-                            {editingNoteId === note.id ? (
-                              <div className="space-y-2">
-                                <Textarea
-                                  value={editingNoteText}
-                                  onChange={(e) => setEditingNoteText(e.target.value)}
-                                  className="min-h-[80px]"
-                                  style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                                />
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleUpdateNote(note.id)}
-                                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      setEditingNoteId(null);
-                                      setEditingNoteText('');
-                                    }}
-                                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <p className="text-sm mb-2" style={{ color: 'var(--text)' }}>{note.note_text}</p>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs" style={{ color: 'var(--subtext)' }}>
-                                    {format(new Date(note.created_at), 'MM/dd/yyyy HH:mm')}
-                                  </span>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => {
-                                        setEditingNoteId(note.id);
-                                        setEditingNoteText(note.note_text);
-                                      }}
-                                      style={{ color: 'var(--text)' }}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleDeleteNote(note.id)}
-                                      style={{ color: '#ef4444' }}
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Tasks Tab */}
-          {activeTab === 'tasks' && (
-            <div className="space-y-4">
-              {/* Header with Add Task Button */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <ClipboardList className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                  <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Vehicle Tasks</h4>
-                </div>
-                <Button
-                  onClick={() => setIsAddTaskModalOpen(true)}
-                  size="sm"
-                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Task
-                </Button>
-              </div>
-
-              {/* Tasks Table */}
-              {isLoadingTasks ? (
-                <div className="text-center py-12" style={{ color: 'var(--subtext)' }}>
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
-                  Loading tasks...
-                </div>
-              ) : vehicleTasks.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-12 rounded-lg"
-                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
-                >
-                  <ClipboardList className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
-                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No tasks found</div>
-                  <div className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
-                    Get started by adding your first task for this vehicle.
-                  </div>
-                  <Button
-                    onClick={() => setIsAddTaskModalOpen(true)}
-                    size="sm"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Task
-                  </Button>
-                </motion.div>
-              ) : (
-                <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
-                  <Table className="min-w-[1000px]">
-                    <TableHeader>
-                      <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Vehicle</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Task</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Status</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Due</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assigned</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assigned Date</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Notes</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Options</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedTasks.map((task, index) => {
-                        const isPending = task.status === 'pending';
-                        const rowIndex = (currentPage - 1) * tasksPerPage + index + 1;
-                        
-                        return (
-                          <motion.tr
-                            key={task.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="transition-all duration-200"
-                            style={{
-                              borderColor: 'var(--border)',
-                              backgroundColor: isPending ? 'rgba(251, 191, 36, 0.1)' : 'transparent',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isPending) {
-                                e.currentTarget.style.backgroundColor = 'var(--card-bg)';
-                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isPending) {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.boxShadow = 'none';
-                              }
-                            }}
-                          >
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {rowIndex}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {vehicle.year} {vehicle.make} {vehicle.model}
-                              {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
-                              {task.task_name}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              <Select
-                                value={task.status}
-                                onValueChange={(value) => handleStatusChange(task.id, value as 'pending' | 'completed' | 'cancelled')}
-                              >
-                                <SelectTrigger 
-                                  className="w-[120px] h-9 text-sm transition-all duration-200"
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)', 
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="completed">Completed</SelectItem>
-                                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {task.due_date ? format(new Date(task.due_date), 'dd-MM-yyyy') : 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              <Select
-                                value={task.assigned_to || ''}
-                                onValueChange={(value) => handleAssignedChange(task.id, value)}
-                              >
-                                <SelectTrigger 
-                                  className="w-[160px] h-9 text-sm transition-all duration-200"
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)', 
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <SelectValue placeholder="Not Assigned" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="">Not Assigned</SelectItem>
-                                  {users.map((user) => {
-                                    const displayName = getUserDisplayName(user.id);
-                                    return (
-                                      <SelectItem key={user.id} value={user.id}>
-                                        {displayName}
-                                      </SelectItem>
-                                    );
-                                  })}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {task.assigned_to && task.created_at 
-                                ? format(new Date(task.created_at), 'dd-MM-yyyy')
-                                : 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              {editingNotesId === task.id ? (
-                                <div className="flex items-center gap-2">
-                                  <Input
-                                    value={editingNotesText}
-                                    onChange={(e) => setEditingNotesText(e.target.value)}
-                                    className="flex-1 h-8 text-sm"
-                                    style={{ 
-                                      backgroundColor: 'var(--card-bg)', 
-                                      borderColor: 'var(--border)', 
-                                      color: 'var(--text)',
-                                      borderRadius: '6px'
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        handleUpdateNotes(task.id);
-                                      } else if (e.key === 'Escape') {
-                                        setEditingNotesId(null);
-                                        setEditingNotesText('');
-                                      }
-                                    }}
-                                    autoFocus
-                                  />
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleUpdateNotes(task.id)}
-                                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '6px' }}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setEditingNotesId(null);
-                                      setEditingNotesText('');
-                                    }}
-                                    style={{ color: 'var(--text)' }}
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div 
-                                  className="text-sm cursor-pointer hover:bg-opacity-10 p-2 rounded transition-colors"
-                                  style={{ color: 'var(--text)', minWidth: '150px' }}
-                                  onClick={() => {
-                                    setEditingNotesId(task.id);
-                                    setEditingNotesText(task.notes || '');
-                                  }}
-                                  title="Click to edit"
-                                >
-                                  {task.notes || <span style={{ color: 'var(--subtext)', fontStyle: 'italic' }}>Click to add notes</span>}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-9 w-9 p-0 rounded-lg" 
-                                    style={{ 
-                                      color: 'var(--text)',
-                                      borderRadius: '8px'
-                                    }}
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent 
-                                  align="end" 
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)',
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <DropdownMenuItem 
-                                    style={{ color: 'var(--text)' }}
-                                    onClick={() => handleEditTask(task)}
-                                  >
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    style={{ color: '#ef4444' }}
-                                    onClick={() => handleDeleteTask(task.id)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    style={{ color: 'var(--text)' }}
-                                    onClick={() => handleMarkAsSold(task.id)}
-                                  >
-                                    <DollarSign className="mr-2 h-4 w-4" />
-                                    Mark as Sold
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </motion.tr>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {/* Pagination */}
-              {vehicleTasks.length > tasksPerPage && (
-                <div className="flex items-center justify-between pt-4">
-                  <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                    Showing {(currentPage - 1) * tasksPerPage + 1} to {Math.min(currentPage * tasksPerPage, vehicleTasks.length)} of {vehicleTasks.length} tasks
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      style={{ 
-                        backgroundColor: 'var(--card-bg)', 
-                        borderColor: 'var(--border)', 
-                        color: 'var(--text)',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Previous
-                    </Button>
-                    <div className="text-sm" style={{ color: 'var(--text)' }}>
-                      Page {currentPage} of {totalPages}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      style={{ 
-                        backgroundColor: 'var(--card-bg)', 
-                        borderColor: 'var(--border)', 
-                        color: 'var(--text)',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Add Task Modal */}
-              <AddTaskModal
-                isOpen={isAddTaskModalOpen}
-                onClose={() => setIsAddTaskModalOpen(false)}
-                onSubmit={handleAddTask}
-                preSelectedVehicleId={vehicle.id}
-              />
-
-              {/* Edit Task Modal */}
-              {editingTask && (
-                <EditTaskModal
-                  task={editingTask}
-                  isOpen={isEditTaskModalOpen}
-                  onClose={() => {
-                    setIsEditTaskModalOpen(false);
-                    setEditingTask(null);
-                  }}
-                  onTaskUpdated={() => {
-                    // Reload tasks
-                    const loadTasks = async () => {
-                      try {
-                        setIsLoadingTasks(true);
-                        const response = await fetch(`/api/tasks?vehicleId=${vehicle.id}&limit=100`);
-                        if (response.ok) {
-                          const { data } = await response.json();
-                          setVehicleTasks(data || []);
-                        }
-                      } catch (error) {
-                        console.error('Error loading tasks:', error);
-                      } finally {
-                        setIsLoadingTasks(false);
-                      }
-                    };
-                    loadTasks();
-                  }}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Assessment Tab */}
-          {activeTab === 'assessment' && (
-            <div className="space-y-4">
-              {/* Header with Add Assessment Button */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <ClipboardCheck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                  <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Vehicle Assessments</h4>
-                </div>
-                <Button
-                  onClick={() => setIsAddAssessmentModalOpen(true)}
-                  size="sm"
-                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Assessment
-                </Button>
-              </div>
-
-              {/* Assessments Table */}
-              {isLoadingAssessments ? (
-                <div className="text-center py-12" style={{ color: 'var(--subtext)' }}>
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
-                  Loading assessments...
-                </div>
-              ) : assessments.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-12 rounded-lg"
-                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
-                >
-                  <ClipboardCheck className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
-                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No assessments found</div>
-                  <div className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
-                    Get started by adding your first assessment for this vehicle.
-                  </div>
-                  <Button
-                    onClick={() => setIsAddAssessmentModalOpen(true)}
-                    size="sm"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Assessment
-                  </Button>
-                </motion.div>
-              ) : (
-                <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
-                  <Table className="min-w-[1000px]">
-                    <TableHeader>
-                      <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Vehicle</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assessment Date</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assessment Time</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Conducted Name</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Status</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Icon</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>File</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedAssessments.map((assessment, index) => {
-                        const isPending = assessment.status === 'Pending';
-                        const rowIndex = (assessmentsCurrentPage - 1) * assessmentsPerPage + index + 1;
-                        
-                        return (
-                          <motion.tr
-                            key={assessment.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="transition-all duration-200"
-                            style={{
-                              borderColor: 'var(--border)',
-                              backgroundColor: isPending ? 'rgba(251, 191, 36, 0.1)' : 'transparent',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isPending) {
-                                e.currentTarget.style.backgroundColor = 'var(--card-bg)';
-                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isPending) {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.boxShadow = 'none';
-                              }
-                            }}
-                          >
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {rowIndex}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {vehicle.year} {vehicle.make} {vehicle.model}
-                              {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {assessment.assessment_date ? format(new Date(assessment.assessment_date), 'dd-MM-yyyy') : 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {assessment.assessment_time || 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {assessment.conducted_name || 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              <Select
-                                value={assessment.status || 'Pending'}
-                                onValueChange={async (value) => {
-                                  try {
-                                    const response = await fetch(`/api/vehicles/${vehicle.id}/assessments/${assessment.id}`, {
-                                      method: 'PATCH',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ status: value }),
-                                    });
-                                    if (response.ok) {
-                                      const { data } = await response.json();
-                                      setAssessments(prev => prev.map(a => a.id === assessment.id ? data : a));
-                                      toast.success('Status updated');
-                                    }
-                                  } catch (error: any) {
-                                    toast.error('Failed to update status');
-                                  }
-                                }}
-                              >
-                                <SelectTrigger 
-                                  className="w-[120px] h-9 text-sm"
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)', 
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Pending">Pending</SelectItem>
-                                  <SelectItem value="Completed">Completed</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'center' }}>
-                              {assessment.status === 'Completed' ? (
-                                <CheckCircle className="w-5 h-5 mx-auto" style={{ color: '#10b981' }} />
-                              ) : (
-                                <AlertCircle className="w-5 h-5 mx-auto" style={{ color: '#f59e0b' }} />
-                              )}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              {assessment.assessment_file_url ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDownloadAssessment(assessment)}
-                                  style={{ color: 'var(--accent)' }}
-                                >
-                                  <FileText className="w-4 h-4 mr-2" />
-                                  View File
-                                </Button>
-                              ) : (
-                                <span style={{ color: 'var(--subtext)' }}>No file</span>
-                              )}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-9 w-9 p-0 rounded-lg" 
-                                    style={{ 
-                                      color: 'var(--text)',
-                                      borderRadius: '8px'
-                                    }}
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent 
-                                  align="end" 
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)',
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <DropdownMenuItem 
-                                    style={{ color: 'var(--text)' }}
-                                    onClick={() => handleEditAssessment(assessment)}
-                                  >
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    style={{ color: '#ef4444' }}
-                                    onClick={() => handleDeleteAssessment(assessment.id)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                  {assessment.assessment_file_url && (
-                                    <DropdownMenuItem 
-                                      style={{ color: 'var(--text)' }}
-                                      onClick={() => handleDownloadAssessment(assessment)}
-                                    >
-                                      <Download className="mr-2 h-4 w-4" />
-                                      Download
-                                    </DropdownMenuItem>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </motion.tr>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {/* Pagination */}
-              {assessments.length > assessmentsPerPage && (
-                <div className="flex items-center justify-between pt-4">
-                  <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                    Showing {(assessmentsCurrentPage - 1) * assessmentsPerPage + 1} to {Math.min(assessmentsCurrentPage * assessmentsPerPage, assessments.length)} of {assessments.length} assessments
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAssessmentsCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={assessmentsCurrentPage === 1}
-                      style={{ 
-                        backgroundColor: 'var(--card-bg)', 
-                        borderColor: 'var(--border)', 
-                        color: 'var(--text)',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Previous
-                    </Button>
-                    <div className="text-sm" style={{ color: 'var(--text)' }}>
-                      Page {assessmentsCurrentPage} of {assessmentsTotalPages}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAssessmentsCurrentPage(prev => Math.min(assessmentsTotalPages, prev + 1))}
-                      disabled={assessmentsCurrentPage === assessmentsTotalPages}
-                      style={{ 
-                        backgroundColor: 'var(--card-bg)', 
-                        borderColor: 'var(--border)', 
-                        color: 'var(--text)',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Parts & Expenses Tab */}
-          {activeTab === 'parts' && (
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <Wrench className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Parts & Expenses</h4>
-              </div>
-              {/* Header with Add Expense and Download Buttons */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Wrench className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                  <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Parts & Expenses</h4>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      setEditingExpense(null);
-                      setIsAddExpenseModalOpen(true);
-                    }}
-                    size="sm"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Expense
-                  </Button>
-                  <Button
-                    onClick={() => handleDownloadExpenses()}
-                    variant="outline"
-                    size="sm"
-                    disabled={expenses.length === 0}
-                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', borderRadius: '8px' }}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-                </div>
-              </div>
-
-              {/* Expenses Table */}
-              {isLoadingExpenses ? (
-                <div className="text-center py-12" style={{ color: 'var(--subtext)' }}>
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
-                  Loading expenses...
-                </div>
-              ) : expenses.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-12 rounded-lg"
-                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
-                >
-                  <DollarSign className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
-                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No expenses found</div>
-                  <div className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
-                    Get started by adding your first expense for this vehicle.
-                  </div>
-                  <Button
-                    onClick={() => {
-                      setEditingExpense(null);
-                      setIsAddExpenseModalOpen(true);
-                    }}
-                    size="sm"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Expense
-                  </Button>
-                </motion.div>
-              ) : (
-                <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
-                  <Table className="min-w-[800px]">
-                    <TableHeader>
-                      <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Vehicle</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Expense</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Date</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Cost</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Note</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Options</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {expenses.map((expense, index) => (
-                        <motion.tr
-                          key={expense.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="transition-all duration-200"
-                          style={{
-                            borderColor: 'var(--border)',
-                            backgroundColor: 'transparent',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--card-bg)';
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        >
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                            {index + 1}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                            {vehicle.year} {vehicle.make} {vehicle.model}
-                            {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
-                            {expense.expense_description}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                            {expense.expense_date ? format(new Date(expense.expense_date), 'dd-MM-yyyy') : 'N/A'}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                            {editingExpenseCostId === expense.id ? (
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="text"
-                                  value={editingExpenseCostValue}
-                                  onChange={(e) => {
-                                    const value = e.target.value.replace(/[^0-9.]/g, '');
-                                    setEditingExpenseCostValue(value);
-                                  }}
-                                  className="w-24 h-8 text-sm"
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)', 
-                                    color: 'var(--text)',
-                                    borderRadius: '6px'
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleUpdateExpenseCost(expense.id);
-                                    } else if (e.key === 'Escape') {
-                                      setEditingExpenseCostId(null);
-                                      setEditingExpenseCostValue('');
-                                    }
-                                  }}
-                                  autoFocus
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleUpdateExpenseCost(expense.id)}
-                                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '6px' }}
-                                >
-                                  Save
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setEditingExpenseCostId(null);
-                                    setEditingExpenseCostValue('');
-                                  }}
-                                  style={{ color: 'var(--text)' }}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div 
-                                className="text-sm cursor-pointer hover:bg-opacity-10 p-2 rounded transition-colors"
-                                style={{ color: 'var(--text)', minWidth: '80px' }}
-                                onClick={() => {
-                                  setEditingExpenseCostId(expense.id);
-                                  setEditingExpenseCostValue(expense.cost.toString());
-                                }}
-                                title="Click to edit"
-                              >
-                                ${parseFloat(expense.cost).toFixed(2)}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                            {editingExpenseNoteId === expense.id ? (
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  value={editingExpenseNoteValue}
-                                  onChange={(e) => setEditingExpenseNoteValue(e.target.value)}
-                                  className="flex-1 h-8 text-sm"
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)', 
-                                    color: 'var(--text)',
-                                    borderRadius: '6px'
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleUpdateExpenseNote(expense.id);
-                                    } else if (e.key === 'Escape') {
-                                      setEditingExpenseNoteId(null);
-                                      setEditingExpenseNoteValue('');
-                                    }
-                                  }}
-                                  autoFocus
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleUpdateExpenseNote(expense.id)}
-                                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '6px' }}
-                                >
-                                  Save
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setEditingExpenseNoteId(null);
-                                    setEditingExpenseNoteValue('');
-                                  }}
-                                  style={{ color: 'var(--text)' }}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div 
-                                className="text-sm cursor-pointer hover:bg-opacity-10 p-2 rounded transition-colors"
-                                style={{ color: 'var(--text)', minWidth: '150px' }}
-                                onClick={() => {
-                                  setEditingExpenseNoteId(expense.id);
-                                  setEditingExpenseNoteValue(expense.notes || '');
-                                }}
-                                title="Click to edit"
-                              >
-                                {expense.notes || <span style={{ color: 'var(--subtext)', fontStyle: 'italic' }}>Click to add note</span>}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-9 w-9 p-0 rounded-lg" 
-                                  style={{ 
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent 
-                                align="end" 
-                                style={{ 
-                                  backgroundColor: 'var(--card-bg)', 
-                                  borderColor: 'var(--border)',
-                                  color: 'var(--text)',
-                                  borderRadius: '8px'
-                                }}
-                              >
-                                <DropdownMenuItem 
-                                  style={{ color: 'var(--text)' }}
-                                  onClick={() => {
-                                    setEditingExpense(expense);
-                                    setIsAddExpenseModalOpen(true);
-                                  }}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  style={{ color: '#ef4444' }}
-                                  onClick={() => handleDeleteExpense(expense.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </motion.tr>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {/* Add/Edit Expense Modal */}
-              <AddExpenseModal
-                isOpen={isAddExpenseModalOpen}
-                onClose={() => {
-                  setIsAddExpenseModalOpen(false);
-                  setEditingExpense(null);
-                }}
-                onSubmit={handleAddOrUpdateExpense}
-                vehicleId={vehicle.id}
-                expenseToEdit={editingExpense}
-              />
-            </div>
-          )}
-
-          {/* Central Dispatch Tab */}
-          {activeTab === 'dispatch' && (
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <Truck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Central Dispatch</h4>
-              </div>
-              <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>
-                Dispatch and delivery information will be displayed here.
-              </div>
-            </div>
-          )}
-
-          {/* Timeline Tab */}
-          {activeTab === 'timeline' && (
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <Clock className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Activity Timeline</h4>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                  <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: 'var(--accent)' }} />
-                  <div className="flex-1">
-                    <div className="font-medium" style={{ color: 'var(--text)' }}>Vehicle Created</div>
-                    <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                      {vehicle.created_at ? format(new Date(vehicle.created_at), 'MMMM dd, yyyy HH:mm') : 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {vehicle.updated_at && vehicle.updated_at !== vehicle.created_at && (
-                  <div className="flex items-start gap-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                    <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: 'var(--accent)' }} />
-                    <div className="flex-1">
-                      <div className="font-medium" style={{ color: 'var(--text)' }}>Last Updated</div>
-                      <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                        {format(new Date(vehicle.updated_at), 'MMMM dd, yyyy HH:mm')}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
