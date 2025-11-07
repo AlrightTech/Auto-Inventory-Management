@@ -1,52 +1,74 @@
 # GitHub Actions Workflows
 
-This directory contains CI/CD workflows for automated testing and deployment.
+This directory contains CI/CD workflows for automated testing, building, and deployment.
 
 ## Workflows
 
-### 1. `ci.yml` - Continuous Integration
-- Runs on every push and pull request
-- Builds the project
-- Runs linter
-- Validates build artifacts
-- Creates preview deployment comments on PRs
+### 🚀 `ci-cd.yml` - Main CI/CD Pipeline
+**Primary workflow for all builds and deployments**
 
-### 2. `deploy.yml` - Vercel Deployment
-- Runs on pushes to `master`/`main` branch
-- Builds the project
-- Deploys to Vercel production
-- Can be triggered manually via `workflow_dispatch`
+- **Triggers:**
+  - Push to `master`, `main`, or `develop`
+  - Pull requests
+  - Manual workflow dispatch
 
-### 3. `vercel-deploy.yml` - Advanced Vercel Deployment
-- Uses Vercel CLI for deployment
-- More control over deployment process
-- Requires Vercel tokens and project IDs
+- **Jobs:**
+  1. **CI - Build and Test**: Runs on every push/PR
+     - Linting
+     - Type checking
+     - Building
+     - Artifact verification
+
+  2. **CD - Deploy to Production**: Runs on push to `master`/`main`
+     - Builds project
+     - Deploys to Vercel production
+
+  3. **CD - Deploy Preview**: Runs on pull requests
+     - Builds project
+     - Creates preview deployment
+     - Comments PR with preview URL
+
+  4. **CD - Manual Deployment**: Runs on workflow dispatch
+     - Allows manual deployment to production or preview
+
+### 🔒 `security.yml` - Security Checks
+**Automated security scanning**
+
+- **Triggers:**
+  - Push to any branch
+  - Pull requests
+  - Daily at 2 AM UTC (scheduled)
+
+- **Jobs:**
+  1. **Security Audit**: Runs `npm audit`
+  2. **Dependency Review**: Reviews dependencies in PRs
+
+### 📧 `notify.yml` - Deployment Notifications
+**Sends notifications about deployment status**
+
+- **Triggers:**
+  - After CI/CD pipeline completes
+
+- **Jobs:**
+  1. **Send Notifications**: Creates deployment status
 
 ## Setup
 
-### Required GitHub Secrets
+### Required Secrets
 
-For `deploy.yml` and `vercel-deploy.yml`:
+Add these in **GitHub > Settings > Secrets and variables > Actions**:
 
-1. Go to GitHub repository > Settings > Secrets and variables > Actions
-2. Add these secrets:
-
-   - `VERCEL_TOKEN` - Get from https://vercel.com/account/tokens
-   - `VERCEL_ORG_ID` - Get from `.vercel/project.json` after running `vercel link`
-   - `VERCEL_PROJECT_ID` - Get from `.vercel/project.json` after running `vercel link`
-   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+1. `VERCEL_TOKEN` - Vercel API token
+2. `VERCEL_ORG_ID` - Vercel organization ID
+3. `VERCEL_PROJECT_ID` - Vercel project ID
+4. `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+5. `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 
 ### Getting Vercel IDs
 
 ```bash
-# Install Vercel CLI
 npm i -g vercel
-
-# Link your project
 vercel link
-
-# Check .vercel/project.json for IDs
 cat .vercel/project.json
 ```
 
@@ -54,17 +76,46 @@ cat .vercel/project.json
 
 ### Automatic Deployment
 
-- Push to `master` → Triggers `deploy.yml` → Deploys to Vercel
-- Create PR → Triggers `ci.yml` → Runs tests and builds
+- **Production**: Push to `master` or `main`
+- **Preview**: Create a pull request
 
 ### Manual Deployment
 
-1. Go to Actions tab in GitHub
-2. Select "Deploy to Vercel" workflow
-3. Click "Run workflow"
-4. Select branch and click "Run workflow"
+1. Go to **Actions** tab
+2. Select **CI/CD Pipeline**
+3. Click **Run workflow**
+4. Choose environment and branch
+5. Click **Run workflow**
 
 ## Workflow Status
 
-View workflow runs at: `https://github.com/[owner]/[repo]/actions`
+View all workflow runs: `https://github.com/[owner]/[repo]/actions`
 
+## Troubleshooting
+
+### Build Fails
+- Check build logs in Actions tab
+- Verify environment variables
+- Check for TypeScript errors
+
+### Deployment Fails
+- Verify Vercel secrets are correct
+- Check Vercel project settings
+- Review deployment logs
+
+### Preview Not Created
+- Ensure PR is from same repo or fork
+- Check Vercel token permissions
+- Review workflow logs
+
+## Configuration
+
+Edit workflow files to:
+- Change Node.js version
+- Modify build steps
+- Add custom notifications
+- Change deployment conditions
+
+## Documentation
+
+See `CI_CD_SETUP.md` for detailed setup instructions.
