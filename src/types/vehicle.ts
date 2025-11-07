@@ -13,7 +13,7 @@ export interface Vehicle {
   // Vehicle Status and Details
   status: 'Pending' | 'Sold' | 'Withdrew' | 'Complete' | 'ARB' | 'In Progress';
   odometer?: number;
-  title_status: 'Present' | 'Absent';
+  title_status: 'Absent' | 'Released' | 'Received' | 'Present' | 'In Transit' | 'Available not Received' | 'Validated' | 'Sent but not Validated';
   psi_status?: string;
   dealshield_arbitration_status?: string;
   
@@ -70,7 +70,7 @@ export interface VehicleInsert {
   // Vehicle Status and Details
   status?: 'Pending' | 'Sold' | 'Withdrew' | 'Complete' | 'ARB' | 'In Progress';
   odometer?: number;
-  title_status?: 'Present' | 'Absent';
+  title_status?: 'Absent' | 'Released' | 'Received' | 'Present' | 'In Transit' | 'Available not Received' | 'Validated' | 'Sent but not Validated';
   psi_status?: string;
   dealshield_arbitration_status?: string;
   

@@ -7,9 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AddVehicleModal } from '@/components/inventory/AddVehicleModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
-import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, FileText } from 'lucide-react';
+import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, FileText, CalendarIcon } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import * as XLSX from 'xlsx';
 
 export default function InventoryPage() {
@@ -17,6 +20,10 @@ export default function InventoryPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [exportDateFrom, setExportDateFrom] = useState<Date | null>(null);
+  const [exportDateTo, setExportDateTo] = useState<Date | null>(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   // Helper function to escape CSV values
   const escapeCsvValue = (value: any): string => {
@@ -29,10 +36,29 @@ export default function InventoryPage() {
     return stringValue;
   };
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    if (vehicles.length === 0) {
+  // Export to CSV with date range and filters
+  const handleExportCSV = (filteredVehicles?: VehicleWithRelations[], dateFrom?: Date | null, dateTo?: Date | null) => {
+    const vehiclesToExport = filteredVehicles || vehicles;
+    
+    if (vehiclesToExport.length === 0) {
       toast.error('No vehicles to export');
+      return;
+    }
+
+    // Apply date range filter if provided
+    let vehiclesToExportFiltered = vehiclesToExport;
+    if (dateFrom || dateTo) {
+      vehiclesToExportFiltered = vehiclesToExport.filter(vehicle => {
+        if (!vehicle.sale_date) return false;
+        const vehicleDate = new Date(vehicle.sale_date);
+        if (dateFrom && vehicleDate < dateFrom) return false;
+        if (dateTo && vehicleDate > dateTo) return false;
+        return true;
+      });
+    }
+
+    if (vehiclesToExportFiltered.length === 0) {
+      toast.error('No vehicles match the selected date range');
       return;
     }
 
@@ -49,7 +75,7 @@ export default function InventoryPage() {
 
       const csvRows = [
         headers.map(escapeCsvValue).join(','),
-        ...vehicles.map(vehicle => [
+        ...vehiclesToExportFiltered.map(vehicle => [
           vehicle.vin || '',
           vehicle.year || '',
           vehicle.make || '',
@@ -91,23 +117,45 @@ export default function InventoryPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `inventory-${new Date().toISOString().split('T')[0]}.csv`;
+      const dateRange = dateFrom || dateTo 
+        ? `-${dateFrom ? format(dateFrom, 'yyyy-MM-dd') : 'all'}-${dateTo ? format(dateTo, 'yyyy-MM-dd') : 'all'}`
+        : '';
+      link.download = `inventory${dateRange}-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      toast.success(`Exported ${vehicles.length} vehicles to CSV`);
+      toast.success(`Exported ${vehiclesToExportFiltered.length} vehicles to CSV`);
     } catch (error) {
       console.error('Error exporting CSV:', error);
       toast.error('Failed to export CSV');
     }
   };
 
-  // Export to PDF
-  const handleExportPDF = () => {
-    if (vehicles.length === 0) {
+  // Export to PDF with date range and filters
+  const handleExportPDF = (filteredVehicles?: VehicleWithRelations[], dateFrom?: Date | null, dateTo?: Date | null) => {
+    const vehiclesToExport = filteredVehicles || vehicles;
+    
+    if (vehiclesToExport.length === 0) {
       toast.error('No vehicles to export');
+      return;
+    }
+
+    // Apply date range filter if provided
+    let vehiclesToExportFiltered = vehiclesToExport;
+    if (dateFrom || dateTo) {
+      vehiclesToExportFiltered = vehiclesToExport.filter(vehicle => {
+        if (!vehicle.sale_date) return false;
+        const vehicleDate = new Date(vehicle.sale_date);
+        if (dateFrom && vehicleDate < dateFrom) return false;
+        if (dateTo && vehicleDate > dateTo) return false;
+        return true;
+      });
+    }
+
+    if (vehiclesToExportFiltered.length === 0) {
+      toast.error('No vehicles match the selected date range');
       return;
     }
 
@@ -123,7 +171,7 @@ export default function InventoryPage() {
           'Pickup Location Zip', 'Pickup Location Phone', 'Seller Name', 'Buyer Dealership',
           'Buyer Contact Name', 'Buyer AA ID', 'Sale Invoice Status'
         ],
-        ...vehicles.map(vehicle => [
+        ...vehiclesToExportFiltered.map(vehicle => [
           vehicle.vin || '',
           vehicle.year || '',
           vehicle.make || '',
@@ -166,9 +214,12 @@ export default function InventoryPage() {
 
       // Export as PDF (XLSX can be opened in Excel and saved as PDF)
       // For true PDF, we'll create an Excel file that can be converted
-      XLSX.writeFile(wb, `inventory-${new Date().toISOString().split('T')[0]}.xlsx`);
+      const dateRange = dateFrom || dateTo 
+        ? `-${dateFrom ? format(dateFrom, 'yyyy-MM-dd') : 'all'}-${dateTo ? format(dateTo, 'yyyy-MM-dd') : 'all'}`
+        : '';
+      XLSX.writeFile(wb, `inventory${dateRange}-${new Date().toISOString().split('T')[0]}.xlsx`);
       
-      toast.success(`Exported ${vehicles.length} vehicles. Open the Excel file and use "Save As PDF" to create a PDF.`);
+      toast.success(`Exported ${vehiclesToExportFiltered.length} vehicles. Open the Excel file and use "Save As PDF" to create a PDF.`);
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast.error('Failed to export. Please try exporting as CSV instead.');
@@ -315,34 +366,180 @@ export default function InventoryPage() {
                     className="pl-9 bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                   />
                 </div>
-                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                <Button 
+                  variant="outline" 
+                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
                   <Filter className="w-4 h-4 mr-2" />
                   Filter
                 </Button>
-                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                <Button 
+                  variant="outline" 
+                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  onClick={() => {
+                    setShowFilters(false);
+                    setExportDateFrom(null);
+                    setExportDateTo(null);
+                  }}
+                >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset
                 </Button>
               </div>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                  onClick={handleExportCSV}
-                  disabled={vehicles.length === 0}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export CSV
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                  onClick={handleExportPDF}
-                  disabled={vehicles.length === 0}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Export PDF
-                </Button>
+                <Popover open={showExportDialog} onOpenChange={setShowExportDialog}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                      disabled={vehicles.length === 0}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export CSV
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>Date Range (Optional)</label>
+                        <div className="flex gap-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex-1" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                                <CalendarIcon className="w-4 h-4 mr-2" />
+                                {exportDateFrom ? format(exportDateFrom, 'MM/dd/yyyy') : 'From'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                              <Calendar
+                                mode="single"
+                                selected={exportDateFrom || undefined}
+                                onSelect={(date) => setExportDateFrom(date || null)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex-1" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                                <CalendarIcon className="w-4 h-4 mr-2" />
+                                {exportDateTo ? format(exportDateTo, 'MM/dd/yyyy') : 'To'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                              <Calendar
+                                mode="single"
+                                selected={exportDateTo || undefined}
+                                onSelect={(date) => setExportDateTo(date || null)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            handleExportCSV(undefined, exportDateFrom, exportDateTo);
+                            setShowExportDialog(false);
+                          }}
+                          style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                        >
+                          Export
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setExportDateFrom(null);
+                            setExportDateTo(null);
+                            setShowExportDialog(false);
+                          }}
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                      disabled={vehicles.length === 0}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Export PDF
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>Date Range (Optional)</label>
+                        <div className="flex gap-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex-1" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                                <CalendarIcon className="w-4 h-4 mr-2" />
+                                {exportDateFrom ? format(exportDateFrom, 'MM/dd/yyyy') : 'From'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                              <Calendar
+                                mode="single"
+                                selected={exportDateFrom || undefined}
+                                onSelect={(date) => setExportDateFrom(date || null)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex-1" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                                <CalendarIcon className="w-4 h-4 mr-2" />
+                                {exportDateTo ? format(exportDateTo, 'MM/dd/yyyy') : 'To'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                              <Calendar
+                                mode="single"
+                                selected={exportDateTo || undefined}
+                                onSelect={(date) => setExportDateTo(date || null)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            handleExportPDF(undefined, exportDateFrom, exportDateTo);
+                          }}
+                          style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                        >
+                          Export
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setExportDateFrom(null);
+                            setExportDateTo(null);
+                          }}
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </CardContent>
@@ -358,6 +555,9 @@ export default function InventoryPage() {
         <VehicleTable 
           onVehicleAdded={() => setRefreshTrigger(prev => prev + 1)} 
           refreshTrigger={refreshTrigger}
+          showFilters={showFilters}
+          onExportCSV={(filteredVehicles) => handleExportCSV(filteredVehicles, exportDateFrom, exportDateTo)}
+          onExportPDF={(filteredVehicles) => handleExportPDF(filteredVehicles, exportDateFrom, exportDateTo)}
         />
       </motion.div>
 

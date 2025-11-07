@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         ? body.status 
         : 'Pending',
       odometer: body.odometer || null,
-      title_status: (body.title_status && ['Present', 'Absent'].includes(body.title_status)) 
+      title_status: (body.title_status && ['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated'].includes(body.title_status)) 
         ? body.title_status 
         : 'Absent',
       psi_status: body.psi_status || null,

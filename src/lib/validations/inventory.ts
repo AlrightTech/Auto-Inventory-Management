@@ -13,7 +13,7 @@ export const vehicleSchema = z.object({
   // Vehicle Status and Details
   status: z.enum(['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress']).optional(),
   odometer: z.number().optional(),
-  title_status: z.enum(['Present', 'Absent']).optional(),
+  title_status: z.enum(['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated']).optional(),
   psi_status: z.string().optional(),
   dealshield_arbitration_status: z.string().optional(),
   

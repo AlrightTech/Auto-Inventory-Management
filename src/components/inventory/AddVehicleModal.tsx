@@ -164,7 +164,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
     } else if (!vehicleToEdit && isOpen) {
       // Reset form for new vehicle
       reset({
-        status: 'Pending',
+        status: 'In Progress',
         title_status: 'Absent',
         sale_invoice_status: 'UNPAID',
         channel: 'Simulcast',
@@ -209,6 +209,41 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
       }
 
       const result = await response.json();
+      
+      // If this is a new vehicle with a purchase date, trigger ARB countdown (7 days from purchase date)
+      if (!vehicleToEdit && cleanedData.sale_date) {
+        try {
+          const purchaseDate = new Date(cleanedData.sale_date);
+          const arbDeadline = new Date(purchaseDate);
+          arbDeadline.setDate(arbDeadline.getDate() + 7);
+          
+          // Create a task for ARB countdown if vehicle was created successfully
+          if (result.data?.id) {
+            const taskResponse = await fetch('/api/tasks', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                vehicle_id: result.data.id,
+                task_name: 'ARB Countdown - File ARB if needed',
+                due_date: format(arbDeadline, 'yyyy-MM-dd'),
+                category: 'File an ARB',
+                assigned_to: 'admin', // Default to admin, can be changed
+                notes: `ARB deadline: 7 days from purchase date (${format(purchaseDate, 'MM/dd/yyyy')}). File ARB if needed before ${format(arbDeadline, 'MM/dd/yyyy')}.`,
+                status: 'pending',
+              }),
+            });
+            
+            if (!taskResponse.ok) {
+              console.warn('Failed to create ARB countdown task, but vehicle was created successfully');
+            }
+          }
+        } catch (error) {
+          console.error('Error creating ARB countdown task:', error);
+          // Don't fail the vehicle creation if task creation fails
+        }
+      }
       
       toast.success(`Vehicle ${vehicleToEdit ? 'updated' : 'added'} successfully!`);
       
@@ -580,7 +615,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                       <Label htmlFor="title_status" style={{ color: 'var(--text)' }}>
                         Title Status
                       </Label>
-                      <Select onValueChange={(value) => setValue('title_status', value as 'Present' | 'Absent')}>
+                      <Select onValueChange={(value) => setValue('title_status', value as 'Absent' | 'Released' | 'Received' | 'Present' | 'In Transit' | 'Available not Received' | 'Validated' | 'Sent but not Validated')}>
                         <SelectTrigger className="control-panel" style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
@@ -589,8 +624,11 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                           <SelectValue placeholder="Select title status" />
                         </SelectTrigger>
                         <SelectContent className="dashboard-card neon-glow instrument-cluster">
-                          <SelectItem value="Present" style={{ color: 'var(--text)' }}>Present</SelectItem>
-                          <SelectItem value="Absent" style={{ color: 'var(--text)' }}>Absent</SelectItem>
+                          {titleStatusOptions.map((status) => (
+                            <SelectItem key={status} value={status} style={{ color: 'var(--text)' }}>
+                              {status}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       {errors.title_status && (

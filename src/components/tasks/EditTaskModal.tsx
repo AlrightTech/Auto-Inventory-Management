@@ -54,7 +54,7 @@ export function EditTaskModal({ task, isOpen, onClose, onTaskUpdated }: EditTask
     setValue,
     watch,
     reset,
-  } = useForm<TaskInput & { status: string }>({
+  } = useForm<TaskInput>({
     resolver: zodResolver(taskSchema),
   });
 
@@ -118,7 +118,7 @@ export function EditTaskModal({ task, isOpen, onClose, onTaskUpdated }: EditTask
     }
   }, [isOpen, task, supabase, reset]);
 
-  const handleFormSubmit = async (data: TaskInput & { status: string }) => {
+  const handleFormSubmit = async (data: TaskInput) => {
     if (!task || !data.vehicle_id || !data.assigned_to || !data.category) return;
 
     setIsSubmitting(true);
@@ -238,7 +238,7 @@ export function EditTaskModal({ task, isOpen, onClose, onTaskUpdated }: EditTask
               </Label>
               <Select
                 value={selectedStatus}
-                onValueChange={(value) => setValue('status', value)}
+                onValueChange={(value) => setValue('status', value as 'pending' | 'completed' | 'cancelled')}
               >
                 <SelectTrigger className="control-panel" style={{ 
                   backgroundColor: 'var(--card-bg)', 
