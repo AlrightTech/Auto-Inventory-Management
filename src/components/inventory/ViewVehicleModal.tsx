@@ -130,7 +130,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
   // Load tasks for this vehicle
   useEffect(() => {
-    if (isOpen && vehicle?.id) {
+    if (isOpen && vehicle?.id && activeTab === 'tasks') {
       const loadTasks = async () => {
         try {
           setIsLoadingTasks(true);
@@ -138,19 +138,23 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           if (response.ok) {
             const { data } = await response.json();
             setVehicleTasks(data || []);
+          } else {
+            console.error('Failed to load tasks:', response.statusText);
+            setVehicleTasks([]);
           }
         } catch (error) {
           console.error('Error loading tasks:', error);
           setVehicleTasks([]);
+          toast.error('Failed to load tasks');
         } finally {
           setIsLoadingTasks(false);
         }
       };
       loadTasks();
-    } else {
+    } else if (!isOpen || !vehicle?.id) {
       setVehicleTasks([]);
     }
-  }, [isOpen, vehicle?.id]);
+  }, [isOpen, vehicle?.id, activeTab]);
 
   // Load assessments for this vehicle
   useEffect(() => {
@@ -666,8 +670,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update status');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update vehicle' }));
+        throw new Error(errorData.error || 'Failed to update vehicle');
       }
 
       // Get updated data from API response
@@ -686,7 +690,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       toast.success(`${field.replace('_', ' ')} updated successfully`);
     } catch (error: any) {
       console.error('Error updating status:', error);
-      toast.error(error?.message || 'Failed to update status');
+      toast.error(error?.message || 'Failed to update vehicle');
       // Revert state on error
       if (field === 'status') {
         setStatus(vehicle.status as any);
@@ -718,12 +722,20 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update auction details');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update auction details' }));
+        throw new Error(errorData.error || 'Failed to update auction details');
       }
 
       const responseData = await response.json();
       const updatedData = responseData.data || responseData;
+      
+      // Update local state
+      if (updatedData) {
+        setAuctionName(updatedData.auction_name || auctionName);
+        if (updatedData.auction_date) {
+          setAuctionDate(new Date(updatedData.auction_date));
+        }
+      }
       
       toast.success('Auction details updated successfully');
     } catch (error: any) {
@@ -757,12 +769,25 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update details');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update details' }));
+        throw new Error(errorData.error || 'Failed to update details');
       }
 
       const responseData = await response.json();
       const updatedData = responseData.data || responseData;
+      
+      // Update local state with API response
+      if (updatedData) {
+        if (updatedData.status) setStatus(updatedData.status as any);
+        if (updatedData.title_status) setTitleStatus(updatedData.title_status as any);
+        if (updatedData.arb_status) setArbStatus(updatedData.arb_status);
+        if (updatedData.auction_name !== undefined) setAuctionName(updatedData.auction_name || '');
+        if (updatedData.auction_date) {
+          setAuctionDate(new Date(updatedData.auction_date));
+        } else if (updatedData.auction_date === null) {
+          setAuctionDate(undefined);
+        }
+      }
       
       toast.success('All details updated successfully');
     } catch (error: any) {
@@ -1787,11 +1812,9 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     <Button
                       onClick={handleAuctionUpdate}
                       disabled={isUpdatingAuction}
-                      className="w-full"
+                      className="w-full dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
                       style={{ 
-                        backgroundColor: 'var(--accent)', 
-                        color: 'white',
-                        border: '1px solid var(--accent)'
+                        border: '1px solid transparent'
                       }}
                     >
                       {isUpdatingAuction ? (
@@ -2065,16 +2088,14 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
               </div>
 
               {/* Update Button at Bottom */}
-              <div className="flex justify-end pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex justify-end pt-6 mt-6 border-t" style={{ borderColor: 'var(--border)' }}>
                 <Button
                   onClick={handleDetailsUpdate}
                   disabled={isUpdatingStatus || isUpdatingAuction}
                   size="lg"
-                  className="min-w-[120px]"
+                  className="min-w-[140px] dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
                   style={{ 
-                    backgroundColor: 'var(--accent)', 
-                    color: 'white',
-                    border: '1px solid var(--accent)',
+                    border: '1px solid transparent',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
                   }}
                 >

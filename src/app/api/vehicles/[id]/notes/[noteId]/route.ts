@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 // PATCH - Update a note
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; noteId: string } }
+  { params }: { params: Promise<{ id: string; noteId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { noteId } = params;
+    const { noteId } = await params;
     const body = await request.json();
     const { note_text } = body;
 
@@ -46,11 +46,11 @@ export async function PATCH(
 // DELETE - Delete a note
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; noteId: string } }
+  { params }: { params: Promise<{ id: string; noteId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { noteId } = params;
+    const { noteId } = await params;
 
     const { error } = await supabase
       .from('vehicle_notes')
