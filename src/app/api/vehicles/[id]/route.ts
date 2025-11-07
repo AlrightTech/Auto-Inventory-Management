@@ -106,10 +106,18 @@ export async function PATCH(
       }
     }
 
+    // Remove id from body if present (shouldn't be in update)
+    const { id: _, ...updateData } = body as any;
+    
+    // Filter out undefined values
+    const cleanUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    );
+
     // Update vehicle
     const { data: vehicle, error } = await supabase
       .from('vehicles')
-      .update(body)
+      .update(cleanUpdateData)
       .eq('id', id)
       .select(`
         *,
@@ -119,13 +127,35 @@ export async function PATCH(
 
     if (error) {
       console.error('Error updating vehicle:', error);
-      return NextResponse.json({ error: 'Failed to update vehicle' }, { status: 500 });
+      console.error('Update data:', cleanUpdateData);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to update vehicle';
+      if (error.code === '23505') {
+        errorMessage = 'A record with this value already exists';
+      } else if (error.code === '23503') {
+        errorMessage = 'Invalid reference: Related record does not exist';
+      } else if (error.code === '23514') {
+        errorMessage = `Validation error: ${error.message || 'Invalid value for one or more fields'}`;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return NextResponse.json({ 
+        error: errorMessage,
+        details: error.message,
+        code: error.code 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ data: vehicle });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in PATCH /api/vehicles/[id]:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error?.message || 'Internal server error',
+      details: error?.toString()
+    }, { status: 500 });
   }
 }
 

@@ -754,13 +754,20 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     }
     setIsUpdatingStatus(true);
     try {
-      const updateData: any = {
-        status: status,
-        title_status: titleStatus,
-        arb_status: arbStatus,
-        auction_name: auctionName,
-        auction_date: auctionDate ? format(auctionDate, 'yyyy-MM-dd') : null,
-      };
+      // Build update data, only including fields that have values
+      const updateData: any = {};
+      
+      if (status) updateData.status = status;
+      if (titleStatus) updateData.title_status = titleStatus;
+      if (arbStatus) updateData.arb_status = arbStatus;
+      if (auctionName !== undefined) updateData.auction_name = auctionName || null;
+      if (auctionDate) {
+        updateData.auction_date = format(auctionDate, 'yyyy-MM-dd');
+      } else if (auctionDate === null || auctionDate === undefined) {
+        updateData.auction_date = null;
+      }
+
+      console.log('Updating vehicle with data:', updateData);
 
       const response = await fetch(`/api/vehicles/${vehicle.id}`, {
         method: 'PATCH',
@@ -768,19 +775,21 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         body: JSON.stringify(updateData),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to update details' }));
-        throw new Error(errorData.error || 'Failed to update details');
+        console.error('Update failed:', responseData);
+        const errorMessage = responseData.error || responseData.details || 'Failed to update details';
+        throw new Error(errorMessage);
       }
 
-      const responseData = await response.json();
       const updatedData = responseData.data || responseData;
       
       // Update local state with API response
       if (updatedData) {
         if (updatedData.status) setStatus(updatedData.status as any);
         if (updatedData.title_status) setTitleStatus(updatedData.title_status as any);
-        if (updatedData.arb_status) setArbStatus(updatedData.arb_status);
+        if (updatedData.arb_status !== undefined) setArbStatus(updatedData.arb_status);
         if (updatedData.auction_name !== undefined) setAuctionName(updatedData.auction_name || '');
         if (updatedData.auction_date) {
           setAuctionDate(new Date(updatedData.auction_date));
@@ -792,7 +801,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       toast.success('All details updated successfully');
     } catch (error: any) {
       console.error('Error updating details:', error);
-      toast.error(error?.message || 'Failed to update details');
+      const errorMessage = error?.message || 'Failed to update details';
+      toast.error(errorMessage);
     } finally {
       setIsUpdatingStatus(false);
     }
