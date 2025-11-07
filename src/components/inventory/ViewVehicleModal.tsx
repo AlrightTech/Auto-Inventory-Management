@@ -60,8 +60,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   const [editingNoteText, setEditingNoteText] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [status, setStatus] = useState<'Pending' | 'Sold' | 'Withdrew' | 'Complete' | 'ARB' | 'In Progress'>(vehicle?.status as any || 'Pending');
-  const [titleStatus, setTitleStatus] = useState<'Absent' | 'In Transit' | 'Received' | 'Available not Received' | 'Present' | 'Released' | 'Validated' | 'Sent but not Validated'>(vehicle?.title_status as any || 'Absent');
+  const [status, setStatus] = useState<'Pending' | 'Sold' | 'Withdrew' | 'Complete' | 'ARB' | 'In Progress'>((vehicle?.status as any) || 'Pending');
+  const [titleStatus, setTitleStatus] = useState<'Absent' | 'In Transit' | 'Received' | 'Available not Received' | 'Present' | 'Released' | 'Validated' | 'Sent but not Validated'>((vehicle?.title_status as any) || 'Absent');
   const [arbStatus, setArbStatus] = useState((vehicle as any)?.arb_status || 'Absent');
   const [auctionName, setAuctionName] = useState((vehicle as any)?.auction_name || '');
   const [auctionDate, setAuctionDate] = useState<Date | undefined>(
@@ -77,6 +77,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   const [users, setUsers] = useState<UserType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const tasksPerPage = 10;
+  
+  // Initialize Supabase client
   const supabase = createClient();
   
   // Expense state
@@ -127,8 +129,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   );
   const assessmentsTotalPages = Math.ceil(assessments.length / assessmentsPerPage);
 
-  if (!vehicle) return null;
-
   // Load tasks for this vehicle
   useEffect(() => {
     if (isOpen && vehicle?.id) {
@@ -142,11 +142,14 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           }
         } catch (error) {
           console.error('Error loading tasks:', error);
+          setVehicleTasks([]);
         } finally {
           setIsLoadingTasks(false);
         }
       };
       loadTasks();
+    } else {
+      setVehicleTasks([]);
     }
   }, [isOpen, vehicle?.id]);
 
@@ -160,14 +163,19 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           if (response.ok) {
             const { data } = await response.json();
             setAssessments(data || []);
+          } else {
+            setAssessments([]);
           }
         } catch (error) {
           console.error('Error loading assessments:', error);
+          setAssessments([]);
         } finally {
           setIsLoadingAssessments(false);
         }
       };
       loadAssessments();
+    } else {
+      setAssessments([]);
     }
   }, [isOpen, vehicle?.id, activeTab]);
 
@@ -215,7 +223,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           } else {
             // If endpoint doesn't exist yet, create initial timeline from vehicle data
             const initialTimeline = [];
-            if (vehicle.created_at) {
+            if (vehicle?.created_at) {
               initialTimeline.push({
                 id: `vehicle-created-${vehicle.id}`,
                 action: 'Vehicle Created',
@@ -239,6 +247,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         }
       };
       loadTimeline();
+    } else {
+      setTimelineEntries([]);
     }
   }, [isOpen, vehicle?.id, activeTab]);
 
@@ -252,9 +262,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           if (response.ok) {
             const { data } = await response.json();
             setNotes(data || []);
+          } else {
+            setNotes([]);
           }
         } catch (error) {
           console.error('Error loading notes:', error);
+          setNotes([]);
         } finally {
           setIsLoadingNotes(false);
         }
@@ -267,9 +280,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           if (response.ok) {
             const { data } = await response.json();
             setImages(data || []);
+          } else {
+            setImages([]);
           }
         } catch (error) {
           console.error('Error loading images:', error);
+          setImages([]);
         } finally {
           setIsLoadingImages(false);
         }
@@ -277,18 +293,27 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
       loadNotes();
       loadImages();
+    } else {
+      setNotes([]);
+      setImages([]);
     }
   }, [isOpen, vehicle?.id]);
 
   // Load users for assignment dropdown
   useEffect(() => {
-    if (isOpen && activeTab === 'tasks') {
+    if (isOpen && activeTab === 'tasks' && supabase) {
       const loadUsers = async () => {
         try {
-          const { data: usersData } = await supabase
+          const { data: usersData, error } = await supabase
             .from('profiles')
             .select('*')
             .order('username', { ascending: true });
+
+          if (error) {
+            console.error('Error loading users:', error);
+            setUsers([]);
+            return;
+          }
 
           if (usersData) {
             const usersWithStatus: UserType[] = usersData.map(user => ({
@@ -301,12 +326,17 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
               created_at: user.created_at,
             }));
             setUsers(usersWithStatus);
+          } else {
+            setUsers([]);
           }
         } catch (error) {
           console.error('Error loading users:', error);
+          setUsers([]);
         }
       };
       loadUsers();
+    } else {
+      setUsers([]);
     }
   }, [isOpen, activeTab, supabase]);
 
@@ -416,7 +446,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const fileName = `${vehicle.year}-${vehicle.make}-${vehicle.model}-${vehicle.vin || 'vehicle'}`.replace(/\s+/g, '-');
+      const fileName = `${vehicleYear}-${vehicleMake}-${vehicleModel}-${vehicleVin || 'vehicle'}`.replace(/\s+/g, '-');
       link.href = url;
       link.download = `${fileName}-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
@@ -833,8 +863,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
   const handleExportTasksPDF = () => {
     try {
-      const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-      const vin = vehicle.vin || 'N/A';
+      const vehicleName = `${vehicleYear} ${vehicleMake} ${vehicleModel}`;
+      const vin = vehicleVin || 'N/A';
       const generatedDate = format(new Date(), 'MM/dd/yyyy HH:mm');
 
       // Create HTML content for PDF
@@ -905,8 +935,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
   const handleExportAssessmentsPDF = () => {
     try {
-      const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-      const vin = vehicle.vin || 'N/A';
+      const vehicleName = `${vehicleYear} ${vehicleMake} ${vehicleModel}`;
+      const vin = vehicleVin || 'N/A';
       const generatedDate = format(new Date(), 'MM/dd/yyyy HH:mm');
 
       // Create HTML content for PDF
@@ -1143,7 +1173,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         return stringValue;
       };
 
-      const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+      const vehicleName = `${vehicleYear} ${vehicleMake} ${vehicleModel}`;
       const headers = ['#', 'Vehicle', 'Expense', 'Date', 'Cost', 'Note'];
       
       const csvRows = expenses.map((expense, index) => [
@@ -1201,8 +1231,20 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   );
   const totalPages = Math.ceil(vehicleTasks.length / tasksPerPage);
 
+  // Guard: Don't render if vehicle is not available
+  if (!vehicle) {
+    return null;
+  }
+
+  // Ensure vehicle has required properties
+  const vehicleId = vehicle?.id;
+  const vehicleMake = vehicle?.make || 'Unknown';
+  const vehicleModel = vehicle?.model || 'Unknown';
+  const vehicleYear = vehicle?.year || 'Unknown';
+  const vehicleVin = vehicle?.vin || 'N/A';
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen && !!vehicle} onOpenChange={onClose}>
       <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center justify-between" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
@@ -1352,19 +1394,19 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                   <div>
                     <div style={{ color: 'var(--subtext)' }}>Make</div>
-                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicle.make}</div>
+                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicleMake}</div>
                   </div>
                   <div>
                     <div style={{ color: 'var(--subtext)' }}>Model</div>
-                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicle.model}</div>
+                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicleModel}</div>
                   </div>
                   <div>
                     <div style={{ color: 'var(--subtext)' }}>Year</div>
-                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicle.year}</div>
+                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicleYear}</div>
                   </div>
                   <div>
                     <div style={{ color: 'var(--subtext)' }}>VIN</div>
-                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicle.vin || 'N/A'}</div>
+                    <div className="font-medium" style={{ color: 'var(--text)' }}>{vehicleVin}</div>
                   </div>
                   <div>
                     <div style={{ color: 'var(--subtext)' }}>Purchase Date</div>
@@ -1895,8 +1937,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                               {rowIndex}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {vehicle.year} {vehicle.make} {vehicle.model}
-                              {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
+                              {vehicleYear} {vehicleMake} {vehicleModel}
+                              {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
                               {task.task_name}
@@ -2250,8 +2292,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                               {rowIndex}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {vehicle.year} {vehicle.make} {vehicle.model}
-                              {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
+                              {vehicleYear} {vehicleMake} {vehicleModel}
+                              {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                               {assessment.assessment_date ? format(new Date(assessment.assessment_date), 'dd-MM-yyyy') : 'N/A'}
@@ -2530,8 +2572,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                             {index + 1}
                           </TableCell>
                           <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                            {vehicle.year} {vehicle.make} {vehicle.model}
-                            {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
+                            {vehicleYear} {vehicleMake} {vehicleModel}
+                            {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
                           </TableCell>
                           <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
                             {expense.expense_description}
