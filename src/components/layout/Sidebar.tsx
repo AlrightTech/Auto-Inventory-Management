@@ -228,7 +228,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                       className: "w-5 h-5",
                       style: { color: isParentActive(item.children) ? 'white' : 'var(--text)' }
                     })}
-                    <span>{item.name}</span>
+                    <span style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>{item.name}</span>
                   </div>
                   {expandedItems.includes(item.name) ? (
                     <ChevronDown className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
@@ -311,7 +311,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                     className: "w-5 h-5",
                     style: { color: isActive(item.href!) ? 'white' : 'var(--text)' }
                   })}
-                  <span>{item.name}</span>
+                  <span style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>{item.name}</span>
                 </div>
                 {item.name === 'Chat' && unreadCount > 0 && (
                   <span 
