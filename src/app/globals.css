@@ -240,7 +240,7 @@ body {
   font-size: 1.2rem;
 }
 
-/* Dark Mode Form Field Improvements - White Background for Inputs */
+/* Dark Mode Form Field Improvements - Dark Background with White Text */
 .dark input[type="text"],
 .dark input[type="email"],
 .dark input[type="password"],
@@ -249,9 +249,9 @@ body {
 .dark textarea,
 .dark select,
 .dark .control-panel {
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
-  border-color: #e3e6ea !important;
+  background-color: var(--card-bg) !important;
+  color: #FFFFFF !important;
+  border-color: var(--border) !important;
 }
 
 .dark input[type="text"]:focus,
@@ -262,8 +262,8 @@ body {
 .dark textarea:focus,
 .dark select:focus,
 .dark .control-panel:focus {
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
+  background-color: var(--card-bg) !important;
+  color: #FFFFFF !important;
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2) !important;
 }
@@ -275,7 +275,7 @@ body {
 .dark input[type="number"]::placeholder,
 .dark textarea::placeholder,
 .dark .control-panel::placeholder {
-  color: #666 !important;
+  color: rgba(255, 255, 255, 0.5) !important;
 }
 
 /* Dark Mode Table Styling - White Text for All Elements */

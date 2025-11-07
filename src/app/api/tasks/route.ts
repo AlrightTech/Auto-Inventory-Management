@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const category = searchParams.get('category');
     const assignedTo = searchParams.get('assignedTo');
+    const vehicleId = searchParams.get('vehicleId');
     const search = searchParams.get('search');
     
     // Build query
@@ -38,6 +39,10 @@ export async function GET(request: NextRequest) {
     
     if (assignedTo) {
       query = query.eq('assigned_to', assignedTo);
+    }
+    
+    if (vehicleId) {
+      query = query.eq('vehicle_id', vehicleId);
     }
     
     if (search) {

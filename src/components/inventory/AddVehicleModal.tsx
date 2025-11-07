@@ -11,11 +11,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X, Plus, Car, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { CalendarIcon, X, Plus, Car, Loader2, FileText, ClipboardList, ClipboardCheck, Wrench, Truck, Clock, Upload, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { VehicleInsert, VehicleWithRelations } from '@/types/vehicle';
+import { TaskWithRelations } from '@/types';
 import { vehicleSchema, VehicleInput } from '@/lib/validations/inventory';
 
 interface AddVehicleModalProps {
@@ -65,6 +67,39 @@ const arbStatusOptions = [
 export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit }: AddVehicleModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [activeTab, setActiveTab] = useState('details');
+  const [vehicleTasks, setVehicleTasks] = useState<TaskWithRelations[]>([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+
+  // Load tasks for this vehicle when editing
+  useEffect(() => {
+    if (isOpen && vehicleToEdit?.id) {
+      const loadTasks = async () => {
+        try {
+          setIsLoadingTasks(true);
+          const response = await fetch(`/api/tasks?vehicleId=${vehicleToEdit.id}&limit=100`);
+          if (response.ok) {
+            const { data } = await response.json();
+            setVehicleTasks(data || []);
+          }
+        } catch (error) {
+          console.error('Error loading tasks:', error);
+        } finally {
+          setIsLoadingTasks(false);
+        }
+      };
+      loadTasks();
+    }
+  }, [isOpen, vehicleToEdit?.id]);
+
+  const tabs = [
+    { id: 'details', label: 'Details', icon: FileText },
+    { id: 'tasks', label: 'Tasks', icon: ClipboardList },
+    { id: 'assessment', label: 'Assessment', icon: ClipboardCheck },
+    { id: 'parts', label: 'Parts & Expenses', icon: Wrench },
+    { id: 'dispatch', label: 'Central Dispatch', icon: Truck },
+    { id: 'timeline', label: 'Timeline', icon: Clock },
+  ];
 
   const {
     register,
@@ -203,11 +238,93 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-4xl no-scroll">
+          <DialogContent className={`dashboard-card neon-glow instrument-cluster ${vehicleToEdit ? 'max-w-6xl' : 'max-w-4xl'} no-scroll`}>
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold flex items-center" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
-                <Car className="w-6 h-6 mr-2" />
-                {vehicleToEdit ? 'Edit Vehicle' : 'Add New Vehicle'}
+              <DialogTitle className="text-2xl font-bold flex items-center justify-between" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                <div className="flex items-center">
+                  <Car className="w-6 h-6 mr-2" />
+                  {vehicleToEdit ? 'Edit Vehicle' : 'Add New Vehicle'}
+                </div>
+                {vehicleToEdit && activeTab === 'details' && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-white border-slate-600 hover:bg-slate-700/50"
+                      onClick={() => toast.info('Upload Title feature coming soon')}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Title
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-white border-slate-600 hover:bg-slate-700/50"
+                      onClick={() => {
+                        const vehicle = vehicleToEdit;
+                        try {
+                          const escapeCsvValue = (value: any): string => {
+                            if (value === null || value === undefined) return '';
+                            const stringValue = String(value);
+                            if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+                              return `"${stringValue.replace(/"/g, '""')}"`;
+                            }
+                            return stringValue;
+                          };
+
+                          const headers = [
+                            'VIN', 'Year', 'Make', 'Model', 'Trim', 'Exterior Color', 'Interior Color',
+                            'Status', 'Odometer', 'Title Status', 'PSI Status', 'Dealshield Arbitration Status',
+                            'Bought Price', 'Buy Fee', 'Sale Invoice', 'Other Charges', 'Total Vehicle Cost',
+                            'Sale Date', 'Lane', 'Run', 'Channel', 'Facilitating Location', 'Vehicle Location',
+                            'Pickup Location Address1', 'Pickup Location City', 'Pickup Location State',
+                            'Pickup Location Zip', 'Pickup Location Phone', 'Seller Name', 'Buyer Dealership',
+                            'Buyer Contact Name', 'Buyer AA ID', 'Sale Invoice Status'
+                          ];
+
+                          const csvRow = [
+                            vehicle.vin || '', vehicle.year || '', vehicle.make || '', vehicle.model || '',
+                            vehicle.trim || '', vehicle.exterior_color || '', vehicle.interior_color || '',
+                            vehicle.status || '', vehicle.odometer || '', vehicle.title_status || '',
+                            vehicle.psi_status || '', vehicle.dealshield_arbitration_status || '',
+                            vehicle.bought_price || '', vehicle.buy_fee || '', vehicle.sale_invoice || '',
+                            vehicle.other_charges || '', vehicle.total_vehicle_cost || '', vehicle.sale_date || '',
+                            vehicle.lane || '', vehicle.run || '', vehicle.channel || '',
+                            vehicle.facilitating_location || '', vehicle.vehicle_location || '',
+                            vehicle.pickup_location_address1 || '', vehicle.pickup_location_city || '',
+                            vehicle.pickup_location_state || '', vehicle.pickup_location_zip || '',
+                            vehicle.pickup_location_phone || '', vehicle.seller_name || '',
+                            vehicle.buyer_dealership || '', vehicle.buyer_contact_name || '',
+                            vehicle.buyer_aa_id || '', vehicle.sale_invoice_status || ''
+                          ];
+
+                          const csvContent = [
+                            headers.map(escapeCsvValue).join(','),
+                            csvRow.map(escapeCsvValue).join(',')
+                          ].join('\n');
+
+                          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                          const url = window.URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          const fileName = `${vehicle.year}-${vehicle.make}-${vehicle.model}-${vehicle.vin || 'vehicle'}`.replace(/\s+/g, '-');
+                          link.href = url;
+                          link.download = `${fileName}-${new Date().toISOString().split('T')[0]}.csv`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          window.URL.revokeObjectURL(url);
+                          toast.success('Vehicle data downloaded successfully');
+                        } catch (error) {
+                          console.error('Error downloading vehicle:', error);
+                          toast.error('Failed to download vehicle data');
+                        }
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                )}
               </DialogTitle>
               <DialogDescription style={{ color: 'var(--subtext)' }}>
                 {vehicleToEdit 
@@ -216,7 +333,40 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
               </DialogDescription>
             </DialogHeader>
 
+            {/* Tab Navigation - Only show when editing */}
+            {vehicleToEdit && (
+              <div className="border-b" style={{ borderColor: 'var(--border)' }}>
+                <div className="flex space-x-1 overflow-x-auto">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <Button
+                        key={tab.id}
+                        variant="ghost"
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 rounded-none border-b-2 transition-colors ${
+                          activeTab === tab.id
+                            ? 'border-blue-500 text-blue-400'
+                            : 'border-transparent text-slate-400 hover:text-slate-300'
+                        }`}
+                        style={{
+                          borderBottomColor: activeTab === tab.id ? 'var(--accent)' : 'transparent',
+                          color: activeTab === tab.id ? 'var(--accent)' : 'var(--subtext)',
+                        }}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {tab.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6" style={{ overflowY: 'visible', overflowX: 'hidden', maxHeight: 'none', height: 'auto' }}>
+              {/* Details Tab Content */}
+              {(activeTab === 'details' || !vehicleToEdit) && (
+                <>
                 {/* Vehicle Basic Information */}
                 <div className="form-section">
                   <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
@@ -778,8 +928,132 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     </div>
                   </div>
                 </div>
+                </>
+              )}
 
-                  {/* Action Buttons */}
+              {/* Tasks Tab - Only in Edit mode */}
+              {vehicleToEdit && activeTab === 'tasks' && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <ClipboardList className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Vehicle Tasks</h4>
+                  </div>
+                  {isLoadingTasks ? (
+                    <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>Loading tasks...</div>
+                  ) : vehicleTasks.length === 0 ? (
+                    <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>No tasks assigned to this vehicle.</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {vehicleTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          className="p-3 rounded-lg border"
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h5 className="font-medium mb-1" style={{ color: 'var(--text)' }}>{task.task_name}</h5>
+                              {task.notes && (
+                                <p className="text-sm mb-2" style={{ color: 'var(--subtext)' }}>{task.notes}</p>
+                              )}
+                              <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--subtext)' }}>
+                                <span>Category: {task.category || 'N/A'}</span>
+                                <span>Due: {task.due_date ? format(new Date(task.due_date), 'MMM dd, yyyy') : 'N/A'}</span>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    task.status === 'completed'
+                                      ? 'bg-green-500/20 text-green-400'
+                                      : task.status === 'cancelled'
+                                      ? 'bg-gray-500/20 text-gray-400'
+                                      : 'bg-amber-500/20 text-amber-400'
+                                  }
+                                >
+                                  {task.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Assessment Tab */}
+              {vehicleToEdit && activeTab === 'assessment' && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <ClipboardCheck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Vehicle Assessment</h4>
+                  </div>
+                  <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>
+                    Assessment information will be displayed here.
+                  </div>
+                </div>
+              )}
+
+              {/* Parts & Expenses Tab */}
+              {vehicleToEdit && activeTab === 'parts' && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Wrench className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Parts & Expenses</h4>
+                  </div>
+                  <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>
+                    Parts and expenses information will be displayed here.
+                  </div>
+                </div>
+              )}
+
+              {/* Central Dispatch Tab */}
+              {vehicleToEdit && activeTab === 'dispatch' && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Truck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Central Dispatch</h4>
+                  </div>
+                  <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>
+                    Dispatch and delivery information will be displayed here.
+                  </div>
+                </div>
+              )}
+
+              {/* Timeline Tab */}
+              {vehicleToEdit && activeTab === 'timeline' && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Clock className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Activity Timeline</h4>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: 'var(--accent)' }} />
+                      <div className="flex-1">
+                        <div className="font-medium" style={{ color: 'var(--text)' }}>Vehicle Created</div>
+                        <div className="text-sm" style={{ color: 'var(--subtext)' }}>
+                          {vehicleToEdit.created_at ? format(new Date(vehicleToEdit.created_at), 'MMMM dd, yyyy HH:mm') : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                    {vehicleToEdit.updated_at && vehicleToEdit.updated_at !== vehicleToEdit.created_at && (
+                      <div className="flex items-start gap-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                        <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: 'var(--accent)' }} />
+                        <div className="flex-1">
+                          <div className="font-medium" style={{ color: 'var(--text)' }}>Last Updated</div>
+                          <div className="text-sm" style={{ color: 'var(--subtext)' }}>
+                            {format(new Date(vehicleToEdit.updated_at), 'MMMM dd, yyyy HH:mm')}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+                  {/* Action Buttons - Only show on Details tab or when adding */}
+                  {(activeTab === 'details' || !vehicleToEdit) && (
                   <div className="form-actions">
                     <Button
                       type="button"
@@ -820,6 +1094,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                       )}
                     </Button>
                   </div>
+                  )}
               </form>
           </DialogContent>
         </Dialog>

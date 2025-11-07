@@ -30,7 +30,9 @@ import {
   AlertCircle,
   Clock,
   Loader2,
-  Trash2
+  Trash2,
+  DollarSign,
+  FileText
 } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
@@ -76,6 +78,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
   const [filteredVehicles, setFilteredVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isMarkingAsSold, setIsMarkingAsSold] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithRelations | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -158,6 +161,125 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
   const handleEdit = (vehicle: VehicleWithRelations) => {
     setSelectedVehicle(vehicle);
     setIsEditModalOpen(true);
+  };
+
+  // Handle mark as sold
+  const handleMarkAsSold = async (vehicleId: string, vehicleInfo: string) => {
+    if (!confirm(`Mark ${vehicleInfo} as Sold?`)) {
+      return;
+    }
+
+    try {
+      setIsMarkingAsSold(vehicleId);
+      const response = await fetch(`/api/vehicles/${vehicleId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'Sold' }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update vehicle status');
+      }
+
+      // Update local state
+      setVehicles(prev => prev.map(v => 
+        v.id === vehicleId ? { ...v, status: 'Sold' as const } : v
+      ));
+      toast.success('Vehicle marked as Sold');
+      if (onVehicleAdded) {
+        onVehicleAdded();
+      }
+    } catch (error) {
+      console.error('Error marking vehicle as sold:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to mark vehicle as sold');
+    } finally {
+      setIsMarkingAsSold(null);
+    }
+  };
+
+  // Handle download vehicle
+  const handleDownloadVehicle = (vehicle: VehicleWithRelations) => {
+    try {
+      // Helper function to escape CSV values
+      const escapeCsvValue = (value: any): string => {
+        if (value === null || value === undefined) return '';
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      };
+
+      const headers = [
+        'VIN', 'Year', 'Make', 'Model', 'Trim', 'Exterior Color', 'Interior Color',
+        'Status', 'Odometer', 'Title Status', 'PSI Status', 'Dealshield Arbitration Status',
+        'Bought Price', 'Buy Fee', 'Sale Invoice', 'Other Charges', 'Total Vehicle Cost',
+        'Sale Date', 'Lane', 'Run', 'Channel', 'Facilitating Location', 'Vehicle Location',
+        'Pickup Location Address1', 'Pickup Location City', 'Pickup Location State',
+        'Pickup Location Zip', 'Pickup Location Phone', 'Seller Name', 'Buyer Dealership',
+        'Buyer Contact Name', 'Buyer AA ID', 'Sale Invoice Status'
+      ];
+
+      const csvRow = [
+        vehicle.vin || '',
+        vehicle.year || '',
+        vehicle.make || '',
+        vehicle.model || '',
+        vehicle.trim || '',
+        vehicle.exterior_color || '',
+        vehicle.interior_color || '',
+        vehicle.status || '',
+        vehicle.odometer || '',
+        vehicle.title_status || '',
+        vehicle.psi_status || '',
+        vehicle.dealshield_arbitration_status || '',
+        vehicle.bought_price || '',
+        vehicle.buy_fee || '',
+        vehicle.sale_invoice || '',
+        vehicle.other_charges || '',
+        vehicle.total_vehicle_cost || '',
+        vehicle.sale_date || '',
+        vehicle.lane || '',
+        vehicle.run || '',
+        vehicle.channel || '',
+        vehicle.facilitating_location || '',
+        vehicle.vehicle_location || '',
+        vehicle.pickup_location_address1 || '',
+        vehicle.pickup_location_city || '',
+        vehicle.pickup_location_state || '',
+        vehicle.pickup_location_zip || '',
+        vehicle.pickup_location_phone || '',
+        vehicle.seller_name || '',
+        vehicle.buyer_dealership || '',
+        vehicle.buyer_contact_name || '',
+        vehicle.buyer_aa_id || '',
+        vehicle.sale_invoice_status || ''
+      ];
+
+      const csvContent = [
+        headers.map(escapeCsvValue).join(','),
+        csvRow.map(escapeCsvValue).join(',')
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const fileName = `${vehicle.year}-${vehicle.make}-${vehicle.model}-${vehicle.vin || 'vehicle'}`.replace(/\s+/g, '-');
+      link.href = url;
+      link.download = `${fileName}-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Vehicle data downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading vehicle:', error);
+      toast.error('Failed to download vehicle data');
+    }
   };
 
   return (
@@ -325,7 +447,26 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger }: VehicleTablePro
                               ) : (
                                 <Trash2 className="mr-2 h-4 w-4" />
                               )}
-                              {isDeleting === vehicle.id ? 'Deleting...' : 'Delete Vehicle'}
+                              {isDeleting === vehicle.id ? 'Deleting...' : 'Delete'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleMarkAsSold(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
+                              disabled={isMarkingAsSold === vehicle.id || vehicle.status === 'Sold'}
+                              style={{ color: isMarkingAsSold === vehicle.id ? 'var(--subtext)' : 'var(--text)' }}
+                            >
+                              {isMarkingAsSold === vehicle.id ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <DollarSign className="mr-2 h-4 w-4" />
+                              )}
+                              {isMarkingAsSold === vehicle.id ? 'Updating...' : 'Mark as Sold'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              style={{ color: 'var(--text)' }}
+                              onClick={() => handleDownloadVehicle(vehicle)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              Download
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                       </DropdownMenu>

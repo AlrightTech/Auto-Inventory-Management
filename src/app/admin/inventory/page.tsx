@@ -6,16 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AddVehicleModal } from '@/components/inventory/AddVehicleModal';
-import { ImportModal } from '@/components/inventory/ImportModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
-import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Upload, Download, FileText } from 'lucide-react';
+import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, FileText } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
 export default function InventoryPage() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -317,11 +315,11 @@ export default function InventoryPage() {
                     className="pl-9 bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
                   />
                 </div>
-                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50">
                   <Filter className="w-4 h-4 mr-2" />
                   Filter
                 </Button>
-                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50">
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset
                 </Button>
@@ -329,15 +327,7 @@ export default function InventoryPage() {
               <div className="flex items-center gap-2">
                 <Button 
                   variant="outline" 
-                  className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                  onClick={() => setIsImportModalOpen(true)}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import CSV/PDF
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
                   onClick={handleExportCSV}
                   disabled={vehicles.length === 0}
                 >
@@ -346,7 +336,7 @@ export default function InventoryPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
                   onClick={handleExportPDF}
                   disabled={vehicles.length === 0}
                 >
@@ -380,14 +370,6 @@ export default function InventoryPage() {
         }}
       />
 
-      {/* Import Modal */}
-      <ImportModal 
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onImportComplete={() => {
-          setRefreshTrigger(prev => prev + 1);
-        }}
-      />
     </div>
   );
 }

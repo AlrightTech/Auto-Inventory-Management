@@ -44,6 +44,9 @@ interface SoldVehicle {
   purchaseDate: string;
   saleDate: string;
   boughtPrice: number;
+  buyFee?: number;
+  otherCharges?: number;
+  totalCost?: number;
   soldPrice: number;
   netProfit: number;
   titleStatus: string;
@@ -121,9 +124,9 @@ export default function SoldPage() {
     vehicle.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalSales = vehicles.reduce((sum, vehicle) => sum + vehicle.soldPrice, 0);
-  const totalPurchases = vehicles.reduce((sum, vehicle) => sum + vehicle.boughtPrice, 0);
-  const totalProfit = vehicles.reduce((sum, vehicle) => sum + vehicle.netProfit, 0);
+  const totalSales = vehicles.reduce((sum, vehicle) => sum + (vehicle.soldPrice || 0), 0);
+  const totalPurchases = vehicles.reduce((sum, vehicle) => sum + ((vehicle.boughtPrice || 0) + (vehicle.buyFee || 0) + (vehicle.otherCharges || 0)), 0);
+  const totalProfit = vehicles.reduce((sum, vehicle) => sum + (vehicle.netProfit || 0), 0);
   const avgPrice = vehicles.length > 0 ? totalSales / vehicles.length : 0;
 
   const handleStatusChange = async (vehicleId: string, newStatus: string) => {
@@ -149,9 +152,26 @@ export default function SoldPage() {
     }
   };
 
-  const handlePriceChange = async (vehicleId: string, field: 'soldPrice' | 'boughtPrice', value: string) => {
+  const handlePriceChange = async (vehicleId: string, field: 'soldPrice' | 'boughtPrice' | 'buyFee' | 'otherCharges', value: string) => {
     const numValue = parseFloat(value) || 0;
-    const updateField = field === 'soldPrice' ? 'sold_price' : 'bought_price';
+    let updateField: string;
+    
+    switch (field) {
+      case 'soldPrice':
+        updateField = 'sale_invoice';
+        break;
+      case 'boughtPrice':
+        updateField = 'bought_price';
+        break;
+      case 'buyFee':
+        updateField = 'buy_fee';
+        break;
+      case 'otherCharges':
+        updateField = 'other_charges';
+        break;
+      default:
+        updateField = 'bought_price';
+    }
     
     try {
       const response = await fetch(`/api/vehicles/${vehicleId}`, {
@@ -192,10 +212,10 @@ export default function SoldPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white glow-text">
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
             Sold Vehicles
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p style={{ color: 'var(--subtext)' }} className="mt-1">
             Track sold vehicles, profit calculations, and payment status.
           </p>
         </div>
@@ -221,16 +241,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
+          <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Sales</p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${totalSales.toLocaleString()}`}
+                  <p className="text-sm font-medium" style={{ color: 'var(--subtext)' }}>Total Sales</p>
+                  <p className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} /> : `$${totalSales.toLocaleString()}`}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-500 dark:text-green-400" />
+                <DollarSign className="h-8 w-8" style={{ color: '#10b981' }} />
               </div>
             </CardContent>
           </Card>
@@ -241,16 +261,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
+          <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Purchases</p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${totalPurchases.toLocaleString()}`}
+                  <p className="text-sm font-medium" style={{ color: 'var(--subtext)' }}>Total Purchases</p>
+                  <p className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} /> : `$${totalPurchases.toLocaleString()}`}
                   </p>
                 </div>
-                <TrendingDown className="h-8 w-8 text-red-500 dark:text-red-400" />
+                <TrendingDown className="h-8 w-8" style={{ color: '#ef4444' }} />
               </div>
             </CardContent>
           </Card>
@@ -261,16 +281,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
+          <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Net Profit</p>
-                  <p className={`text-3xl font-bold ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${totalProfit.toLocaleString()}`}
+                  <p className="text-sm font-medium" style={{ color: 'var(--subtext)' }}>Net Profit</p>
+                  <p className="text-3xl font-bold" style={{ color: totalProfit >= 0 ? '#10b981' : '#ef4444' }}>
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} /> : `$${totalProfit.toLocaleString()}`}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                <TrendingUp className="h-8 w-8" style={{ color: totalProfit >= 0 ? '#10b981' : '#ef4444' }} />
               </div>
             </CardContent>
           </Card>
@@ -281,16 +301,16 @@ export default function SoldPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="glass-card border-slate-200/50 dark:border-slate-700/50">
+          <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Avg Price</p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : `$${avgPrice.toLocaleString()}`}
+                  <p className="text-sm font-medium" style={{ color: 'var(--subtext)' }}>Avg Price</p>
+                  <p className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
+                    {isLoading ? <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} /> : `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-purple-500 dark:text-purple-400" />
+                <DollarSign className="h-8 w-8" style={{ color: '#a855f7' }} />
               </div>
             </CardContent>
           </Card>
@@ -328,22 +348,22 @@ export default function SoldPage() {
       >
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-slate-900 dark:text-white">Sold Vehicles ({filteredVehicles.length})</CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400">
+            <CardTitle className="text-xl" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>Sold Vehicles ({filteredVehicles.length})</CardTitle>
+            <CardDescription style={{ color: 'var(--subtext)' }}>
               Manage sold vehicles and track financial performance
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                <span className="ml-2 text-slate-600 dark:text-slate-400">Loading sold vehicles...</span>
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
+                <span className="ml-2" style={{ color: 'var(--subtext)' }}>Loading sold vehicles...</span>
               </div>
             ) : filteredVehicles.length === 0 ? (
               <div className="text-center py-12">
-                <DollarSign className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-400 mb-2">No sold vehicles yet</h3>
-                <p className="text-slate-500 dark:text-slate-500">
+                <DollarSign className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--subtext)' }} />
+                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>No sold vehicles yet</h3>
+                <p style={{ color: 'var(--subtext)' }}>
                   {vehicles.length === 0 
                     ? "No vehicles have been marked as sold. Add vehicles to your inventory and mark them as sold to see them here."
                     : "No vehicles match your search criteria. Try adjusting your search terms."
@@ -354,15 +374,15 @@ export default function SoldPage() {
             <Table>
               <TableHeader>
                   <TableRow className="border-slate-200 dark:border-slate-700/50">
-                    <TableHead className="text-slate-700 dark:text-slate-300">Vehicle</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Purchase Date</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Sale Date</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Bought Price</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Sold Price</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Net Profit</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Status</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Payment</TableHead>
-                    <TableHead className="text-slate-700 dark:text-slate-300">Actions</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Vehicle</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Purchase Date</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Sale Date</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Bought Price</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Sold Price</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Net Profit</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Status</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Payment</TableHead>
+                    <TableHead style={{ color: 'var(--text)' }}>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -374,37 +394,47 @@ export default function SoldPage() {
                     transition={{ delay: index * 0.1 }}
                     className="border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/30 transition-colors"
                   >
-                    <TableCell className="text-slate-900 dark:text-white">
+                    <TableCell style={{ color: 'var(--text)' }}>
                       <div>
                         <div className="font-medium">{vehicle.vehicle}</div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400">VIN: {vehicle.vin}</div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400">Buyer: {vehicle.buyerName}</div>
+                        <div className="text-sm" style={{ color: 'var(--subtext)' }}>VIN: {vehicle.vin}</div>
+                        <div className="text-sm" style={{ color: 'var(--subtext)' }}>Buyer: {vehicle.buyerName}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-slate-700 dark:text-slate-300">
-                      {new Date(vehicle.purchaseDate).toLocaleDateString()}
+                    <TableCell style={{ color: 'var(--text)' }}>
+                      {vehicle.purchaseDate && vehicle.purchaseDate !== 'N/A' ? new Date(vehicle.purchaseDate).toLocaleDateString() : 'N/A'}
                     </TableCell>
-                    <TableCell className="text-slate-700 dark:text-slate-300">
-                      {new Date(vehicle.saleDate).toLocaleDateString()}
+                    <TableCell style={{ color: 'var(--text)' }}>
+                      {vehicle.saleDate && vehicle.saleDate !== 'N/A' ? new Date(vehicle.saleDate).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell>
                       <Input
                         type="number"
-                        value={vehicle.boughtPrice}
+                        value={vehicle.boughtPrice || 0}
                         onChange={(e) => handlePriceChange(vehicle.id, 'boughtPrice', e.target.value)}
-                        className="w-24 bg-white/50 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+                        className="w-24 control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                     </TableCell>
                     <TableCell>
                       <Input
                         type="number"
-                        value={vehicle.soldPrice}
+                        value={vehicle.soldPrice || 0}
                         onChange={(e) => handlePriceChange(vehicle.id, 'soldPrice', e.target.value)}
-                        className="w-24 bg-white/50 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+                        className="w-24 control-panel"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
                       />
                     </TableCell>
-                    <TableCell className={`font-bold ${vehicle.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      ${vehicle.netProfit.toLocaleString()}
+                    <TableCell className="font-bold" style={{ color: vehicle.netProfit >= 0 ? '#10b981' : '#ef4444' }}>
+                      ${(vehicle.netProfit || 0).toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <Badge 
