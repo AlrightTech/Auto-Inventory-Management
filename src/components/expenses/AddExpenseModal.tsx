@@ -218,12 +218,10 @@ export function AddExpenseModal({
             </Button>
             <Button
               type="submit"
-              className="flex-1"
+              className="flex-1 dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
               disabled={isSubmitting}
               style={{ 
-                backgroundColor: 'var(--accent)', 
-                color: 'white',
-                border: '1px solid var(--accent)'
+                border: '1px solid transparent'
               }}
             >
               {isSubmitting ? (

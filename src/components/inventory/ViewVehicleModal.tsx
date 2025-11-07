@@ -2762,11 +2762,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       setIsAddExpenseModalOpen(true);
                     }}
                     size="sm"
+                    className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
                     style={{ 
-                      backgroundColor: 'var(--accent)', 
-                      color: 'white', 
                       borderRadius: '8px',
-                      border: '1px solid var(--accent)'
+                      border: '1px solid transparent'
                     }}
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -2777,10 +2776,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     variant="outline"
                     size="sm"
                     disabled={expenses.length === 0}
+                    className="dark:bg-[var(--card-bg)] bg-white dark:border-[var(--border)] border-gray-300 dark:text-[var(--text)] text-gray-900 hover:bg-gray-50 dark:hover:bg-[var(--card-bg)]/80"
                     style={{ 
-                      backgroundColor: 'var(--card-bg)', 
-                      borderColor: 'var(--border)', 
-                      color: 'var(--text)', 
                       borderRadius: '8px',
                       borderWidth: '1px',
                       borderStyle: 'solid'
@@ -2810,22 +2807,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                   <div className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
                     Get started by adding your first expense for this vehicle.
                   </div>
-                  <Button
-                    onClick={() => {
-                      setEditingExpense(null);
-                      setIsAddExpenseModalOpen(true);
-                    }}
-                    size="sm"
-                    style={{ 
-                      backgroundColor: 'var(--accent)', 
-                      color: 'white', 
-                      borderRadius: '8px',
-                      border: '1px solid var(--accent)'
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Expense
-                  </Button>
                 </motion.div>
               ) : (
                 <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
@@ -2905,11 +2886,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                 <Button
                                   size="sm"
                                   onClick={() => handleUpdateExpenseCost(expense.id)}
+                                  className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
                                   style={{ 
-                                    backgroundColor: 'var(--accent)', 
-                                    color: 'white', 
                                     borderRadius: '6px',
-                                    border: '1px solid var(--accent)'
+                                    border: '1px solid transparent'
                                   }}
                                 >
                                   Save
@@ -2966,11 +2946,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                 <Button
                                   size="sm"
                                   onClick={() => handleUpdateExpenseNote(expense.id)}
+                                  className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
                                   style={{ 
-                                    backgroundColor: 'var(--accent)', 
-                                    color: 'white', 
                                     borderRadius: '6px',
-                                    border: '1px solid var(--accent)'
+                                    border: '1px solid transparent'
                                   }}
                                 >
                                   Save
