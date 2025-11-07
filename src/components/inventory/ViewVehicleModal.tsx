@@ -739,11 +739,19 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   };
 
   const handleEditTask = (task: TaskWithRelations) => {
+    if (!task || !task.id) {
+      toast.error('Invalid task');
+      return;
+    }
     setEditingTask(task);
     setIsEditTaskModalOpen(true);
   };
 
   const handleDeleteTask = async (taskId: string) => {
+    if (!taskId || !vehicle?.id) {
+      toast.error('Invalid task or vehicle');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this task?')) {
       return;
     }
@@ -754,18 +762,23 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete task');
+        const error = await response.json().catch(() => ({ error: 'Failed to delete task' }));
+        throw new Error(error.error || 'Failed to delete task');
       }
 
       toast.success('Task deleted successfully');
-      setVehicleTasks(prev => prev.filter(t => t.id !== taskId));
+      setVehicleTasks(prev => (prev || []).filter(t => t.id !== taskId));
     } catch (error: any) {
       console.error('Error deleting task:', error);
-      toast.error(error.message || 'Failed to delete task');
+      toast.error(error?.message || 'Failed to delete task');
     }
   };
 
   const handleMarkAsSold = async (taskId: string) => {
+    if (!taskId || !vehicle?.id) {
+      toast.error('Invalid task or vehicle');
+      return;
+    }
     try {
       // Update vehicle status to Sold
       const response = await fetch(`/api/vehicles/${vehicle.id}`, {
@@ -789,6 +802,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   };
 
   const handleUpdateNotes = async (taskId: string) => {
+    if (!taskId || !vehicle?.id) {
+      toast.error('Invalid task or vehicle');
+      return;
+    }
     if (!editingNotesText.trim()) {
       toast.error('Please enter notes');
       return;
@@ -807,17 +824,21 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       }
 
       const { data } = await response.json();
-      setVehicleTasks(prev => prev.map(t => t.id === taskId ? data : t));
+      setVehicleTasks(prev => (prev || []).map(t => t.id === taskId ? data : t));
       setEditingNotesId(null);
       setEditingNotesText('');
       toast.success('Notes updated successfully');
     } catch (error: any) {
       console.error('Error updating notes:', error);
-      toast.error(error.message || 'Failed to update notes');
+      toast.error(error?.message || 'Failed to update notes');
     }
   };
 
   const handleStatusChange = async (taskId: string, newStatus: 'pending' | 'completed' | 'cancelled') => {
+    if (!taskId || !vehicle?.id) {
+      toast.error('Invalid task or vehicle');
+      return;
+    }
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
@@ -826,20 +847,24 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({ error: 'Failed to update task status' }));
         throw new Error(error.error || 'Failed to update task status');
       }
 
       const { data } = await response.json();
-      setVehicleTasks(prev => prev.map(t => t.id === taskId ? data : t));
+      setVehicleTasks(prev => (prev || []).map(t => t.id === taskId ? data : t));
       toast.success('Task status updated');
     } catch (error: any) {
       console.error('Error updating task status:', error);
-      toast.error(error.message || 'Failed to update task status');
+      toast.error(error?.message || 'Failed to update task status');
     }
   };
 
   const handleAssignedChange = async (taskId: string, assignedTo: string) => {
+    if (!taskId || !vehicle?.id) {
+      toast.error('Invalid task or vehicle');
+      return;
+    }
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
@@ -848,16 +873,16 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({ error: 'Failed to update assignment' }));
         throw new Error(error.error || 'Failed to update assignment');
       }
 
       const { data } = await response.json();
-      setVehicleTasks(prev => prev.map(t => t.id === taskId ? data : t));
+      setVehicleTasks(prev => (prev || []).map(t => t.id === taskId ? data : t));
       toast.success('Assignment updated');
     } catch (error: any) {
       console.error('Error updating assignment:', error);
-      toast.error(error.message || 'Failed to update assignment');
+      toast.error(error?.message || 'Failed to update assignment');
     }
   };
 
@@ -1224,13 +1249,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     return username;
   };
 
-  // Pagination
-  const paginatedTasks = vehicleTasks.slice(
-    (currentPage - 1) * tasksPerPage,
-    currentPage * tasksPerPage
-  );
-  const totalPages = Math.ceil(vehicleTasks.length / tasksPerPage);
-
   // Guard: Don't render if vehicle is not available
   if (!vehicle) {
     return null;
@@ -1242,6 +1260,13 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   const vehicleModel = vehicle?.model || 'Unknown';
   const vehicleYear = vehicle?.year || 'Unknown';
   const vehicleVin = vehicle?.vin || 'N/A';
+
+  // Pagination - safely calculate with null checks
+  const paginatedTasks = (vehicleTasks || []).slice(
+    (currentPage - 1) * tasksPerPage,
+    currentPage * tasksPerPage
+  );
+  const totalPages = Math.ceil((vehicleTasks || []).length / tasksPerPage);
 
   return (
     <Dialog open={isOpen && !!vehicle} onOpenChange={onClose}>
@@ -1867,7 +1892,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                   <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
                   Loading tasks...
                 </div>
-              ) : vehicleTasks.length === 0 ? (
+              ) : !vehicleTasks || vehicleTasks.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1875,7 +1900,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                   style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
                 >
                   <ClipboardList className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
-                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No tasks found</div>
+                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No tasks found for this vehicle.</div>
                   <div className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
                     Get started by adding your first task for this vehicle.
                   </div>
@@ -1905,7 +1930,9 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedTasks.map((task, index) => {
+                      {paginatedTasks && paginatedTasks.length > 0 ? paginatedTasks.map((task, index) => {
+                        if (!task || !task.id) return null;
+                        
                         const isPending = task.status === 'pending';
                         const rowIndex = (currentPage - 1) * tasksPerPage + index + 1;
                         
@@ -1941,11 +1968,11 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                               {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
-                              {task.task_name}
+                              {task.task_name || 'N/A'}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
                               <Select
-                                value={task.status}
+                                value={task.status || 'pending'}
                                 onValueChange={(value) => handleStatusChange(task.id, value as 'pending' | 'completed' | 'cancelled')}
                               >
                                 <SelectTrigger 
@@ -1967,7 +1994,13 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                               </Select>
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {task.due_date ? format(new Date(task.due_date), 'dd-MM-yyyy') : 'N/A'}
+                              {task.due_date ? (() => {
+                                try {
+                                  return format(new Date(task.due_date), 'dd-MM-yyyy');
+                                } catch {
+                                  return 'Invalid Date';
+                                }
+                              })() : 'N/A'}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
                               <Select
@@ -1987,7 +2020,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="">Not Assigned</SelectItem>
-                                  {users.map((user) => {
+                                  {(users || []).map((user) => {
+                                    if (!user || !user.id) return null;
                                     const displayName = getUserDisplayName(user.id);
                                     return (
                                       <SelectItem key={user.id} value={user.id}>
@@ -2000,7 +2034,13 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                               {task.assigned_to && task.created_at 
-                                ? format(new Date(task.created_at), 'dd-MM-yyyy')
+                                ? (() => {
+                                    try {
+                                      return format(new Date(task.created_at), 'dd-MM-yyyy');
+                                    } catch {
+                                      return 'Invalid Date';
+                                    }
+                                  })()
                                 : 'N/A'}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
@@ -2085,21 +2125,21 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                 >
                                   <DropdownMenuItem 
                                     style={{ color: 'var(--text)' }}
-                                    onClick={() => handleEditTask(task)}
+                                    onClick={() => task && handleEditTask(task)}
                                   >
                                     <Edit className="mr-2 h-4 w-4" />
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     style={{ color: '#ef4444' }}
-                                    onClick={() => handleDeleteTask(task.id)}
+                                    onClick={() => task?.id && handleDeleteTask(task.id)}
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Delete
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     style={{ color: 'var(--text)' }}
-                                    onClick={() => handleMarkAsSold(task.id)}
+                                    onClick={() => task?.id && handleMarkAsSold(task.id)}
                                   >
                                     <DollarSign className="mr-2 h-4 w-4" />
                                     Mark as Sold
@@ -2109,14 +2149,20 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                             </TableCell>
                           </motion.tr>
                         );
-                      })}
+                      }).filter(Boolean) : (
+                        <TableRow>
+                          <TableCell colSpan={10} style={{ padding: '24px', textAlign: 'center', color: 'var(--subtext)' }}>
+                            No tasks found
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
               )}
 
               {/* Pagination */}
-              {vehicleTasks.length > tasksPerPage && (
+              {vehicleTasks && vehicleTasks.length > tasksPerPage && (
                 <div className="flex items-center justify-between pt-4">
                   <div className="text-sm" style={{ color: 'var(--subtext)' }}>
                     Showing {(currentPage - 1) * tasksPerPage + 1} to {Math.min(currentPage * tasksPerPage, vehicleTasks.length)} of {vehicleTasks.length} tasks
