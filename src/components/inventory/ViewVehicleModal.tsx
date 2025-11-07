@@ -136,16 +136,26 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           setIsLoadingTasks(true);
           const response = await fetch(`/api/tasks?vehicleId=${vehicle.id}&limit=100`);
           if (response.ok) {
-            const { data } = await response.json();
-            setVehicleTasks(data || []);
+            const responseData = await response.json();
+            const tasks = responseData.data || responseData || [];
+            // Ensure tasks is an array and filter out any invalid entries
+            setVehicleTasks(Array.isArray(tasks) ? tasks : []);
           } else {
-            console.error('Failed to load tasks:', response.statusText);
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Failed to load tasks:', response.statusText, errorData);
             setVehicleTasks([]);
+            // Don't show error toast for 404 or empty results
+            if (response.status !== 404) {
+              toast.error('Failed to load tasks');
+            }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error loading tasks:', error);
           setVehicleTasks([]);
-          toast.error('Failed to load tasks');
+          // Only show error if it's not a network error or expected error
+          if (error?.message && !error.message.includes('fetch')) {
+            toast.error('Failed to load tasks');
+          }
         } finally {
           setIsLoadingTasks(false);
         }
@@ -213,7 +223,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       const loadTimeline = async () => {
         try {
           setIsLoadingTimeline(true);
-          const response = await fetch(`/api/vehicles/${vehicle.id}/timeline`);
+          const response = await fetch(`/api/vehicles/${vehicle.id}/timeline?page=${timelineCurrentPage}&limit=${timelinePerPage}`);
           if (response.ok) {
             const { data } = await response.json();
             // Sort by newest first (chronological order: newest â†’ oldest)
@@ -253,7 +263,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     } else {
       setTimelineEntries([]);
     }
-  }, [isOpen, vehicle?.id, activeTab]);
+  }, [isOpen, vehicle?.id, activeTab, timelineCurrentPage]);
 
   // Load notes and images
   useEffect(() => {
@@ -712,13 +722,19 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     }
     setIsUpdatingAuction(true);
     try {
+      const updatePayload: any = {
+        auction_name: auctionName || null,
+      };
+      
+      // Only include auction_date if we have a date value
+      if (auctionDate) {
+        updatePayload.auction_date = format(auctionDate, 'yyyy-MM-dd');
+      }
+
       const response = await fetch(`/api/vehicles/${vehicle.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          auction_name: auctionName,
-          auction_date: auctionDate ? format(auctionDate, 'yyyy-MM-dd') : null,
-        }),
+        body: JSON.stringify(updatePayload),
       });
 
       if (!response.ok) {
@@ -734,6 +750,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         setAuctionName(updatedData.auction_name || auctionName);
         if (updatedData.auction_date) {
           setAuctionDate(new Date(updatedData.auction_date));
+        } else if (updatedData.auction_date === null || updatedData.auction_date === undefined) {
+          setAuctionDate(undefined);
         }
       }
       
@@ -761,10 +779,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       if (titleStatus) updateData.title_status = titleStatus;
       if (arbStatus) updateData.arb_status = arbStatus;
       if (auctionName !== undefined) updateData.auction_name = auctionName || null;
+      // Only include auction_date if we have a date value
+      // The backend will handle the column existence
       if (auctionDate) {
         updateData.auction_date = format(auctionDate, 'yyyy-MM-dd');
-      } else if (auctionDate === null || auctionDate === undefined) {
-        updateData.auction_date = null;
       }
 
       console.log('Updating vehicle with data:', updateData);
@@ -793,7 +811,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         if (updatedData.auction_name !== undefined) setAuctionName(updatedData.auction_name || '');
         if (updatedData.auction_date) {
           setAuctionDate(new Date(updatedData.auction_date));
-        } else if (updatedData.auction_date === null) {
+        } else if (updatedData.auction_date === null || updatedData.auction_date === undefined) {
           setAuctionDate(undefined);
         }
       }
@@ -1193,6 +1211,13 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         setAssessments(prev => [data, ...prev]);
         toast.success('Assessment added successfully');
         setIsAddAssessmentModalOpen(false);
+
+        // Log to timeline
+        await logTimelineEntry({
+          action: 'Assessment Added',
+          note: `Assessment conducted on ${assessmentData.assessment_date || 'N/A'}`,
+          status: 'Assessment',
+        });
       }
     } catch (error: any) {
       console.error('Error saving assessment:', error);
@@ -1263,6 +1288,14 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         const { data } = await response.json();
         setExpenses(prev => [data, ...prev]);
         toast.success('Expense added successfully');
+
+        // Log to timeline
+        await logTimelineEntry({
+          action: 'Expense Added',
+          note: expenseData.expense_description,
+          expenseValue: expenseData.cost,
+          status: 'Expense',
+        });
       }
     } catch (error: any) {
       console.error('Error saving expense:', error);
@@ -1392,6 +1425,223 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     }
   };
 
+  // Dispatch management functions
+  const handleSubmitDispatch = async () => {
+    // Validate required fields
+    if (!dispatchForm.location.trim()) {
+      toast.error('Location is required');
+      return;
+    }
+    if (!dispatchForm.transportCompany.trim()) {
+      toast.error('Transport Company is required');
+      return;
+    }
+
+    setIsSubmittingDispatch(true);
+    try {
+      let fileUrl = null;
+      let fileName = null;
+
+      // Upload file if selected
+      if (dispatchFile) {
+        const formData = new FormData();
+        formData.append('file', dispatchFile);
+
+        const uploadResponse = await fetch(`/api/vehicles/${vehicle.id}/dispatch/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          throw new Error(error.error || 'Failed to upload file');
+        }
+
+        const uploadData = await uploadResponse.json();
+        fileUrl = uploadData.fileUrl;
+        fileName = uploadData.fileName;
+      }
+
+      const dispatchData = {
+        location: dispatchForm.location.trim(),
+        transportCompany: dispatchForm.transportCompany.trim(),
+        transportCost: dispatchForm.transportCost ? parseFloat(dispatchForm.transportCost) : null,
+        notes: dispatchForm.notes.trim() || null,
+        address: dispatchForm.address.trim() || null,
+        state: dispatchForm.state.trim() || null,
+        zip: dispatchForm.zip.trim() || null,
+        acAssignCarrier: dispatchForm.acAssignCarrier.trim() || null,
+        fileUrl,
+        fileName,
+      };
+
+      if (editingDispatch) {
+        // Update existing dispatch
+        const response = await fetch(`/api/vehicles/${vehicle.id}/dispatch/${editingDispatch.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dispatchData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to update dispatch record');
+        }
+
+        const { data } = await response.json();
+        setDispatchRecords(prev => prev.map(d => d.id === editingDispatch.id ? data : d));
+        toast.success('Dispatch record updated successfully');
+        setEditingDispatch(null);
+      } else {
+        // Create new dispatch
+        const response = await fetch(`/api/vehicles/${vehicle.id}/dispatch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dispatchData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create dispatch record');
+        }
+
+        const { data } = await response.json();
+        setDispatchRecords(prev => [data, ...prev]);
+        toast.success('Central Dispatch data added successfully.');
+
+        // Log to timeline
+        await logTimelineEntry({
+          action: 'Dispatch Record Added',
+          note: `Location: ${dispatchForm.location}, Transport Company: ${dispatchForm.transportCompany}`,
+          cost: dispatchForm.transportCost ? parseFloat(dispatchForm.transportCost) : null,
+        });
+      }
+
+      // Reset form
+      setDispatchForm({
+        location: '',
+        transportCompany: '',
+        transportCost: '',
+        notes: '',
+        address: '',
+        state: '',
+        zip: '',
+        acAssignCarrier: '',
+      });
+      setDispatchFile(null);
+      if (dispatchFileInputRef.current) {
+        dispatchFileInputRef.current.value = '';
+      }
+    } catch (error: any) {
+      console.error('Error saving dispatch:', error);
+      toast.error(error.message || 'Failed to save dispatch record');
+    } finally {
+      setIsSubmittingDispatch(false);
+    }
+  };
+
+  const handleDeleteDispatch = async (dispatchId: string) => {
+    if (!confirm('Are you sure you want to delete this dispatch record?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/vehicles/${vehicle.id}/dispatch/${dispatchId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete dispatch record');
+      }
+
+      toast.success('Dispatch record deleted successfully');
+      setDispatchRecords(prev => prev.filter(d => d.id !== dispatchId));
+    } catch (error: any) {
+      console.error('Error deleting dispatch:', error);
+      toast.error(error.message || 'Failed to delete dispatch record');
+    }
+  };
+
+  const handleEditDispatch = (dispatch: any) => {
+    setEditingDispatch(dispatch);
+    setDispatchForm({
+      location: dispatch.location || '',
+      transportCompany: dispatch.transport_company || '',
+      transportCost: dispatch.transport_cost ? dispatch.transport_cost.toString() : '',
+      notes: dispatch.notes || '',
+      address: dispatch.address || '',
+      state: dispatch.state || '',
+      zip: dispatch.zip || '',
+      acAssignCarrier: dispatch.ac_assign_carrier || '',
+    });
+    setDispatchFile(null);
+  };
+
+  const handleDownloadDispatchFile = async (fileUrl: string, fileName: string) => {
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || 'dispatch-document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('File downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error('Failed to download file');
+    }
+  };
+
+  // Timeline logging function
+  const logTimelineEntry = async (entry: {
+    action: string;
+    actionDate?: string;
+    actionTime?: string;
+    cost?: number;
+    expenseValue?: number;
+    note?: string;
+    status?: string;
+  }) => {
+    try {
+      const response = await fetch(`/api/vehicles/${vehicle.id}/timeline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: entry.action,
+          actionDate: entry.actionDate || new Date().toISOString().split('T')[0],
+          actionTime: entry.actionTime || new Date().toTimeString().split(' ')[0].substring(0, 8),
+          cost: entry.cost || null,
+          expenseValue: entry.expenseValue || null,
+          note: entry.note || null,
+          status: entry.status || null,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh timeline if on timeline tab
+        if (activeTab === 'timeline') {
+          const timelineResponse = await fetch(`/api/vehicles/${vehicle.id}/timeline?page=${timelineCurrentPage}&limit=${timelinePerPage}`);
+          if (timelineResponse.ok) {
+            const { data } = await timelineResponse.json();
+            const sorted = (data || []).sort((a: any, b: any) => {
+              const dateA = new Date(a.created_at || a.date || 0).getTime();
+              const dateB = new Date(b.created_at || b.date || 0).getTime();
+              return dateB - dateA;
+            });
+            setTimelineEntries(sorted);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error logging timeline entry:', error);
+      // Don't show error toast for timeline logging failures
+    }
+  };
+
   // Get user display name
   const getUserDisplayName = (userId: string | null) => {
     if (!userId) return 'Not Assigned';
@@ -1427,8 +1677,16 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   );
   const totalPages = Math.ceil((vehicleTasks || []).length / tasksPerPage);
 
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      // Reset state when closing
+      setActiveTab('details');
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen && !!vehicle} onOpenChange={onClose}>
+    <Dialog open={isOpen && !!vehicle} onOpenChange={handleClose}>
       <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center justify-between" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
@@ -1436,64 +1694,69 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
               <Car className="w-6 h-6 mr-2" />
               Vehicle Details
             </div>
-            {(activeTab === 'details' || activeTab === 'tasks' || activeTab === 'assessment') && (
+            {((activeTab === 'details' || activeTab === 'tasks' || activeTab === 'assessment')) && (
               <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  id="title-upload"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setIsUploadingImage(true);
-                      try {
-                        const formData = new FormData();
-                        formData.append('file', file);
+                {/* Upload Title button - only show for details and tasks tabs */}
+                {(activeTab === 'details' || activeTab === 'tasks') && (
+                  <>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      id="title-upload"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setIsUploadingImage(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append('file', file);
 
-                        const response = await fetch(`/api/vehicles/${vehicle.id}/images`, {
-                          method: 'POST',
-                          body: formData,
-                        });
+                            const response = await fetch(`/api/vehicles/${vehicle.id}/images`, {
+                              method: 'POST',
+                              body: formData,
+                            });
 
-                        if (!response.ok) {
-                          const error = await response.json();
-                          throw new Error(error.error || 'Failed to upload title');
-                        }
+                            if (!response.ok) {
+                              const error = await response.json();
+                              throw new Error(error.error || 'Failed to upload title');
+                            }
 
-                        toast.success('Title document uploaded successfully');
-                        
-                        // Reload images
-                        const imagesResponse = await fetch(`/api/vehicles/${vehicle.id}/images`);
-                        if (imagesResponse.ok) {
-                          const { data } = await imagesResponse.json();
-                          setImages(data || []);
+                            toast.success('Title document uploaded successfully');
+                            
+                            // Reload images
+                            const imagesResponse = await fetch(`/api/vehicles/${vehicle.id}/images`);
+                            if (imagesResponse.ok) {
+                              const { data } = await imagesResponse.json();
+                              setImages(data || []);
+                            }
+                          } catch (error: any) {
+                            console.error('Error uploading title:', error);
+                            toast.error(error.message || 'Failed to upload title document');
+                          } finally {
+                            setIsUploadingImage(false);
+                            if (e.target) {
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }
                         }
-                      } catch (error: any) {
-                        console.error('Error uploading title:', error);
-                        toast.error(error.message || 'Failed to upload title document');
-                      } finally {
-                        setIsUploadingImage(false);
-                        if (e.target) {
-                          (e.target as HTMLInputElement).value = '';
-                        }
-                      }
-                    }
-                  }}
-                />
-                <label htmlFor="title-upload">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
-                    asChild
-                  >
-                    <span>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Title
-                    </span>
-                  </Button>
-                </label>
+                      }}
+                    />
+                    <label htmlFor="title-upload">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
+                        asChild
+                      >
+                        <span>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Title
+                        </span>
+                      </Button>
+                    </label>
+                  </>
+                )}
                 {activeTab === 'details' && (
                   <Button
                     variant="outline"
@@ -1526,7 +1789,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     disabled={assessments.length === 0}
                   >
                     <FileTextIcon className="w-4 h-4 mr-2" />
-                    Download PDF
+                    Download
                   </Button>
                 )}
               </div>
@@ -1737,9 +2000,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       </Button>
                     )}
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" style={{ borderColor: 'var(--border)', color: 'var(--text)' }}>
-                        Exported
-                      </Badge>
                       <Button
                         variant="outline"
                         size="sm"
@@ -1840,146 +2100,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                 </div>
               </div>
 
-              {/* Image Upload and Notes Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ marginTop: '24px' }}>
-                {/* Image Upload - Left Side */}
-                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <ImageIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                    <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Images</h4>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png"
-                        multiple
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <label
-                        htmlFor="image-upload"
-                        className="cursor-pointer"
-                      >
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full"
-                          style={{ 
-                            backgroundColor: 'var(--card-bg)', 
-                            borderColor: 'var(--border)', 
-                            color: 'var(--text)',
-                            borderWidth: '1px',
-                            borderStyle: 'solid'
-                          }}
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Choose Files
-                        </Button>
-                      </label>
-                      <p className="text-xs mt-2" style={{ color: 'var(--subtext)' }}>
-                        {selectedFiles.length > 0 
-                          ? `${selectedFiles.length} file(s) selected` 
-                          : 'No file chosen'}
-                      </p>
-                      {selectedFiles.length > 0 && (
-                        <div className="mt-2 space-y-2">
-                          {selectedFiles.map((file, index) => {
-                            const previewUrl = URL.createObjectURL(file);
-                            return (
-                              <div key={index} className="p-2 rounded" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <img
-                                    src={previewUrl}
-                                    alt={file.name}
-                                    className="w-16 h-16 object-cover rounded"
-                                    style={{ border: '1px solid var(--border)' }}
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <span className="text-sm truncate block" style={{ color: 'var(--text)' }}>{file.name}</span>
-                                    <span className="text-xs" style={{ color: 'var(--subtext)' }}>
-                                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                                    </span>
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-                                      URL.revokeObjectURL(previewUrl);
-                                    }}
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {selectedFiles.length > 0 && (
-                      <Button
-                        onClick={handleImageUpload}
-                        disabled={isUploadingImage}
-                        className="w-full"
-                        style={{ 
-                          backgroundColor: 'var(--accent)', 
-                          color: 'white',
-                          border: '1px solid var(--accent)'
-                        }}
-                      >
-                        {isUploadingImage ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload Images
-                          </>
-                        )}
-                      </Button>
-                    )}
-
-                    {/* Display uploaded images */}
-                    {isLoadingImages ? (
-                      <div className="text-center py-4" style={{ color: 'var(--subtext)' }}>Loading images...</div>
-                    ) : images.length === 0 ? (
-                      <div className="text-center py-4 text-sm" style={{ color: 'var(--subtext)' }}>No images uploaded</div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-2 mt-4">
-                        {images.map((image) => (
-                          <div key={image.id} className="relative group">
-                            <img
-                              src={image.file_url}
-                              alt={image.file_name}
-                              className="w-full h-32 object-cover rounded"
-                              style={{ border: '1px solid var(--border)' }}
-                            />
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => handleDeleteImage(image.id)}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Notes - Right Side */}
+              {/* Notes Section */}
+              <div style={{ marginTop: '24px' }}>
                 <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
                   <div className="flex items-center gap-3 mb-4">
                     <FileText className="w-5 h-5" style={{ color: 'var(--accent)' }} />
@@ -3079,45 +3201,498 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           {/* Central Dispatch Tab */}
           {activeTab === 'dispatch' && (
             <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <Truck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Central Dispatch</h4>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Truck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                  <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Central Dispatch</h4>
+                </div>
               </div>
-              <div className="text-center py-8" style={{ color: 'var(--subtext)' }}>
-                Dispatch and delivery information will be displayed here.
+
+              {/* Dispatch Form */}
+              <div className="mb-6 p-4 rounded-lg border" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                <h5 className="font-medium mb-4" style={{ color: 'var(--text)' }}>{editingDispatch ? 'Edit Dispatch Record' : 'Add New Dispatch Record'}</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      Location <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      value={dispatchForm.location}
+                      onChange={(e) => setDispatchForm(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="Enter location"
+                      className="w-full"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      Transport Company <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      value={dispatchForm.transportCompany}
+                      onChange={(e) => setDispatchForm(prev => ({ ...prev, transportCompany: e.target.value }))}
+                      placeholder="Enter transport company"
+                      className="w-full"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      Transport Cost
+                    </label>
+                    <Input
+                      type="number"
+                      value={dispatchForm.transportCost}
+                      onChange={(e) => setDispatchForm(prev => ({ ...prev, transportCost: e.target.value }))}
+                      placeholder="0.00"
+                      className="w-full"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      Address
+                    </label>
+                    <Input
+                      value={dispatchForm.address}
+                      onChange={(e) => setDispatchForm(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="Enter address"
+                      className="w-full"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      State
+                    </label>
+                    <Input
+                      value={dispatchForm.state}
+                      onChange={(e) => setDispatchForm(prev => ({ ...prev, state: e.target.value }))}
+                      placeholder="Enter state"
+                      className="w-full"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      ZIP
+                    </label>
+                    <Input
+                      value={dispatchForm.zip}
+                      onChange={(e) => setDispatchForm(prev => ({ ...prev, zip: e.target.value }))}
+                      placeholder="Enter ZIP code"
+                      className="w-full"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      AC/ASSIGN-CARRIER
+                    </label>
+                    <Input
+                      value={dispatchForm.acAssignCarrier}
+                      onChange={(e) => setDispatchForm(prev => ({ ...prev, acAssignCarrier: e.target.value }))}
+                      placeholder="Enter AC/ASSIGN-CARRIER"
+                      className="w-full"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                      Upload File (Optional)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={dispatchFileInputRef}
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        onChange={(e) => setDispatchFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="dispatch-file-upload"
+                      />
+                      <label
+                        htmlFor="dispatch-file-upload"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer border"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)' 
+                        }}
+                      >
+                        <Upload className="w-4 h-4" />
+                        {dispatchFile ? dispatchFile.name : 'Choose File'}
+                      </label>
+                      {dispatchFile && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setDispatchFile(null);
+                            if (dispatchFileInputRef.current) {
+                              dispatchFileInputRef.current.value = '';
+                            }
+                          }}
+                          style={{ color: 'var(--text)' }}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                    Notes
+                  </label>
+                  <Textarea
+                    value={dispatchForm.notes}
+                    onChange={(e) => setDispatchForm(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Enter notes"
+                    rows={3}
+                    className="w-full"
+                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                  />
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    onClick={handleSubmitDispatch}
+                    disabled={isSubmittingDispatch}
+                    className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
+                    style={{ borderRadius: '8px' }}
+                  >
+                    {isSubmittingDispatch ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      'Submit'
+                    )}
+                  </Button>
+                  {editingDispatch && (
+                    <Button
+                      onClick={() => {
+                        setEditingDispatch(null);
+                        setDispatchForm({
+                          location: '',
+                          transportCompany: '',
+                          transportCost: '',
+                          notes: '',
+                          address: '',
+                          state: '',
+                          zip: '',
+                          acAssignCarrier: '',
+                        });
+                        setDispatchFile(null);
+                        if (dispatchFileInputRef.current) {
+                          dispatchFileInputRef.current.value = '';
+                        }
+                      }}
+                      variant="outline"
+                      style={{ 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)',
+                        borderRadius: '8px'
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
               </div>
+
+              {/* Dispatch Records Table */}
+              {isLoadingDispatch ? (
+                <div className="text-center py-12" style={{ color: 'var(--subtext)' }}>
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
+                  Loading dispatch records...
+                </div>
+              ) : dispatchRecords.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center py-12 rounded-lg"
+                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
+                >
+                  <Truck className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
+                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No dispatch records found</div>
+                  <div className="text-sm" style={{ color: 'var(--subtext)' }}>
+                    Get started by adding your first dispatch record.
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
+                  <Table className="min-w-[1000px]">
+                    <TableHeader>
+                      <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Vehicle</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Location</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Transport Company</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Address</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>ST/ZIP</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>AC/ASSIGN-CARRIER</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>File</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dispatchRecords.map((record, index) => (
+                        <motion.tr
+                          key={record.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="transition-all duration-200"
+                          style={{
+                            borderColor: 'var(--border)',
+                            backgroundColor: 'transparent',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--card-bg)';
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        >
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                            {index + 1}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                            {vehicleYear} {vehicleMake} {vehicleModel}
+                            {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
+                            {record.location}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                            {record.transport_company}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                            {record.address || 'N/A'}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                            {record.state && record.zip ? `${record.state}/${record.zip}` : record.state || record.zip || 'N/A'}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                            {record.ac_assign_carrier || 'N/A'}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
+                            {record.file_url ? (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDownloadDispatchFile(record.file_url, record.file_name || 'dispatch-document')}
+                                className="flex items-center gap-1"
+                                style={{ color: 'var(--accent)' }}
+                              >
+                                <Download className="w-4 h-4" />
+                                Download
+                              </Button>
+                            ) : (
+                              <span style={{ color: 'var(--subtext)' }}>No file</span>
+                            )}
+                          </TableCell>
+                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-9 w-9 p-0 rounded-lg" 
+                                  style={{ 
+                                    color: 'var(--text)',
+                                    borderRadius: '8px'
+                                  }}
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent 
+                                align="end" 
+                                style={{ 
+                                  backgroundColor: 'var(--card-bg)', 
+                                  borderColor: 'var(--border)',
+                                  color: 'var(--text)',
+                                  borderRadius: '8px'
+                                }}
+                              >
+                                <DropdownMenuItem 
+                                  style={{ color: 'var(--text)' }}
+                                  onClick={() => handleEditDispatch(record)}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  style={{ color: '#ef4444' }}
+                                  onClick={() => handleDeleteDispatch(record.id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </motion.tr>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </div>
           )}
 
           {/* Timeline Tab */}
           {activeTab === 'timeline' && (
             <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <Clock className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Activity Timeline</h4>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                  <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: 'var(--accent)' }} />
-                  <div className="flex-1">
-                    <div className="font-medium" style={{ color: 'var(--text)' }}>Vehicle Created</div>
-                    <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                      {vehicle.created_at ? format(new Date(vehicle.created_at), 'MMMM dd, yyyy HH:mm') : 'N/A'}
-                    </div>
-                  </div>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                  <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Activity Timeline</h4>
                 </div>
-                {vehicle.updated_at && vehicle.updated_at !== vehicle.created_at && (
-                  <div className="flex items-start gap-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                    <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: 'var(--accent)' }} />
-                    <div className="flex-1">
-                      <div className="font-medium" style={{ color: 'var(--text)' }}>Last Updated</div>
+              </div>
+
+              {/* Timeline Table */}
+              {isLoadingTimeline ? (
+                <div className="text-center py-12" style={{ color: 'var(--subtext)' }}>
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
+                  Loading timeline...
+                </div>
+              ) : timelineEntries.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center py-12 rounded-lg"
+                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
+                >
+                  <Clock className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
+                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No timeline entries found</div>
+                  <div className="text-sm" style={{ color: 'var(--subtext)' }}>
+                    Timeline entries will appear here as actions are performed on this vehicle.
+                  </div>
+                </motion.div>
+              ) : (
+                <>
+                  <div className="rounded-xl border overflow-x-auto mb-4" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
+                    <Table className="min-w-[1000px]">
+                      <TableHeader>
+                        <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Action</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>User</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Date</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Time</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Cost</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Expense</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Note</TableHead>
+                          <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {timelineEntries
+                          .slice((timelineCurrentPage - 1) * timelinePerPage, timelineCurrentPage * timelinePerPage)
+                          .map((entry, index) => (
+                            <motion.tr
+                              key={entry.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              className="transition-all duration-200"
+                              style={{
+                                borderColor: 'var(--border)',
+                                backgroundColor: 'transparent',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--card-bg)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }}
+                            >
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                                {(timelineCurrentPage - 1) * timelinePerPage + index + 1}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
+                                {entry.action}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                                {entry.profiles?.username || entry.profiles?.email?.split('@')[0] || 'System'}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                                {entry.action_date ? format(new Date(entry.action_date), 'yyyy-MM-dd') : entry.created_at ? format(new Date(entry.created_at), 'yyyy-MM-dd') : 'N/A'}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                                {entry.action_time || (entry.created_at ? format(new Date(entry.created_at), 'HH:mm:ss') : 'N/A')}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                                {entry.cost ? `$${parseFloat(entry.cost).toFixed(2)}` : 'N/A'}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                                {entry.expense_value ? `$${parseFloat(entry.expense_value).toFixed(2)}` : 'N/A'}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                                {entry.note || 'N/A'}
+                              </TableCell>
+                              <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
+                                {entry.status ? (
+                                  <Badge className="text-xs" style={{ backgroundColor: 'var(--accent)', color: 'white' }}>
+                                    {entry.status}
+                                  </Badge>
+                                ) : (
+                                  <span style={{ color: 'var(--subtext)' }}>N/A</span>
+                                )}
+                              </TableCell>
+                            </motion.tr>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination */}
+                  {Math.ceil(timelineEntries.length / timelinePerPage) > 1 && (
+                    <div className="flex items-center justify-between mt-4">
                       <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                        {format(new Date(vehicle.updated_at), 'MMMM dd, yyyy HH:mm')}
+                        Showing {(timelineCurrentPage - 1) * timelinePerPage + 1} to {Math.min(timelineCurrentPage * timelinePerPage, timelineEntries.length)} of {timelineEntries.length} entries
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setTimelineCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={timelineCurrentPage === 1}
+                          style={{ 
+                            borderColor: 'var(--border)', 
+                            color: 'var(--text)',
+                            borderRadius: '8px'
+                          }}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setTimelineCurrentPage(prev => Math.min(Math.ceil(timelineEntries.length / timelinePerPage), prev + 1))}
+                          disabled={timelineCurrentPage >= Math.ceil(timelineEntries.length / timelinePerPage)}
+                          style={{ 
+                            borderColor: 'var(--border)', 
+                            color: 'var(--text)',
+                            borderRadius: '8px'
+                          }}
+                        >
+                          Next
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>

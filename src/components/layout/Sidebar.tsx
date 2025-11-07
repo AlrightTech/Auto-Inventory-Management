@@ -298,9 +298,26 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
 
         {/* Footer */}
         <div className="p-4 border-t flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
-          <div className="text-xs text-center" style={{ color: 'var(--subtext)' }}>
+          <div className="text-xs text-center mb-3" style={{ color: 'var(--subtext)' }}>
             <p>Auto Inventory v1.0</p>
             <p className="mt-1">© 2024 All rights reserved</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3 text-xs" style={{ color: 'var(--subtext)' }}>
+            <Link href="/about" className="hover:underline" style={{ color: 'var(--accent)' }}>
+              About
+            </Link>
+            <span>|</span>
+            <Link href="/privacy-policy" className="hover:underline" style={{ color: 'var(--accent)' }}>
+              Privacy Policy
+            </Link>
+            <span>|</span>
+            <Link href="/licensing" className="hover:underline" style={{ color: 'var(--accent)' }}>
+              Licensing
+            </Link>
+            <span>|</span>
+            <Link href="/contact" className="hover:underline" style={{ color: 'var(--accent)' }}>
+              Contact
+            </Link>
           </div>
         </div>
       </div>

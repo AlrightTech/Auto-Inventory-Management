@@ -109,15 +109,46 @@ export async function PATCH(
     // Remove id from body if present (shouldn't be in update)
     const { id: _, ...updateData } = body as any;
     
-    // Filter out undefined values
+    // Filter out undefined values and null values for optional fields
     const cleanUpdateData = Object.fromEntries(
       Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    );
+
+    // Check which columns exist in the vehicles table before updating
+    // This prevents errors if a column doesn't exist yet
+    const { data: existingVehicle } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (!existingVehicle) {
+      return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
+    }
+
+    // Filter out any fields that might not exist in the schema
+    // Only include fields that are in the VehicleUpdate type or known columns
+    const allowedFields = [
+      'status', 'title_status', 'arb_status', 'auction_name', 'auction_date',
+      'vin', 'year', 'make', 'model', 'trim', 'exterior_color', 'interior_color',
+      'odometer', 'psi_status', 'dealshield_arbitration_status',
+      'bought_price', 'buy_fee', 'sale_invoice', 'total_vehicle_cost', 'other_charges', 'other_charges2',
+      'sale_date', 'lane', 'run', 'channel', 'sale_invoice_paid_date',
+      'facilitating_location', 'vehicle_location',
+      'pickup_location_address1', 'pickup_location_address2', 'pickup_location_city',
+      'pickup_location_state', 'pickup_location_zip', 'pickup_location_phone',
+      'seller_name', 'buyer_dealership', 'buyer_contact_name', 'buyer_aa_id',
+      'buyer_rep_aa_id', 'buyer_reference', 'sale_invoice_status'
+    ];
+
+    const safeUpdateData = Object.fromEntries(
+      Object.entries(cleanUpdateData).filter(([key]) => allowedFields.includes(key))
     );
 
     // Update vehicle
     const { data: vehicle, error } = await supabase
       .from('vehicles')
-      .update(cleanUpdateData)
+      .update(safeUpdateData)
       .eq('id', id)
       .select(`
         *,
