@@ -107,6 +107,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
   const [selectedVehicles, setSelectedVehicles] = useState<Set<string>>(new Set());
   const [updatingLocation, setUpdatingLocation] = useState<string | null>(null);
   const [updatingTitleStatus, setUpdatingTitleStatus] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     status: [],
     carLocation: [],
@@ -315,9 +316,13 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         throw new Error(errorData.error || 'Failed to update location');
       }
 
-      // Update local state
+      // Get updated data from API response
+      const responseData = await response.json();
+      const updatedData = responseData.data || responseData;
+      
+      // Update local state with API response data, ensuring the new location is set
       setVehicles(prev => prev.map(v => 
-        v.id === vehicleId ? { ...v, vehicle_location: newLocation } : v
+        v.id === vehicleId ? { ...v, ...updatedData, vehicle_location: newLocation } : v
       ));
       toast.success('Location updated successfully');
       if (onVehicleAdded) {
@@ -457,6 +462,43 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
     }
   };
 
+  // Handle status update
+  const handleStatusChange = async (vehicleId: string, newStatus: string) => {
+    try {
+      setUpdatingStatus(vehicleId);
+      const response = await fetch(`/api/vehicles/${vehicleId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update status');
+      }
+
+      // Get updated data from API response
+      const responseData = await response.json();
+      const updatedData = responseData.data || responseData;
+      
+      // Update local state with API response data, ensuring the new status is set
+      setVehicles(prev => prev.map(v => 
+        v.id === vehicleId ? { ...v, ...updatedData, status: newStatus } : v
+      ));
+      toast.success('Status updated successfully');
+      if (onVehicleAdded) {
+        onVehicleAdded();
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update status');
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
   // Handle title status update
   const handleTitleStatusChange = async (vehicleId: string, newStatus: string) => {
     try {
@@ -474,9 +516,13 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         throw new Error(errorData.error || 'Failed to update title status');
       }
 
-      // Update local state
+      // Get updated data from API response
+      const responseData = await response.json();
+      const updatedData = responseData.data || responseData;
+      
+      // Update local state with API response data, ensuring the new title status is set
       setVehicles(prev => prev.map(v => 
-        v.id === vehicleId ? { ...v, title_status: newStatus as 'Absent' | 'Released' | 'Received' | 'Present' | 'In Transit' | 'Available not Received' | 'Validated' | 'Sent but not Validated' } : v
+        v.id === vehicleId ? { ...v, ...updatedData, title_status: newStatus } : v
       ));
       toast.success('Title status updated successfully');
       if (onVehicleAdded) {
@@ -880,25 +926,47 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                           </ContextMenuItem>
                         </ContextMenuContent>
                       </ContextMenu>
-                    <ContextMenu>
-                      <ContextMenuTrigger asChild>
-                        <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                          <Badge 
-                            variant="outline" 
-                            className={`${getStatusColor(vehicle.status)} flex items-center gap-1 w-fit`}
+                    <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'center' }}>
+                      {updatingStatus === vehicle.id ? (
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+                        </div>
+                      ) : (
+                        <Select
+                          value={vehicle.status || 'Pending'}
+                          onValueChange={(value) => handleStatusChange(vehicle.id, value)}
+                        >
+                          <SelectTrigger 
+                            className="w-[140px] h-9 text-sm transition-all duration-200"
+                            style={{ 
+                              backgroundColor: 'var(--card-bg)', 
+                              borderColor: 'var(--border)', 
+                              color: 'var(--text)',
+                              borderRadius: '8px',
+                              transition: 'all 0.2s ease-in-out'
+                            }}
                           >
-                            {getStatusIcon(vehicle.status)}
-                            {vehicle.status}
-                          </Badge>
-                        </TableCell>
-                      </ContextMenuTrigger>
-                      <ContextMenuContent>
-                        <ContextMenuItem onClick={() => handleCellEdit(vehicle.id, 'status', vehicle.status)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit Status
-                        </ContextMenuItem>
-                      </ContextMenuContent>
-                    </ContextMenu>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent 
+                            style={{ 
+                              backgroundColor: 'var(--card-bg)', 
+                              borderColor: 'var(--border)'
+                            }}
+                          >
+                            {statusOptions.map((status) => (
+                              <SelectItem 
+                                key={status} 
+                                value={status}
+                                style={{ color: 'var(--text)' }}
+                              >
+                                {status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
                       <ContextMenu>
                         <ContextMenuTrigger asChild>
                           <TableCell className="dark:text-white text-gray-900" style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
@@ -912,7 +980,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                           </ContextMenuItem>
                         </ContextMenuContent>
                       </ContextMenu>
-                      <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
+                      <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'center' }}>
                         {updatingLocation === vehicle.id ? (
                           <div className="flex items-center justify-center">
                             <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
@@ -966,7 +1034,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                           </ContextMenuItem>
                         </ContextMenuContent>
                       </ContextMenu>
-                    <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
+                      <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'center' }}>
                         {updatingTitleStatus === vehicle.id ? (
                           <div className="flex items-center justify-center">
                             <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
@@ -1006,7 +1074,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                             </SelectContent>
                           </Select>
                         )}
-                    </TableCell>
+                      </TableCell>
                     <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

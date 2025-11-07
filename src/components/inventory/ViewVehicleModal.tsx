@@ -94,7 +94,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   const [isLoadingAssessments, setIsLoadingAssessments] = useState(false);
   const [isAddAssessmentModalOpen, setIsAddAssessmentModalOpen] = useState(false);
   const [editingAssessment, setEditingAssessment] = useState<any | null>(null);
-  const [isEditAssessmentModalOpen, setIsEditAssessmentModalOpen] = useState(false);
   const [assessmentsCurrentPage, setAssessmentsCurrentPage] = useState(1);
   const assessmentsPerPage = 10;
   
@@ -485,6 +484,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
     const validFiles = files.filter(file => {
       const isValidType = ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type);
       const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
@@ -495,7 +496,15 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       toast.error('Some files were rejected. Only JPG/PNG files under 10MB are allowed.');
     }
 
-    setSelectedFiles(prev => [...prev, ...validFiles]);
+    if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles]);
+      toast.success(`${validFiles.length} file(s) selected`);
+    }
+    
+    // Reset input to allow selecting the same file again
+    if (e.target) {
+      e.target.value = '';
+    }
   };
 
   // Handle image upload
@@ -644,6 +653,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
   // Handle status update
   const handleStatusUpdate = async (field: string, value: string) => {
+    if (!vehicle?.id) {
+      toast.error('Invalid vehicle');
+      return;
+    }
     setIsUpdatingStatus(true);
     try {
       const response = await fetch(`/api/vehicles/${vehicle.id}`, {
@@ -657,10 +670,31 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         throw new Error(error.error || 'Failed to update status');
       }
 
-      toast.success('Status updated successfully');
+      // Get updated data from API response
+      const responseData = await response.json();
+      const updatedData = responseData.data || responseData;
+      
+      // Update local state with API response data
+      if (field === 'status') {
+        setStatus(value as any);
+      } else if (field === 'title_status') {
+        setTitleStatus(value as any);
+      } else if (field === 'arb_status') {
+        setArbStatus(value);
+      }
+
+      toast.success(`${field.replace('_', ' ')} updated successfully`);
     } catch (error: any) {
       console.error('Error updating status:', error);
-      toast.error(error.message || 'Failed to update status');
+      toast.error(error?.message || 'Failed to update status');
+      // Revert state on error
+      if (field === 'status') {
+        setStatus(vehicle.status as any);
+      } else if (field === 'title_status') {
+        setTitleStatus(vehicle.title_status as any);
+      } else if (field === 'arb_status') {
+        setArbStatus((vehicle as any)?.arb_status || 'Absent');
+      }
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -668,6 +702,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
   // Handle auction update
   const handleAuctionUpdate = async () => {
+    if (!vehicle?.id) {
+      toast.error('Invalid vehicle');
+      return;
+    }
     setIsUpdatingAuction(true);
     try {
       const response = await fetch(`/api/vehicles/${vehicle.id}`, {
@@ -684,12 +722,54 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         throw new Error(error.error || 'Failed to update auction details');
       }
 
+      const responseData = await response.json();
+      const updatedData = responseData.data || responseData;
+      
       toast.success('Auction details updated successfully');
     } catch (error: any) {
       console.error('Error updating auction:', error);
-      toast.error(error.message || 'Failed to update auction details');
+      toast.error(error?.message || 'Failed to update auction details');
     } finally {
       setIsUpdatingAuction(false);
+    }
+  };
+
+  // Handle details update (all form fields)
+  const handleDetailsUpdate = async () => {
+    if (!vehicle?.id) {
+      toast.error('Invalid vehicle');
+      return;
+    }
+    setIsUpdatingStatus(true);
+    try {
+      const updateData: any = {
+        status: status,
+        title_status: titleStatus,
+        arb_status: arbStatus,
+        auction_name: auctionName,
+        auction_date: auctionDate ? format(auctionDate, 'yyyy-MM-dd') : null,
+      };
+
+      const response = await fetch(`/api/vehicles/${vehicle.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update details');
+      }
+
+      const responseData = await response.json();
+      const updatedData = responseData.data || responseData;
+      
+      toast.success('All details updated successfully');
+    } catch (error: any) {
+      console.error('Error updating details:', error);
+      toast.error(error?.message || 'Failed to update details');
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -1038,7 +1118,51 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
   const handleEditAssessment = (assessment: any) => {
     setEditingAssessment(assessment);
-    setIsEditAssessmentModalOpen(true);
+    setIsAddAssessmentModalOpen(true);
+  };
+
+  const handleAddOrUpdateAssessment = async (assessmentData: any) => {
+    try {
+      if (editingAssessment) {
+        // Update existing assessment
+        const response = await fetch(`/api/vehicles/${vehicle.id}/assessments/${editingAssessment.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(assessmentData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to update assessment');
+        }
+
+        const { data } = await response.json();
+        setAssessments(prev => prev.map(a => a.id === editingAssessment.id ? data : a));
+        toast.success('Assessment updated successfully');
+        setEditingAssessment(null);
+        setIsAddAssessmentModalOpen(false);
+      } else {
+        // Create new assessment
+        const response = await fetch(`/api/vehicles/${vehicle.id}/assessments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(assessmentData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create assessment');
+        }
+
+        const { data } = await response.json();
+        setAssessments(prev => [data, ...prev]);
+        toast.success('Assessment added successfully');
+        setIsAddAssessmentModalOpen(false);
+      }
+    } catch (error: any) {
+      console.error('Error saving assessment:', error);
+      toast.error(error.message || 'Failed to save assessment');
+    }
   };
 
   const handleDeleteAssessment = async (assessmentId: string) => {
@@ -1465,7 +1589,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
               </div>
 
               {/* Status Section - Editable */}
-              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', marginTop: '24px' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <AlertCircle className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                   <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Status</h4>
@@ -1481,12 +1605,21 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                      <SelectTrigger style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)',
+                        minHeight: '36px'
+                      }}>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)',
+                        zIndex: 50
+                      }}>
                         {statusOptions.map((option) => (
-                          <SelectItem key={option} value={option}>
+                          <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
                             {option}
                           </SelectItem>
                         ))}
@@ -1503,12 +1636,21 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                      <SelectTrigger style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)',
+                        minHeight: '36px'
+                      }}>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)',
+                        zIndex: 50
+                      }}>
                         {titleStatusOptions.map((option) => (
-                          <SelectItem key={option} value={option}>
+                          <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
                             {option}
                           </SelectItem>
                         ))}
@@ -1525,12 +1667,21 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                      <SelectTrigger style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)',
+                        minHeight: '36px'
+                      }}>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)',
+                        zIndex: 50
+                      }}>
                         {arbStatusOptions.map((option) => (
-                          <SelectItem key={option} value={option}>
+                          <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
                             {option}
                           </SelectItem>
                         ))}
@@ -1569,7 +1720,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
               </div>
 
               {/* Auction Section */}
-              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', marginTop: '24px' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <CalendarIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                   <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Auction</h4>
@@ -1600,18 +1751,34 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                         <Button
                           variant="outline"
                           className="w-full justify-start text-left font-normal"
-                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                          style={{ 
+                            backgroundColor: 'var(--card-bg)', 
+                            borderColor: 'var(--border)', 
+                            color: 'var(--text)',
+                            minHeight: '36px'
+                          }}
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <CalendarIcon className="mr-2 h-4 w-4" style={{ color: 'var(--text)' }} />
                           {auctionDate ? format(auctionDate, 'MM/dd/yyyy') : 'Pick a date'}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                      <PopoverContent 
+                        className="w-auto p-0" 
+                        align="start"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)',
+                          zIndex: 50
+                        }}
+                      >
                         <Calendar
                           mode="single"
                           selected={auctionDate}
-                          onSelect={setAuctionDate}
+                          onSelect={(date) => {
+                            setAuctionDate(date);
+                          }}
                           initialFocus
+                          className="rounded-md border-0"
                         />
                       </PopoverContent>
                     </Popover>
@@ -1621,7 +1788,11 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       onClick={handleAuctionUpdate}
                       disabled={isUpdatingAuction}
                       className="w-full"
-                      style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                      style={{ 
+                        backgroundColor: 'var(--accent)', 
+                        color: 'white',
+                        border: '1px solid var(--accent)'
+                      }}
                     >
                       {isUpdatingAuction ? (
                         <>
@@ -1629,7 +1800,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                           Updating...
                         </>
                       ) : (
-                        'Update'
+                        'Update Auction'
                       )}
                     </Button>
                   </div>
@@ -1637,7 +1808,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
               </div>
 
               {/* Image Upload and Notes Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ marginTop: '24px' }}>
                 {/* Image Upload - Left Side */}
                 <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
                   <div className="flex items-center gap-3 mb-4">
@@ -1664,7 +1835,13 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                           type="button"
                           variant="outline"
                           className="w-full"
-                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                          style={{ 
+                            backgroundColor: 'var(--card-bg)', 
+                            borderColor: 'var(--border)', 
+                            color: 'var(--text)',
+                            borderWidth: '1px',
+                            borderStyle: 'solid'
+                          }}
                           onClick={() => fileInputRef.current?.click()}
                         >
                           <Upload className="w-4 h-4 mr-2" />
@@ -1678,20 +1855,38 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       </p>
                       {selectedFiles.length > 0 && (
                         <div className="mt-2 space-y-2">
-                          {selectedFiles.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 rounded" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                              <span className="text-sm truncate flex-1" style={{ color: 'var(--text)' }}>{file.name}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== index))}
-                                className="ml-2"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ))}
+                          {selectedFiles.map((file, index) => {
+                            const previewUrl = URL.createObjectURL(file);
+                            return (
+                              <div key={index} className="p-2 rounded" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <img
+                                    src={previewUrl}
+                                    alt={file.name}
+                                    className="w-16 h-16 object-cover rounded"
+                                    style={{ border: '1px solid var(--border)' }}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <span className="text-sm truncate block" style={{ color: 'var(--text)' }}>{file.name}</span>
+                                    <span className="text-xs" style={{ color: 'var(--subtext)' }}>
+                                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                                    </span>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                                      URL.revokeObjectURL(previewUrl);
+                                    }}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -1701,7 +1896,11 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                         onClick={handleImageUpload}
                         disabled={isUploadingImage}
                         className="w-full"
-                        style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                        style={{ 
+                          backgroundColor: 'var(--accent)', 
+                          color: 'white',
+                          border: '1px solid var(--accent)'
+                        }}
                       >
                         {isUploadingImage ? (
                           <>
@@ -1863,6 +2062,34 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Update Button at Bottom */}
+              <div className="flex justify-end pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                <Button
+                  onClick={handleDetailsUpdate}
+                  disabled={isUpdatingStatus || isUpdatingAuction}
+                  size="lg"
+                  className="min-w-[120px]"
+                  style={{ 
+                    backgroundColor: 'var(--accent)', 
+                    color: 'white',
+                    border: '1px solid var(--accent)',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  {isUpdatingStatus || isUpdatingAuction ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Update All
+                    </>
+                  )}
+                </Button>
               </div>
             </>
           )}
@@ -2253,7 +2480,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                   <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Vehicle Assessments</h4>
                 </div>
                 <Button
-                  onClick={() => setIsAddAssessmentModalOpen(true)}
+                  onClick={() => {
+                    setEditingAssessment(null);
+                    setIsAddAssessmentModalOpen(true);
+                  }}
                   size="sm"
                   style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
                 >
@@ -2277,17 +2507,9 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                 >
                   <ClipboardCheck className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
                   <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No assessments found</div>
-                  <div className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
+                  <div className="text-sm" style={{ color: 'var(--subtext)' }}>
                     Get started by adding your first assessment for this vehicle.
                   </div>
-                  <Button
-                    onClick={() => setIsAddAssessmentModalOpen(true)}
-                    size="sm"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Assessment
-                  </Button>
                 </motion.div>
               ) : (
                 <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
@@ -2508,6 +2730,19 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                   </div>
                 </div>
               )}
+
+              {/* Add/Edit Assessment Modal */}
+              <AddAssessmentModal
+                isOpen={isAddAssessmentModalOpen}
+                onClose={() => {
+                  setIsAddAssessmentModalOpen(false);
+                  setEditingAssessment(null);
+                }}
+                onSubmit={handleAddOrUpdateAssessment}
+                vehicleId={vehicle.id}
+                vehicleName={`${vehicleYear} ${vehicleMake} ${vehicleModel}${vehicle?.trim ? ` ${vehicle.trim}` : ''}`}
+                editingAssessment={editingAssessment}
+              />
             </div>
           )}
 
