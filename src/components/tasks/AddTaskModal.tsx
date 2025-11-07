@@ -30,6 +30,7 @@ interface AddTaskModalProps {
     notes?: string;
     category: string;
   }) => void;
+  preSelectedVehicleId?: string;
 }
 
 const taskCategories = [
@@ -41,7 +42,7 @@ const taskCategories = [
   { value: 'inspection', label: 'Inspection' },
 ];
 
-export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, onSubmit, preSelectedVehicleId }: AddTaskModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -136,13 +137,20 @@ export function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModalProps) {
     resolver: zodResolver(taskSchema),
     defaultValues: {
       task_name: '',
-      vehicle_id: '',
+      vehicle_id: preSelectedVehicleId || '',
       assigned_to: '',
       due_date: new Date().toISOString().split('T')[0],
       notes: '',
       category: 'general',
     },
   });
+
+  // Update vehicle_id when preSelectedVehicleId changes
+  useEffect(() => {
+    if (preSelectedVehicleId && isOpen) {
+      setValue('vehicle_id', preSelectedVehicleId);
+    }
+  }, [preSelectedVehicleId, isOpen, setValue]);
 
   const selectedVehicleId = watch('vehicle_id');
   const selectedCategory = watch('category');

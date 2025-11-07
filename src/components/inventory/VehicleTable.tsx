@@ -32,7 +32,8 @@ import {
   Loader2,
   Trash2,
   DollarSign,
-  FileText
+  FileText,
+  Car
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
@@ -600,7 +601,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
       <CardContent>
         {/* Filter Panel */}
         {showFilters && (
-          <div className="mb-4 p-4 rounded-lg border" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+          <div className="mb-6 p-6 rounded-xl border" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', borderRadius: '12px' }}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Status Filter */}
               <div>
@@ -761,11 +762,11 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
           </div>
         )}
 
-        <div className="vehicle-inventory-table rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
-          <Table>
+        <div className="vehicle-inventory-table rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px', minWidth: '100%' }}>
+          <Table className="min-w-[1200px]">
             <TableHeader>
-              <TableRow style={{ borderColor: 'var(--border)' }}>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', width: '50px' }}>
+              <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', width: '50px', padding: '16px' }}>
                   <input
                     type="checkbox"
                     checked={filteredVehicles.length > 0 && selectedVehicles.size === filteredVehicles.length}
@@ -774,14 +775,14 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                     style={{ cursor: 'pointer' }}
                   />
                 </TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Vehicle</TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Purchase Date</TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Status</TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Odometer</TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Car Location</TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Bought Price</TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Title Status</TableHead>
-                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600' }}>Actions</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px' }}>Vehicle</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px' }}>Purchase Date</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px' }}>Status</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px' }}>Odometer</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px' }}>Car Location</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px' }}>Bought Price</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px' }}>Title Status</TableHead>
+                <TableHead className="dark:text-white text-gray-900" style={{ fontWeight: '600', padding: '16px', textAlign: 'right' }}>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -796,10 +797,23 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                 </TableRow>
               ) : filteredVehicles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
-                    <div style={{ color: 'var(--subtext)' }}>
-                      {searchTerm ? 'No vehicles found matching your search.' : 'No vehicles in inventory yet.'}
-                    </div>
+                  <TableCell colSpan={9} className="text-center py-12">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex flex-col items-center justify-center gap-3"
+                    >
+                      <Car className="w-12 h-12" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
+                      <div className="text-lg font-medium" style={{ color: 'var(--text)' }}>
+                        No vehicles found
+                      </div>
+                      <div className="text-sm" style={{ color: 'var(--subtext)' }}>
+                        {searchTerm 
+                          ? 'Try adjusting your search or filters to find vehicles.' 
+                          : 'Get started by adding your first vehicle to the inventory.'}
+                      </div>
+                    </motion.div>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -809,10 +823,21 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="transition-colors"
-                    style={{ borderColor: 'var(--border)' }}
+                    className="transition-all duration-200 hover:bg-opacity-50"
+                    style={{ 
+                      borderColor: 'var(--border)',
+                      backgroundColor: 'transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--card-bg)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   >
-                      <TableCell>
+                      <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
                         <input
                           type="checkbox"
                           checked={selectedVehicles.has(vehicle.id)}
@@ -823,13 +848,13 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                       </TableCell>
                       <ContextMenu>
                         <ContextMenuTrigger asChild>
-                          <TableCell className="dark:text-white text-gray-900">
+                          <TableCell className="dark:text-white text-gray-900" style={{ padding: '16px', verticalAlign: 'middle' }}>
                             <div>
-                              <div className="font-medium">
+                              <div className="font-medium" style={{ color: 'var(--text)' }}>
                                 {vehicle.year} {vehicle.make} {vehicle.model}
-                                {vehicle.trim && <span className="ml-1 dark:text-gray-300 text-gray-600">({vehicle.trim})</span>}
+                                {vehicle.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
                               </div>
-                              <div className="text-sm dark:text-gray-300 text-gray-600">
+                              <div className="text-sm" style={{ color: 'var(--subtext)' }}>
                                 VIN: {vehicle.vin || 'N/A'}
                               </div>
                             </div>
@@ -844,7 +869,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                       </ContextMenu>
                       <ContextMenu>
                         <ContextMenuTrigger asChild>
-                          <TableCell className="dark:text-white text-gray-900">
+                          <TableCell className="dark:text-white text-gray-900" style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                             {vehicle.sale_date ? new Date(vehicle.sale_date).toLocaleDateString() : 'N/A'}
                           </TableCell>
                         </ContextMenuTrigger>
@@ -857,7 +882,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                       </ContextMenu>
                     <ContextMenu>
                       <ContextMenuTrigger asChild>
-                        <TableCell>
+                        <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
                           <Badge 
                             variant="outline" 
                             className={`${getStatusColor(vehicle.status)} flex items-center gap-1 w-fit`}
@@ -876,7 +901,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                     </ContextMenu>
                       <ContextMenu>
                         <ContextMenuTrigger asChild>
-                          <TableCell className="dark:text-white text-gray-900">
+                          <TableCell className="dark:text-white text-gray-900" style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                             {vehicle.odometer ? `${vehicle.odometer.toLocaleString()} mi` : 'N/A'}
                           </TableCell>
                         </ContextMenuTrigger>
@@ -887,20 +912,24 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                           </ContextMenuItem>
                         </ContextMenuContent>
                       </ContextMenu>
-                      <TableCell>
+                      <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
                         {updatingLocation === vehicle.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+                          <div className="flex items-center justify-center">
+                            <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+                          </div>
                         ) : (
                           <Select
                             value={vehicle.vehicle_location || 'Missing'}
                             onValueChange={(value) => handleLocationChange(vehicle.id, value)}
                           >
                             <SelectTrigger 
-                              className="w-[140px] h-8 text-xs"
+                              className="w-[140px] h-9 text-sm transition-all duration-200"
                               style={{ 
                                 backgroundColor: 'var(--card-bg)', 
                                 borderColor: 'var(--border)', 
-                                color: 'var(--text)'
+                                color: 'var(--text)',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s ease-in-out'
                               }}
                             >
                               <SelectValue />
@@ -926,7 +955,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                       </TableCell>
                       <ContextMenu>
                         <ContextMenuTrigger asChild>
-                          <TableCell className="dark:text-white text-gray-900">
+                          <TableCell className="dark:text-white text-gray-900" style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                             {vehicle.bought_price ? `$${vehicle.bought_price.toLocaleString()}` : 'N/A'}
                           </TableCell>
                         </ContextMenuTrigger>
@@ -937,20 +966,24 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                           </ContextMenuItem>
                         </ContextMenuContent>
                       </ContextMenu>
-                    <TableCell>
+                    <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
                         {updatingTitleStatus === vehicle.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+                          <div className="flex items-center justify-center">
+                            <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+                          </div>
                         ) : (
                           <Select
                             value={vehicle.title_status || 'Absent'}
                             onValueChange={(value) => handleTitleStatusChange(vehicle.id, value)}
                           >
                             <SelectTrigger 
-                              className="w-[140px] h-8 text-xs"
+                              className="w-[140px] h-9 text-sm transition-all duration-200"
                               style={{ 
                                 backgroundColor: 'var(--card-bg)', 
                                 borderColor: 'var(--border)', 
-                                color: 'var(--text)'
+                                color: 'var(--text)',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s ease-in-out'
                               }}
                             >
                               <SelectValue />
@@ -974,10 +1007,18 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                           </Select>
                         )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" style={{ color: 'var(--text)' }}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-9 w-9 p-0 rounded-lg" 
+                            style={{ 
+                              color: 'var(--text)',
+                              borderRadius: '8px'
+                            }}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

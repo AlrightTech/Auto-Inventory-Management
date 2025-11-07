@@ -355,20 +355,35 @@ export default function InventoryPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card className="glass-card">
+        <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1">
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400" />
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--subtext)' }} />
                   <Input
                     placeholder="Search by make, model, or VIN..."
-                    className="pl-9 bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="pl-9"
+                    style={{ 
+                      backgroundColor: 'var(--card-bg)', 
+                      borderColor: 'var(--border)', 
+                      color: 'var(--text)',
+                      borderRadius: '8px'
+                    }}
                   />
                 </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
                 <Button 
                   variant="outline" 
-                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  size="sm"
+                  className="h-9 px-4"
+                  style={{ 
+                    backgroundColor: 'var(--card-bg)', 
+                    borderColor: 'var(--border)', 
+                    color: 'var(--text)',
+                    borderRadius: '8px'
+                  }}
                   onClick={() => setShowFilters(!showFilters)}
                 >
                   <Filter className="w-4 h-4 mr-2" />
@@ -376,7 +391,14 @@ export default function InventoryPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                  size="sm"
+                  className="h-9 px-4"
+                  style={{ 
+                    backgroundColor: 'var(--card-bg)', 
+                    borderColor: 'var(--border)', 
+                    color: 'var(--text)',
+                    borderRadius: '8px'
+                  }}
                   onClick={() => {
                     setShowFilters(false);
                     setExportDateFrom(null);
@@ -386,20 +408,25 @@ export default function InventoryPage() {
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset
                 </Button>
-              </div>
-              <div className="flex items-center gap-2">
                 <Popover open={showExportDialog} onOpenChange={setShowExportDialog}>
                   <PopoverTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                      size="sm"
+                      className="h-9 px-4"
+                      style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)',
+                        borderRadius: '8px'
+                      }}
                       disabled={vehicles.length === 0}
                     >
                       <Download className="w-4 h-4 mr-2" />
                       Export CSV
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                  <PopoverContent className="w-auto p-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', borderRadius: '12px' }}>
                     <div className="space-y-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>Date Range (Optional)</label>
@@ -445,7 +472,7 @@ export default function InventoryPage() {
                             handleExportCSV(undefined, exportDateFrom, exportDateTo);
                             setShowExportDialog(false);
                           }}
-                          style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                          style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
                         >
                           Export
                         </Button>
@@ -457,7 +484,7 @@ export default function InventoryPage() {
                             setExportDateTo(null);
                             setShowExportDialog(false);
                           }}
-                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', borderRadius: '8px' }}
                         >
                           Cancel
                         </Button>
@@ -469,14 +496,21 @@ export default function InventoryPage() {
                   <PopoverTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="border-slate-300 dark:border-slate-600 text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                      size="sm"
+                      className="h-9 px-4"
+                      style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)',
+                        borderRadius: '8px'
+                      }}
                       disabled={vehicles.length === 0}
                     >
                       <FileText className="w-4 h-4 mr-2" />
                       Export PDF
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+                  <PopoverContent className="w-auto p-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', borderRadius: '12px' }}>
                     <div className="space-y-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>Date Range (Optional)</label>
@@ -521,7 +555,7 @@ export default function InventoryPage() {
                           onClick={() => {
                             handleExportPDF(undefined, exportDateFrom, exportDateTo);
                           }}
-                          style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                          style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
                         >
                           Export
                         </Button>
@@ -532,7 +566,7 @@ export default function InventoryPage() {
                             setExportDateFrom(null);
                             setExportDateTo(null);
                           }}
-                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', borderRadius: '8px' }}
                         >
                           Cancel
                         </Button>
@@ -551,6 +585,7 @@ export default function InventoryPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
+        className="mt-6"
       >
         <VehicleTable 
           onVehicleAdded={() => setRefreshTrigger(prev => prev + 1)} 
