@@ -26,6 +26,17 @@ interface ChatWindowProps {
 
 export function ChatWindow({ messages, currentUserId }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -84,18 +95,32 @@ export function ChatWindow({ messages, currentUserId }: ChatWindowProps) {
                 {/* Message Bubble */}
                 <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
                   <div
-                    className={`px-4 py-2 rounded-2xl ${
-                      isCurrentUser
-                        ? 'bg-blue-500 text-white rounded-br-md'
-                        : 'bg-slate-700 text-white rounded-bl-md'
-                    }`}
+                    className={`px-4 py-2 rounded-2xl`}
+                    style={{
+                      backgroundColor: isCurrentUser 
+                        ? (isDarkMode ? '#3b82f6' : '#dbeafe')
+                        : (isDarkMode ? '#334155' : '#e5e7eb'),
+                      color: isDarkMode ? '#ffffff' : '#1E1E1E',
+                      borderRadius: isCurrentUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px'
+                    }}
                   >
-                    <p className="text-sm">{message.content}</p>
+                    <p className="text-sm font-medium" style={{ 
+                      color: isDarkMode ? '#ffffff' : '#1E1E1E' 
+                    }}>
+                      {!isCurrentUser && message.sender?.username && (
+                        <span className="font-semibold mr-2" style={{ 
+                          color: isDarkMode ? '#ffffff' : '#1E1E1E' 
+                        }}>
+                          {message.sender.username}:
+                        </span>
+                      )}
+                      {message.content}
+                    </p>
                   </div>
                   
                   {/* Timestamp */}
                   <div className={`flex items-center space-x-1 mt-1 ${isCurrentUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs" style={{ color: 'var(--subtext)' }}>
                       {formatTime(message.created_at)}
                     </span>
                     {isCurrentUser && (

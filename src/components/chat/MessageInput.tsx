@@ -56,7 +56,13 @@ export function MessageInput({ onSendMessage, placeholder = "Type a message..." 
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
-          className="min-h-[40px] max-h-32 resize-none bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 pr-12"
+          className="min-h-[40px] max-h-32 resize-none pr-12"
+          style={{
+            backgroundColor: 'var(--card-bg)',
+            borderColor: 'var(--border)',
+            color: 'var(--text)',
+            borderRadius: '12px'
+          }}
           rows={1}
         />
         
@@ -75,7 +81,12 @@ export function MessageInput({ onSendMessage, placeholder = "Type a message..." 
       <Button
         type="submit"
         disabled={!message.trim()}
-        className="h-10 w-10 p-0 gradient-primary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="h-10 w-10 p-0 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          backgroundColor: 'var(--accent)',
+          color: 'white',
+          borderRadius: '12px'
+        }}
       >
         <Send className="w-4 h-4" />
       </Button>

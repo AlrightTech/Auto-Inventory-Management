@@ -188,42 +188,52 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
         </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
         {navigation.map((item, index) => (
           <motion.div
             key={item.name}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.05 }}
           >
             {item.children ? (
               <div>
                 <button
                   onClick={() => toggleExpanded(item.name)}
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                    "hover:bg-opacity-10",
-                    isParentActive(item.children)
-                      ? "text-white border border-transparent shadow-sm"
-                      : "hover:text-gray-900 dark:hover:text-white"
+                    "w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
+                    "hover:bg-opacity-80"
                   )}
                   style={isParentActive(item.children) ? { 
                     backgroundColor: 'var(--accent)', 
-                    boxShadow: 'var(--glow)',
-                    color: 'white'
+                    color: 'white',
+                    boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)'
                   } : { 
                     backgroundColor: 'transparent',
                     color: 'var(--text)'
                   }}
+                  onMouseEnter={(e) => {
+                    if (!isParentActive(item.children)) {
+                      e.currentTarget.style.backgroundColor = 'var(--muted)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isParentActive(item.children)) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                 >
                   <div className="flex items-center space-x-3">
-                    {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
+                    {React.createElement(getIcon(item.icon), { 
+                      className: "w-5 h-5",
+                      style: { color: isParentActive(item.children) ? 'white' : 'var(--text)' }
+                    })}
                     <span>{item.name}</span>
                   </div>
                   {expandedItems.includes(item.name) ? (
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
                   ) : (
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
                   )}
                 </button>
                 
@@ -233,26 +243,34 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="ml-6 mt-2 space-y-1"
+                      className="ml-8 mt-1 space-y-0.5 border-l pl-3"
+                      style={{ borderColor: 'var(--border)' }}
                     >
                       {item.children.map((child) => (
                         <Link
                           key={child.name}
                           href={child.href}
                           className={cn(
-                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200",
-                            "hover:bg-opacity-10",
-                            isActive(child.href)
-                              ? "text-white border border-transparent shadow-sm"
-                              : "hover:text-gray-900 dark:hover:text-white"
+                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200 ease-in-out",
+                            "hover:bg-opacity-80"
                           )}
                           style={isActive(child.href) ? { 
                             backgroundColor: 'var(--accent)', 
-                            boxShadow: 'var(--glow)',
-                            color: 'white'
+                            color: 'white',
+                            boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)'
                           } : { 
                             backgroundColor: 'transparent',
                             color: 'var(--text)'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActive(child.href)) {
+                              e.currentTarget.style.backgroundColor = 'var(--muted)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive(child.href)) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
                           }}
                         >
                           {child.name}
@@ -266,27 +284,40 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
               <Link
                 href={item.href!}
                 className={cn(
-                  "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                  "hover:bg-opacity-10",
-                  isActive(item.href!)
-                    ? "text-white border border-transparent shadow-sm"
-                    : "hover:text-gray-900 dark:hover:text-white"
+                  "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
+                  "hover:bg-opacity-80"
                 )}
                 style={isActive(item.href!) ? { 
                   backgroundColor: 'var(--accent)', 
-                  boxShadow: 'var(--glow)',
-                  color: 'white'
+                  color: 'white',
+                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)'
                 } : { 
                   backgroundColor: 'transparent',
                   color: 'var(--text)'
                 }}
+                onMouseEnter={(e) => {
+                  if (!isActive(item.href!)) {
+                    e.currentTarget.style.backgroundColor = 'var(--muted)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive(item.href!)) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 <div className="flex items-center space-x-3">
-                  {React.createElement(getIcon(item.icon), { className: "w-5 h-5" })}
+                  {React.createElement(getIcon(item.icon), { 
+                    className: "w-5 h-5",
+                    style: { color: isActive(item.href!) ? 'white' : 'var(--text)' }
+                  })}
                   <span>{item.name}</span>
                 </div>
                 {item.name === 'Chat' && unreadCount > 0 && (
-                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-medium" style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)' }}>
+                  <span 
+                    className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center font-medium" 
+                    style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)' }}
+                  >
                     {unreadCount}
                   </span>
                 )}

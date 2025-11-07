@@ -22,6 +22,7 @@ import { EditTaskModal } from '@/components/tasks/EditTaskModal';
 import { AddAssessmentModal } from '@/components/inventory/AddAssessmentModal';
 import { AddExpenseModal } from '@/components/expenses/AddExpenseModal';
 import { createClient } from '@/lib/supabase/client';
+import { useDropdownOptions } from '@/hooks/useDropdownOptions';
 
 interface ViewVehicleModalProps {
   vehicle: VehicleWithRelations | null;
@@ -47,6 +48,8 @@ interface VehicleImage {
 
 export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalProps) {
   const [activeTab, setActiveTab] = useState('details');
+  // Fetch location options dynamically (for future use if needed)
+  const { options: locationOptions } = useDropdownOptions('car_location', true);
   const [vehicleTasks, setVehicleTasks] = useState<TaskWithRelations[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [notes, setNotes] = useState<VehicleNote[]>([]);
@@ -107,13 +110,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     transportCost: '',
     notes: '',
     address: '',
-    state: '',
-    zip: '',
-    acAssignCarrier: '',
   });
-  const [dispatchFile, setDispatchFile] = useState<File | null>(null);
   const [editingDispatch, setEditingDispatch] = useState<any | null>(null);
-  const dispatchFileInputRef = useRef<HTMLInputElement>(null);
   
   // Timeline state
   const [timelineEntries, setTimelineEntries] = useState<any[]>([]);
@@ -493,7 +491,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   const titleStatusOptions = ['Absent', 'In Transit', 'Received', 'Available not Received', 'Present', 'Released', 'Validated', 'Sent but not Validated'];
   const arbStatusOptions = ['Absent', 'Present', 'In Transit', 'Failed'];
   const auctionOptions = ['iaai', 'Manheim', 'CarMax', 'Adesa', 'Western', 'Default Auction'];
-  const locationOptions = ['Missing', 'Shop/Mechanic', 'Auction', 'Other Mechanic', 'Unknown', 'Other', 'PDR'];
+  // locationOptions will be fetched dynamically
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1439,40 +1437,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
     setIsSubmittingDispatch(true);
     try {
-      let fileUrl = null;
-      let fileName = null;
-
-      // Upload file if selected
-      if (dispatchFile) {
-        const formData = new FormData();
-        formData.append('file', dispatchFile);
-
-        const uploadResponse = await fetch(`/api/vehicles/${vehicle.id}/dispatch/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!uploadResponse.ok) {
-          const error = await uploadResponse.json();
-          throw new Error(error.error || 'Failed to upload file');
-        }
-
-        const uploadData = await uploadResponse.json();
-        fileUrl = uploadData.fileUrl;
-        fileName = uploadData.fileName;
-      }
-
       const dispatchData = {
         location: dispatchForm.location.trim(),
         transportCompany: dispatchForm.transportCompany.trim(),
         transportCost: dispatchForm.transportCost ? parseFloat(dispatchForm.transportCost) : null,
         notes: dispatchForm.notes.trim() || null,
         address: dispatchForm.address.trim() || null,
-        state: dispatchForm.state.trim() || null,
-        zip: dispatchForm.zip.trim() || null,
-        acAssignCarrier: dispatchForm.acAssignCarrier.trim() || null,
-        fileUrl,
-        fileName,
       };
 
       if (editingDispatch) {
@@ -1524,14 +1494,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         transportCost: '',
         notes: '',
         address: '',
-        state: '',
-        zip: '',
-        acAssignCarrier: '',
       });
-      setDispatchFile(null);
-      if (dispatchFileInputRef.current) {
-        dispatchFileInputRef.current.value = '';
-      }
     } catch (error: any) {
       console.error('Error saving dispatch:', error);
       toast.error(error.message || 'Failed to save dispatch record');
@@ -1570,30 +1533,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       transportCost: dispatch.transport_cost ? dispatch.transport_cost.toString() : '',
       notes: dispatch.notes || '',
       address: dispatch.address || '',
-      state: dispatch.state || '',
-      zip: dispatch.zip || '',
-      acAssignCarrier: dispatch.ac_assign_carrier || '',
     });
-    setDispatchFile(null);
-  };
-
-  const handleDownloadDispatchFile = async (fileUrl: string, fileName: string) => {
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName || 'dispatch-document';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      toast.success('File downloaded successfully');
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      toast.error('Failed to download file');
-    }
   };
 
   // Timeline logging function
@@ -3262,84 +3202,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
-                      State
-                    </label>
-                    <Input
-                      value={dispatchForm.state}
-                      onChange={(e) => setDispatchForm(prev => ({ ...prev, state: e.target.value }))}
-                      placeholder="Enter state"
-                      className="w-full"
-                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
-                      ZIP
-                    </label>
-                    <Input
-                      value={dispatchForm.zip}
-                      onChange={(e) => setDispatchForm(prev => ({ ...prev, zip: e.target.value }))}
-                      placeholder="Enter ZIP code"
-                      className="w-full"
-                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
-                      AC/ASSIGN-CARRIER
-                    </label>
-                    <Input
-                      value={dispatchForm.acAssignCarrier}
-                      onChange={(e) => setDispatchForm(prev => ({ ...prev, acAssignCarrier: e.target.value }))}
-                      placeholder="Enter AC/ASSIGN-CARRIER"
-                      className="w-full"
-                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
-                      Upload File (Optional)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        ref={dispatchFileInputRef}
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        onChange={(e) => setDispatchFile(e.target.files?.[0] || null)}
-                        className="hidden"
-                        id="dispatch-file-upload"
-                      />
-                      <label
-                        htmlFor="dispatch-file-upload"
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer border"
-                        style={{ 
-                          backgroundColor: 'var(--card-bg)', 
-                          borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
-                        }}
-                      >
-                        <Upload className="w-4 h-4" />
-                        {dispatchFile ? dispatchFile.name : 'Choose File'}
-                      </label>
-                      {dispatchFile && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setDispatchFile(null);
-                            if (dispatchFileInputRef.current) {
-                              dispatchFileInputRef.current.value = '';
-                            }
-                          }}
-                          style={{ color: 'var(--text)' }}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
                 </div>
                 <div className="mt-4">
                   <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
@@ -3380,14 +3242,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                           transportCost: '',
                           notes: '',
                           address: '',
-                          state: '',
-                          zip: '',
-                          acAssignCarrier: '',
                         });
-                        setDispatchFile(null);
-                        if (dispatchFileInputRef.current) {
-                          dispatchFileInputRef.current.value = '';
-                        }
                       }}
                       variant="outline"
                       style={{ 
@@ -3423,7 +3278,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                 </motion.div>
               ) : (
                 <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
-                  <Table className="min-w-[1000px]">
+                  <Table className="min-w-[800px]">
                     <TableHeader>
                       <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
@@ -3431,9 +3286,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Location</TableHead>
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Transport Company</TableHead>
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Address</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>ST/ZIP</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>AC/ASSIGN-CARRIER</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>File</TableHead>
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Action</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -3473,28 +3325,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                           </TableCell>
                           <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                             {record.address || 'N/A'}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                            {record.state && record.zip ? `${record.state}/${record.zip}` : record.state || record.zip || 'N/A'}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                            {record.ac_assign_carrier || 'N/A'}
-                          </TableCell>
-                          <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                            {record.file_url ? (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDownloadDispatchFile(record.file_url, record.file_name || 'dispatch-document')}
-                                className="flex items-center gap-1"
-                                style={{ color: 'var(--accent)' }}
-                              >
-                                <Download className="w-4 h-4" />
-                                Download
-                              </Button>
-                            ) : (
-                              <span style={{ color: 'var(--subtext)' }}>No file</span>
-                            )}
                           </TableCell>
                           <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
                             <DropdownMenu>

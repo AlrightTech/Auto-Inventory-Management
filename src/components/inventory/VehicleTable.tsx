@@ -45,8 +45,10 @@ import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
 import { ViewVehicleModal } from './ViewVehicleModal';
 import { AddVehicleModal } from './AddVehicleModal';
+import { useDropdownOptions } from '@/hooks/useDropdownOptions';
+import { useRouter } from 'next/navigation';
 
-const carLocationOptions = ['Missing', 'Auction', 'Shop', 'Mechanic', 'Others', 'PDR'];
+// carLocationOptions will be fetched dynamically
 const titleStatusOptions = ['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated'];
 const statusOptions = ['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress'];
 
@@ -95,6 +97,9 @@ interface FilterState {
 }
 
 export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: showFiltersProp, onExportCSV, onExportPDF }: VehicleTableProps) {
+  const router = useRouter();
+  // Fetch car location options dynamically
+  const { options: carLocationOptions, isLoading: isLoadingLocations } = useDropdownOptions('car_location', true);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredVehicles, setFilteredVehicles] = useState<VehicleWithRelations[]>([]);
@@ -103,7 +108,6 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
   const [isMarkingAsSold, setIsMarkingAsSold] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithRelations | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState<Set<string>>(new Set());
   const [updatingLocation, setUpdatingLocation] = useState<string | null>(null);
   const [updatingTitleStatus, setUpdatingTitleStatus] = useState<string | null>(null);
@@ -237,8 +241,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
   };
 
   const handleEdit = (vehicle: VehicleWithRelations) => {
-    setSelectedVehicle(vehicle);
-    setIsEditModalOpen(true);
+    router.push(`/admin/inventory/edit/${vehicle.id}`);
   };
 
   // Handle mark as sold
@@ -699,11 +702,21 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
-                    {carLocationOptions.map((location) => (
-                      <SelectItem key={location} value={location} style={{ color: 'var(--text)' }}>
-                        {location}
+                    {isLoadingLocations ? (
+                      <SelectItem value="loading" disabled style={{ color: 'var(--text)' }}>
+                        Loading...
                       </SelectItem>
-                    ))}
+                    ) : carLocationOptions.length === 0 ? (
+                      <SelectItem value="no-options" disabled style={{ color: 'var(--text)' }}>
+                        No options available
+                      </SelectItem>
+                    ) : (
+                      carLocationOptions.map((location) => (
+                        <SelectItem key={location.value} value={location.value} style={{ color: 'var(--text)' }}>
+                          {location.label}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 {filters.carLocation.length > 0 && (
@@ -1164,35 +1177,6 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         }}
       />
 
-      {/* Edit Vehicle Modal - Reusing AddVehicleModal with vehicle prop */}
-      {selectedVehicle && (
-        <AddVehicleModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedVehicle(null);
-          }}
-          onVehicleAdded={() => {
-            if (onVehicleAdded) {
-              onVehicleAdded();
-            }
-            // Reload vehicles
-            const loadVehicles = async () => {
-              try {
-                const response = await fetch('/api/vehicles');
-                if (response.ok) {
-                  const { data } = await response.json();
-                  setVehicles(data || []);
-                }
-              } catch (error) {
-                console.error('Error reloading vehicles:', error);
-              }
-            };
-            loadVehicles();
-          }}
-          vehicleToEdit={selectedVehicle}
-        />
-      )}
     </Card>
   );
 }

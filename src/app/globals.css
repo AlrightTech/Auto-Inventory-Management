@@ -4,13 +4,15 @@
   /* Light Mode - Automotive Dashboard */
   --bg: #f8f9fa;
   --card-bg: #ffffff;
-  --text: #222;
+  --text: #1E1E1E;
   --subtext: #555;
   --accent: #00bfff;
   --accent-hover: #00e5ff;
   --border: #e3e6ea;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
   --glow: none;
+  --light-mode-blue: #dbeafe;
+  --light-mode-gray: #e5e7eb;
   
   /* Tailwind CSS Variables */
   --background: 248 249 250; /* #f8f9fa */
@@ -244,6 +246,29 @@ input, textarea, select, button {
   font-weight: 600;
   color: var(--text);
   font-size: 1.2rem;
+}
+
+/* Light Mode Form Field Improvements - Ensure visible text */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea,
+select,
+.control-panel {
+  background-color: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="search"]::placeholder,
+input[type="number"]::placeholder,
+textarea::placeholder {
+  color: var(--subtext) !important;
 }
 
 /* Dark Mode Form Field Improvements - Dark Background with White Text */
@@ -693,6 +718,57 @@ input, textarea, select, button {
 
 /* Smooth transitions for all interactive elements */
 * {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, 
-              box-shadow 0.3s ease, transform 0.3s ease;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out, 
+              box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Button hover states */
+button {
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Input and form field focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1) !important;
+}
+
+/* Label styling */
+label {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Typography enhancements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.025em;
+}
+
+/* Ensure all buttons have visible text */
+button {
+  color: var(--text);
+}
+
+button[type="submit"],
+button.primary {
+  background-color: var(--accent) !important;
+  color: white !important;
+}
+
+/* Dropdown menu items hover */
+[data-radix-dropdown-menu-item]:hover {
+  background-color: var(--muted) !important;
 }
