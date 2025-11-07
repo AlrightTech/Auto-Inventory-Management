@@ -206,7 +206,13 @@ export function AddExpenseModal({
               onClick={onClose}
               className="flex-1"
               disabled={isSubmitting}
-              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              style={{ 
+                backgroundColor: 'var(--card-bg)', 
+                borderColor: 'var(--border)', 
+                color: 'var(--text)',
+                borderWidth: '1px',
+                borderStyle: 'solid'
+              }}
             >
               Cancel
             </Button>
@@ -214,7 +220,11 @@ export function AddExpenseModal({
               type="submit"
               className="flex-1"
               disabled={isSubmitting}
-              style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+              style={{ 
+                backgroundColor: 'var(--accent)', 
+                color: 'white',
+                border: '1px solid var(--accent)'
+              }}
             >
               {isSubmitting ? (
                 <>

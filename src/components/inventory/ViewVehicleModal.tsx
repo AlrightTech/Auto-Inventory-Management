@@ -2749,10 +2749,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
           {/* Parts & Expenses Tab */}
           {activeTab === 'parts' && (
             <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <Wrench className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Parts & Expenses</h4>
-              </div>
               {/* Header with Add Expense and Download Buttons */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -2766,7 +2762,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       setIsAddExpenseModalOpen(true);
                     }}
                     size="sm"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
+                    style={{ 
+                      backgroundColor: 'var(--accent)', 
+                      color: 'white', 
+                      borderRadius: '8px',
+                      border: '1px solid var(--accent)'
+                    }}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Expense
@@ -2776,7 +2777,14 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     variant="outline"
                     size="sm"
                     disabled={expenses.length === 0}
-                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', borderRadius: '8px' }}
+                    style={{ 
+                      backgroundColor: 'var(--card-bg)', 
+                      borderColor: 'var(--border)', 
+                      color: 'var(--text)', 
+                      borderRadius: '8px',
+                      borderWidth: '1px',
+                      borderStyle: 'solid'
+                    }}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download
@@ -2808,7 +2816,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       setIsAddExpenseModalOpen(true);
                     }}
                     size="sm"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
+                    style={{ 
+                      backgroundColor: 'var(--accent)', 
+                      color: 'white', 
+                      borderRadius: '8px',
+                      border: '1px solid var(--accent)'
+                    }}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Expense
@@ -2892,7 +2905,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                 <Button
                                   size="sm"
                                   onClick={() => handleUpdateExpenseCost(expense.id)}
-                                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '6px' }}
+                                  style={{ 
+                                    backgroundColor: 'var(--accent)', 
+                                    color: 'white', 
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--accent)'
+                                  }}
                                 >
                                   Save
                                 </Button>
@@ -2948,7 +2966,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                 <Button
                                   size="sm"
                                   onClick={() => handleUpdateExpenseNote(expense.id)}
-                                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '6px' }}
+                                  style={{ 
+                                    backgroundColor: 'var(--accent)', 
+                                    color: 'white', 
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--accent)'
+                                  }}
                                 >
                                   Save
                                 </Button>
