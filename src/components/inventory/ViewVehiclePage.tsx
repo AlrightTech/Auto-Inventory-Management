@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
-import { Car, Calendar as CalendarIcon, DollarSign, MapPin, User, FileText, CheckCircle, AlertCircle, ClipboardList, ClipboardCheck, Wrench, Truck, Clock, Upload, Download, X, Plus, Image as ImageIcon, Link as LinkIcon, Loader2, Edit, Trash2, MoreHorizontal, FileText as FileTextIcon } from 'lucide-react';
+import { Car, Calendar as CalendarIcon, DollarSign, MapPin, User, FileText, CheckCircle, AlertCircle, ClipboardList, ClipboardCheck, Wrench, Truck, Clock, Upload, Download, X, Plus, Image as ImageIcon, Link as LinkIcon, Loader2, Edit, Trash2, MoreHorizontal, FileText as FileTextIcon, ArrowLeft } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { TaskWithRelations, User as UserType } from '@/types';
 import { format } from 'date-fns';
@@ -24,10 +25,10 @@ import { AddExpenseModal } from '@/components/expenses/AddExpenseModal';
 import { createClient } from '@/lib/supabase/client';
 import { useDropdownOptions } from '@/hooks/useDropdownOptions';
 
-interface ViewVehicleModalProps {
+interface ViewVehiclePageProps {
   vehicle: VehicleWithRelations | null;
-  isOpen: boolean;
-  onClose: () => void;
+  
+  
 }
 
 interface VehicleNote {
@@ -46,8 +47,12 @@ interface VehicleImage {
   created_at: string;
 }
 
-export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalProps) {
+export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('details');
+  const [vehicleImageUrl, setVehicleImageUrl] = useState<string | null>((vehicle as any)?.image_url || null);
+  const [isUploadingVehicleImage, setIsUploadingVehicleImage] = useState(false);
+  const vehicleImageInputRef = useRef<HTMLInputElement>(null);
   // Fetch location options dynamically (for future use if needed)
   const { options: locationOptions } = useDropdownOptions('car_location', true);
   const [vehicleTasks, setVehicleTasks] = useState<TaskWithRelations[]>([]);
@@ -128,7 +133,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
 
   // Load tasks for this vehicle
   useEffect(() => {
-    if (isOpen && vehicle?.id && activeTab === 'tasks') {
+    if (vehicle?.id && activeTab === 'tasks') {
       const loadTasks = async () => {
         try {
           setIsLoadingTasks(true);
@@ -162,14 +167,14 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         }
       };
       loadTasks();
-    } else if (!isOpen || !vehicle?.id) {
+    } else if (!vehicle?.id) {
       setVehicleTasks([]);
     }
-  }, [isOpen, vehicle?.id, activeTab]);
+  }, [vehicle?.id, activeTab]);
 
   // Load assessments for this vehicle
   useEffect(() => {
-    if (isOpen && vehicle?.id && activeTab === 'assessment') {
+    if (vehicle?.id && activeTab === 'assessment') {
       const loadAssessments = async () => {
         try {
           setIsLoadingAssessments(true);
@@ -191,11 +196,11 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     } else {
       setAssessments([]);
     }
-  }, [isOpen, vehicle?.id, activeTab]);
+  }, [vehicle?.id, activeTab]);
 
   // Load dispatch records for this vehicle
   useEffect(() => {
-    if (isOpen && vehicle?.id && activeTab === 'dispatch') {
+    if (vehicle?.id && activeTab === 'dispatch') {
       const loadDispatchRecords = async () => {
         try {
           setIsLoadingDispatch(true);
@@ -216,18 +221,18 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       };
       loadDispatchRecords();
     }
-  }, [isOpen, vehicle?.id, activeTab]);
+  }, [vehicle?.id, activeTab]);
 
   // Load timeline entries for this vehicle
   useEffect(() => {
-    if (isOpen && vehicle?.id && activeTab === 'timeline') {
+    if (vehicle?.id && activeTab === 'timeline') {
       const loadTimeline = async () => {
         try {
           setIsLoadingTimeline(true);
           const response = await fetch(`/api/vehicles/${vehicle.id}/timeline?page=${timelineCurrentPage}&limit=${timelinePerPage}`);
           if (response.ok) {
             const { data } = await response.json();
-            // Sort by newest first (chronological order: newest â†’ oldest)
+            // Sort by newest first (chronological order: newest → oldest)
             const sorted = (data || []).sort((a: any, b: any) => {
               const dateA = new Date(a.created_at || a.date || 0).getTime();
               const dateB = new Date(b.created_at || b.date || 0).getTime();
@@ -264,11 +269,11 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     } else {
       setTimelineEntries([]);
     }
-  }, [isOpen, vehicle?.id, activeTab, timelineCurrentPage]);
+  }, [vehicle?.id, activeTab, timelineCurrentPage]);
 
   // Load notes and images
   useEffect(() => {
-    if (isOpen && vehicle?.id) {
+    if (vehicle?.id) {
       const loadNotes = async () => {
         try {
           setIsLoadingNotes(true);
@@ -311,11 +316,11 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       setNotes([]);
       setImages([]);
     }
-  }, [isOpen, vehicle?.id]);
+  }, [vehicle?.id]);
 
   // Load users for assignment dropdown
   useEffect(() => {
-    if (isOpen && activeTab === 'tasks' && supabase) {
+    if (activeTab === 'tasks' && supabase) {
       const loadUsers = async () => {
         try {
           const { data: usersData, error } = await supabase
@@ -352,11 +357,11 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     } else {
       setUsers([]);
     }
-  }, [isOpen, activeTab, supabase]);
+  }, [activeTab, supabase]);
 
   // Load expenses for this vehicle
   useEffect(() => {
-    if (isOpen && vehicle?.id && activeTab === 'parts') {
+    if (vehicle?.id && activeTab === 'parts') {
       const loadExpenses = async () => {
         try {
           setIsLoadingExpenses(true);
@@ -373,7 +378,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       };
       loadExpenses();
     }
-  }, [isOpen, vehicle?.id, activeTab]);
+  }, [vehicle?.id, activeTab]);
 
   // Initialize state from vehicle
   useEffect(() => {
@@ -872,7 +877,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         throw new Error(error.error || 'Failed to create task');
       }
 
-      toast.success('✅ Task added successfully');
+      toast.success('? Task added successfully');
       setIsAddTaskModalOpen(false);
       
       // Reload tasks - ensure we filter by vehicle ID
@@ -1642,23 +1647,99 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
   );
   const totalPages = Math.ceil((vehicleTasks || []).length / tasksPerPage);
 
-  const handleClose = (open: boolean) => {
-    if (!open) {
-      // Reset state when closing
-      setActiveTab('details');
-      onClose();
+  // Handle vehicle image upload
+  const handleVehicleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !vehicle?.id) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only JPG and PNG files are allowed');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    setIsUploadingVehicleImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload to vehicle_images table (for now, we'll also update vehicle.image_url)
+      const response = await fetch(`/api/vehicles/${vehicle.id}/images`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to upload image');
+      }
+
+      const { data } = await response.json();
+      const imageUrl = data.file_url;
+
+      // Update vehicle's image_url field
+      const updateResponse = await fetch(`/api/vehicles/${vehicle.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: imageUrl }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Failed to update vehicle image');
+      }
+
+      setVehicleImageUrl(imageUrl);
+      toast.success('Vehicle image uploaded successfully');
+    } catch (error: any) {
+      console.error('Error uploading vehicle image:', error);
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setIsUploadingVehicleImage(false);
+      if (vehicleImageInputRef.current) {
+        vehicleImageInputRef.current.value = '';
+      }
     }
   };
 
+  if (!vehicle) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p style={{ color: 'var(--text)' }}>Vehicle not found</p>
+      </div>
+    );
+  }
+
   return (
-    <Dialog open={isOpen && !!vehicle} onOpenChange={handleClose}>
-      <DialogContent className="dashboard-card neon-glow instrument-cluster max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center justify-between" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="dashboard-card neon-glow instrument-cluster p-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="flex items-center gap-2"
+              style={{ color: 'var(--text)' }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
             <div className="flex items-center">
-              <Car className="w-6 h-6 mr-2" />
-              Vehicle Details
+              <Car className="w-6 h-6 mr-2" style={{ color: 'var(--accent)' }} />
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                Vehicle Details
+              </h1>
             </div>
+          </div>
             {((activeTab === 'details' || activeTab === 'tasks' || activeTab === 'assessment')) && (
               <div className="flex items-center gap-2">
                 {/* Upload Title button - only show for details and tasks tabs */}
@@ -1759,11 +1840,10 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                 )}
               </div>
             )}
-          </DialogTitle>
-          <DialogDescription style={{ color: 'var(--subtext)' }}>
+          <p style={{ color: 'var(--subtext)' }} className="ml-12">
             Complete information about this vehicle
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
 
         {/* Tab Navigation */}
         <div className="border-b" style={{ borderColor: 'var(--border)' }}>
@@ -1846,6 +1926,96 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                     <div style={{ color: 'var(--subtext)' }}>Location</div>
                     <div className="font-medium" style={{ color: 'var(--text)' }}>
                       {vehicle.vehicle_location || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Vehicle Image Upload Section */}
+                <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <ImageIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <h5 className="font-semibold" style={{ color: 'var(--text)' }}>Vehicle Image</h5>
+                  </div>
+                  <div className="space-y-4">
+                    {vehicleImageUrl ? (
+                      <div className="relative inline-block">
+                        <img
+                          src={vehicleImageUrl}
+                          alt="Vehicle"
+                          className="max-w-full h-auto rounded-lg border"
+                          style={{ 
+                            maxHeight: '400px', 
+                            borderColor: 'var(--border)',
+                            objectFit: 'contain'
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setVehicleImageUrl(null);
+                            // Update vehicle to remove image_url
+                            fetch(`/api/vehicles/${vehicle.id}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ image_url: null }),
+                            }).catch(console.error);
+                          }}
+                          className="absolute top-2 right-2"
+                          style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: 'white' }}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed rounded-lg p-8 text-center" style={{ borderColor: 'var(--border)' }}>
+                        <ImageIcon className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
+                        <p className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
+                          No vehicle image uploaded
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        ref={vehicleImageInputRef}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        onChange={handleVehicleImageUpload}
+                        className="hidden"
+                        id="vehicle-image-upload"
+                        disabled={isUploadingVehicleImage}
+                      />
+                      <label htmlFor="vehicle-image-upload">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isUploadingVehicleImage}
+                          className="cursor-pointer"
+                          style={{ 
+                            borderColor: 'var(--border)', 
+                            color: 'var(--text)',
+                            backgroundColor: 'var(--card-bg)'
+                          }}
+                          asChild
+                        >
+                          <span>
+                            {isUploadingVehicleImage ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4 mr-2" />
+                                {vehicleImageUrl ? 'Change Image' : 'Upload Image'}
+                              </>
+                            )}
+                          </span>
+                        </Button>
+                      </label>
+                      <p className="text-xs mt-2" style={{ color: 'var(--subtext)' }}>
+                        JPEG or PNG, max 10MB
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2695,8 +2865,27 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                               {rowIndex}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {vehicleYear} {vehicleMake} {vehicleModel}
-                              {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
+                              <div className="flex items-center gap-3">
+                                {currentVehicleImageUrl && (
+                                  <img
+                                    src={currentVehicleImageUrl}
+                                    alt={`${vehicleYear} ${vehicleMake} ${vehicleModel}`}
+                                    className="w-16 h-16 object-cover rounded border"
+                                    style={{ borderColor: 'var(--border)' }}
+                                  />
+                                )}
+                                <div>
+                                  <div className="font-medium">
+                                    {vehicleYear} {vehicleMake} {vehicleModel}
+                                    {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
+                                  </div>
+                                  {vehicle?.vin && (
+                                    <div className="text-xs" style={{ color: 'var(--subtext)' }}>
+                                      VIN: {vehicle.vin}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                               {assessment.assessment_date ? format(new Date(assessment.assessment_date), 'dd-MM-yyyy') : 'N/A'}
@@ -3568,7 +3757,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

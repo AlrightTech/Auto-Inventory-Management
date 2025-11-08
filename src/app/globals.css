@@ -893,6 +893,19 @@ nav button:hover {
   border: 1px solid var(--border) !important;
 }
 
+/* Add Task Button - Black border in light theme */
+.add-task-btn {
+  border-color: var(--accent) !important;
+}
+
+:not(.dark) .add-task-btn {
+  border-color: #000000 !important;
+}
+
+.dark .add-task-btn {
+  border-color: var(--accent) !important;
+}
+
 /* Ensure sidebar text is always visible */
 nav a,
 nav button {

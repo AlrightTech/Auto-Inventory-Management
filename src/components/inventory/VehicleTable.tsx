@@ -43,7 +43,6 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
-import { ViewVehicleModal } from './ViewVehicleModal';
 import { AddVehicleModal } from './AddVehicleModal';
 import { useDropdownOptions } from '@/hooks/useDropdownOptions';
 import { useRouter } from 'next/navigation';
@@ -106,8 +105,6 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isMarkingAsSold, setIsMarkingAsSold] = useState<string | null>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithRelations | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState<Set<string>>(new Set());
   const [updatingLocation, setUpdatingLocation] = useState<string | null>(null);
   const [updatingTitleStatus, setUpdatingTitleStatus] = useState<string | null>(null);
@@ -255,8 +252,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
   };
 
   const handleView = (vehicle: VehicleWithRelations) => {
-    setSelectedVehicle(vehicle);
-    setIsViewModalOpen(true);
+    router.push(`/admin/inventory/${vehicle.id}`);
   };
 
   const handleEdit = (vehicle: VehicleWithRelations) => {
@@ -1186,15 +1182,6 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         </div>
       </CardContent>
 
-      {/* View Vehicle Modal */}
-      <ViewVehicleModal
-        vehicle={selectedVehicle}
-        isOpen={isViewModalOpen}
-        onClose={() => {
-          setIsViewModalOpen(false);
-          setSelectedVehicle(null);
-        }}
-      />
 
     </Card>
   );
