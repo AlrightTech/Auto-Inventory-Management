@@ -347,15 +347,35 @@ textarea::placeholder {
 
 /* Dropdown Menus - Consistent Styling */
 [data-radix-dropdown-content],
-[data-radix-popper-content-wrapper] {
+[data-radix-popper-content-wrapper],
+[data-radix-select-content] {
   background-color: var(--card-bg) !important;
   border-color: var(--border) !important;
   color: var(--text) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border) !important;
 }
 
-[data-radix-dropdown-content] *,
-[data-radix-popper-content-wrapper] * {
+/* Select Components - Ensure readable text (will be overridden by specific rules below) */
+[data-radix-select-value],
+[data-radix-select-item-text] {
   color: var(--text) !important;
+}
+
+/* Light Mode - Dropdown items have black text */
+[data-radix-dropdown-content] *,
+[data-radix-popper-content-wrapper] *,
+[data-radix-select-content] *,
+[data-radix-select-item] {
+  color: #1E1E1E !important;
+}
+
+/* Dark Mode - Dropdown items have white text */
+.dark [data-radix-dropdown-content] *,
+.dark [data-radix-popper-content-wrapper] *,
+.dark [data-radix-select-content] *,
+.dark [data-radix-select-item] {
+  color: #fafafa !important;
 }
 
 /* Dropdown Menu Items - Remove white backgrounds and add proper hover */
@@ -364,6 +384,7 @@ textarea::placeholder {
   background-color: transparent !important;
   color: var(--text) !important;
   transition: background-color 0.2s ease;
+  border-radius: 6px !important;
 }
 
 [data-radix-dropdown-menu-item]:hover,
@@ -376,20 +397,22 @@ textarea::placeholder {
 
 /* Dark Mode Dropdown Menus - Ensure proper colors */
 .dark [data-radix-dropdown-content],
-.dark [data-radix-popper-content-wrapper] {
+.dark [data-radix-popper-content-wrapper],
+.dark [data-radix-select-content] {
   background-color: var(--card-bg) !important;
   border-color: var(--border) !important;
 }
 
 .dark [data-radix-dropdown-content] *,
-.dark [data-radix-popper-content-wrapper] * {
-  color: var(--text) !important;
+.dark [data-radix-popper-content-wrapper] *,
+.dark [data-radix-select-content] * {
+  color: #fafafa !important;
 }
 
 .dark [data-radix-dropdown-menu-item],
 .dark [data-radix-dropdown-content] [role="menuitem"] {
   background-color: transparent !important;
-  color: var(--text) !important;
+  color: #fafafa !important;
 }
 
 .dark [data-radix-dropdown-menu-item]:hover,
@@ -397,7 +420,43 @@ textarea::placeholder {
 .dark [data-radix-dropdown-menu-item][data-highlighted],
 .dark [data-radix-dropdown-content] [role="menuitem"][data-highlighted] {
   background-color: var(--muted) !important;
-  color: var(--text) !important;
+  color: #fafafa !important;
+}
+
+/* Select Trigger - Remove conflicting borders and ensure proper focus */
+[data-radix-select-trigger] {
+  border-radius: 8px !important;
+  border: 1px solid var(--border) !important;
+  background-color: var(--card-bg) !important;
+  color: #1E1E1E !important;
+  padding: 8px 12px !important;
+}
+
+[data-radix-select-trigger]:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1) !important;
+}
+
+/* Dark Mode - Select Trigger text */
+.dark [data-radix-select-trigger] {
+  color: #fafafa !important;
+}
+
+/* Select Item hover and focus states */
+[data-radix-select-item]:hover,
+[data-radix-select-item][data-highlighted] {
+  background-color: var(--muted) !important;
+}
+
+/* Light Mode - Select Item text */
+[data-radix-select-item] {
+  color: #1E1E1E !important;
+}
+
+/* Dark Mode - Select Item text */
+.dark [data-radix-select-item] {
+  color: #fafafa !important;
 }
 
 /* Vehicle Inventory Table ONLY - Enhanced Horizontal Scroll */
@@ -741,40 +800,70 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1) !important;
 }
 
-/* Label styling */
+/* Label styling - Always dark in light mode */
 label {
   font-weight: 500;
   font-size: 0.875rem;
-  color: var(--text);
+  color: var(--text) !important;
   margin-bottom: 0.5rem;
   display: block;
 }
 
-/* Typography enhancements */
+/* Ensure labels are always readable */
+label,
+.label,
+[class*="label"] {
+  color: var(--text) !important;
+}
+
+/* Typography enhancements - Always readable */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text) !important;
   letter-spacing: -0.025em;
 }
 
-/* Ensure all buttons have visible text */
-button {
-  color: var(--text);
+/* All text elements should be readable in light mode */
+:not(.dark) p,
+:not(.dark) span:not([style*="color: white"]):not([style*="color: #fff"]):not([style*="color: #ffffff"]),
+:not(.dark) div:not([style*="backgroundColor: var(--accent)"]),
+:not(.dark) a:not([style*="backgroundColor: var(--accent)"]) {
+  color: var(--text) !important;
 }
 
+/* Links - accent color but readable */
+a:not([style*="backgroundColor: var(--accent)"]) {
+  color: var(--accent) !important;
+}
+
+a:hover:not([style*="backgroundColor: var(--accent)"]) {
+  color: var(--accent-hover) !important;
+}
+
+/* Icons - dark in light mode */
+:not(.dark) svg:not([style*="color: white"]):not([style*="color: #fff"]) {
+  color: var(--text) !important;
+}
+
+/* Light Mode - Ensure all buttons have dark text (except accent buttons) */
+button:not([style*="backgroundColor: var(--accent)"]):not([style*="background-color: var(--accent)"]):not(.gradient-primary):not([class*="bg-blue"]):not([class*="bg-accent"]) {
+  color: var(--text) !important;
+}
+
+/* Submit and primary buttons - white text on accent */
 button[type="submit"],
 button.primary,
 button[style*="backgroundColor: var(--accent)"],
-button[style*="background-color: var(--accent)"] {
-  background-color: var(--accent) !important;
-  color: white !important;
-}
-
-/* Ensure all submit buttons are visible in both themes */
-button[type="submit"] {
+button[style*="background-color: var(--accent)"],
+button.gradient-primary {
   background-color: var(--accent) !important;
   color: white !important;
   border: none !important;
+}
+
+/* Dark Mode - Buttons */
+.dark button:not([style*="backgroundColor: var(--accent)"]):not([style*="background-color: var(--accent)"]) {
+  color: var(--text) !important;
 }
 
 /* Dropdown menu items hover */
@@ -816,10 +905,25 @@ nav button:hover svg {
   color: var(--text) !important;
 }
 
-/* Active sidebar items - ensure white text */
+/* Active sidebar items - ensure white text on accent background */
+nav a[style*="backgroundColor: var(--accent)"],
+nav button[style*="backgroundColor: var(--accent)"] {
+  color: white !important;
+}
+
 nav a[style*="backgroundColor: var(--accent)"] span,
 nav button[style*="backgroundColor: var(--accent)"] span,
 nav a[style*="backgroundColor: var(--accent)"] svg,
-nav button[style*="backgroundColor: var(--accent)"] svg {
+nav button[style*="backgroundColor: var(--accent)"] svg,
+nav a[style*="backgroundColor: var(--accent)"] *,
+nav button[style*="backgroundColor: var(--accent)"] * {
   color: white !important;
+}
+
+/* Non-active sidebar items - dark text in light mode */
+nav a:not([style*="backgroundColor: var(--accent)"]) span,
+nav button:not([style*="backgroundColor: var(--accent)"]) span,
+nav a:not([style*="backgroundColor: var(--accent)"]) svg,
+nav button:not([style*="backgroundColor: var(--accent)"]) svg {
+  color: var(--text) !important;
 }
