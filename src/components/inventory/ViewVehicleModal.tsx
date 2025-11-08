@@ -1226,8 +1226,14 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to create assessment');
+          const errorData = await response.json().catch(() => ({ error: 'Failed to create assessment' }));
+          const errorMessage = errorData.error || errorData.message || 'Failed to create assessment';
+          console.error('Assessment creation error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
+          throw new Error(errorMessage);
         }
 
         const { data } = await response.json();
@@ -1244,7 +1250,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       }
     } catch (error: any) {
       console.error('Error saving assessment:', error);
-      toast.error(error.message || 'Failed to save assessment');
+      const errorMessage = error?.message || 'Failed to save assessment';
+      toast.error(errorMessage);
     }
   };
 

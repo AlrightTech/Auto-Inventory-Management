@@ -1104,8 +1104,14 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to create assessment');
+          const errorData = await response.json().catch(() => ({ error: 'Failed to create assessment' }));
+          const errorMessage = errorData.error || errorData.message || 'Failed to create assessment';
+          console.error('Assessment creation error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
+          throw new Error(errorMessage);
         }
 
         const { data } = await response.json();
@@ -1122,7 +1128,8 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
       }
     } catch (error: any) {
       console.error('Error saving assessment:', error);
-      toast.error(error.message || 'Failed to save assessment');
+      const errorMessage = error?.message || 'Failed to save assessment';
+      toast.error(errorMessage);
     }
   };
 
@@ -1685,14 +1692,25 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
               </div>
 
               {/* Status Section - Editable */}
-              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', marginTop: '24px' }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <AlertCircle className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+              <div className="p-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl" style={{ 
+                backgroundColor: 'var(--card-bg)', 
+                border: '1px solid var(--border)', 
+                marginTop: '24px',
+                background: 'linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 100%)',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--border)',
+              }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg" style={{ 
+                    backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                    boxShadow: '0 2px 4px rgba(0, 191, 255, 0.2)'
+                  }}>
+                    <AlertCircle className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                  </div>
                   <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Status</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>Status</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold mb-3 block" style={{ color: 'var(--text)' }}>Status</label>
                     <Select
                       value={status}
                       onValueChange={(value) => {
@@ -1701,19 +1719,25 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger className="vehicle-details-field" style={{ 
+                      <SelectTrigger className="vehicle-details-field transition-all duration-200 hover:scale-[1.02] focus:scale-[1.02]" style={{ 
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
-                        minHeight: '36px',
-                        border: '1px solid var(--border)'
+                        minHeight: '44px',
+                        border: '2px solid var(--border)',
+                        borderRadius: '10px',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.05)',
+                        transition: 'all 0.2s ease'
                       }}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent style={{ 
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)',
-                        zIndex: 50
+                        zIndex: 50,
+                        borderRadius: '10px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+                        border: '1px solid var(--border)'
                       }}>
                         {statusOptions.map((option) => (
                           <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
@@ -1723,8 +1747,8 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>Title Status</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold mb-3 block" style={{ color: 'var(--text)' }}>Title Status</label>
                     <Select
                       value={titleStatus}
                       onValueChange={(value) => {
@@ -1733,19 +1757,25 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger className="vehicle-details-field" style={{ 
+                      <SelectTrigger className="vehicle-details-field transition-all duration-200 hover:scale-[1.02] focus:scale-[1.02]" style={{ 
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
-                        minHeight: '36px',
-                        border: '1px solid var(--border)'
+                        minHeight: '44px',
+                        border: '2px solid var(--border)',
+                        borderRadius: '10px',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.05)',
+                        transition: 'all 0.2s ease'
                       }}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent style={{ 
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)',
-                        zIndex: 50
+                        zIndex: 50,
+                        borderRadius: '10px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+                        border: '1px solid var(--border)'
                       }}>
                         {titleStatusOptions.map((option) => (
                           <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
@@ -1755,8 +1785,8 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>ARB Status</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold mb-3 block" style={{ color: 'var(--text)' }}>ARB Status</label>
                     <Select
                       value={arbStatus}
                       onValueChange={(value) => {
@@ -1765,19 +1795,25 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger style={{
+                      <SelectTrigger className="transition-all duration-200 hover:scale-[1.02] focus:scale-[1.02]" style={{
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
-                        minHeight: '36px',
-                        border: '1px solid var(--border)'
+                        minHeight: '44px',
+                        border: '2px solid var(--border)',
+                        borderRadius: '10px',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.05)',
+                        transition: 'all 0.2s ease'
                       }}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent style={{ 
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)',
-                        zIndex: 50
+                        zIndex: 50,
+                        borderRadius: '10px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+                        border: '1px solid var(--border)'
                       }}>
                         {arbStatusOptions.map((option) => (
                           <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
@@ -1816,24 +1852,48 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
               </div>
 
               {/* Auction Section */}
-              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', marginTop: '24px' }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <CalendarIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+              <div className="p-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl" style={{ 
+                backgroundColor: 'var(--card-bg)', 
+                border: '1px solid var(--border)', 
+                marginTop: '24px',
+                background: 'linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 100%)',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--border)',
+              }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg" style={{ 
+                    backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                    boxShadow: '0 2px 4px rgba(0, 191, 255, 0.2)'
+                  }}>
+                    <CalendarIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                  </div>
                   <h4 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>Auction</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block" style={{ color: 'var(--text)' }}>Select Auction</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold mb-3 block" style={{ color: 'var(--text)' }}>Select Auction</label>
                     <Select
                       value={auctionName}
                       onValueChange={setAuctionName}
                     >
-                      <SelectTrigger className="vehicle-details-field" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', border: '1px solid var(--border)' }}>
+                      <SelectTrigger className="vehicle-details-field transition-all duration-200 hover:scale-[1.02] focus:scale-[1.02]" style={{ 
+                        backgroundColor: 'var(--card-bg)', 
+                        borderColor: 'var(--border)', 
+                        color: 'var(--text)', 
+                        border: '2px solid var(--border)',
+                        borderRadius: '10px',
+                        minHeight: '44px',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.05)',
+                        transition: 'all 0.2s ease'
+                      }}>
                         <SelectValue placeholder="Select auction" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent style={{
+                        borderRadius: '10px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+                        border: '1px solid var(--border)'
+                      }}>
                         {auctionOptions.map((option) => (
-                          <SelectItem key={option} value={option}>
+                          <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
                             {option}
                           </SelectItem>
                         ))}
@@ -2080,7 +2140,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
                   Loading tasks...
                 </div>
-              ) : (
+              ) : vehicleTasks.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -2089,7 +2149,178 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                 >
                   <ClipboardList className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
                   <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No tasks to display.</div>
+                  <div className="text-sm" style={{ color: 'var(--subtext)' }}>
+                    Get started by adding your first task for this vehicle.
+                  </div>
                 </motion.div>
+              ) : (
+                <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
+                  <Table className="min-w-[1000px]">
+                    <TableHeader>
+                      <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Task</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Status</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Due Date</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assigned To</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Notes</TableHead>
+                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedTasks.map((task, index) => {
+                        if (!task || !task.id) return null;
+                        
+                        const isPending = task.status === 'pending';
+                        const rowIndex = (currentPage - 1) * tasksPerPage + index + 1;
+                        
+                        return (
+                          <motion.tr
+                            key={task.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="transition-all duration-200"
+                            style={{
+                              borderColor: 'var(--border)',
+                              backgroundColor: isPending ? 'rgba(251, 191, 36, 0.1)' : 'transparent',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isPending) {
+                                e.currentTarget.style.backgroundColor = 'var(--card-bg)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isPending) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }
+                            }}
+                          >
+                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                              {rowIndex}
+                            </TableCell>
+                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
+                              {task.task_name || 'N/A'}
+                            </TableCell>
+                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
+                              <Badge 
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  task.status === 'completed' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                    : task.status === 'cancelled'
+                                    ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
+                                }`}
+                              >
+                                {task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1) : 'Pending'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                              {task.due_date ? (() => {
+                                try {
+                                  return format(new Date(task.due_date), 'dd-MM-yyyy');
+                                } catch {
+                                  return 'Invalid Date';
+                                }
+                              })() : 'N/A'}
+                            </TableCell>
+                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                              {task.assigned_user?.username || 'Not Assigned'}
+                            </TableCell>
+                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
+                              {task.notes || 'N/A'}
+                            </TableCell>
+                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-9 w-9 p-0 rounded-lg" 
+                                    style={{ 
+                                      color: 'var(--text)',
+                                      borderRadius: '8px'
+                                    }}
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent 
+                                  align="end" 
+                                  style={{ 
+                                    backgroundColor: 'var(--card-bg)', 
+                                    borderColor: 'var(--border)',
+                                    color: 'var(--text)',
+                                    borderRadius: '8px'
+                                  }}
+                                >
+                                  <DropdownMenuItem 
+                                    style={{ color: 'var(--text)' }}
+                                    onClick={() => {
+                                      setEditingTask(task);
+                                      setIsEditTaskModalOpen(true);
+                                    }}
+                                  >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    style={{ color: '#ef4444' }}
+                                    onClick={() => {
+                                      if (confirm('Are you sure you want to delete this task?')) {
+                                        // Handle delete
+                                        fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
+                                          .then(() => {
+                                            toast.success('Task deleted');
+                                            loadVehicleTasks();
+                                          })
+                                          .catch(() => toast.error('Failed to delete task'));
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </motion.tr>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                  
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between p-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                      <div className="text-sm" style={{ color: 'var(--subtext)' }}>
+                        Showing {((currentPage - 1) * tasksPerPage) + 1} to {Math.min(currentPage * tasksPerPage, vehicleTasks.length)} of {vehicleTasks.length} tasks
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Add Task Modal */}
