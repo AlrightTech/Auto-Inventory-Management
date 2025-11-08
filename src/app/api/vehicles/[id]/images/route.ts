@@ -72,24 +72,64 @@ export async function POST(
     // Upload file to Supabase Storage
     const fileExt = file.name.split('.').pop();
     const fileName = `${vehicleId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `vehicle-images/${fileName}`;
+    const filePath = fileName; // Don't include bucket name in path
+
+    // Check if bucket exists, create if it doesn't
+    const bucketName = 'vehicle-images';
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    
+    if (!listError && buckets) {
+      const bucketExists = buckets.some(bucket => bucket.name === bucketName);
+      
+      if (!bucketExists) {
+        // Try to create the bucket (requires admin privileges)
+        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+          fileSizeLimit: 10485760, // 10MB
+        });
+        
+        if (createError) {
+          console.error('Bucket creation error:', createError);
+          // If creation fails, provide helpful error message
+          return NextResponse.json(
+            { 
+              error: 'Storage bucket does not exist and could not be created automatically. Please create the "vehicle-images" bucket in Supabase Dashboard → Storage with public access enabled.',
+              details: createError.message 
+            },
+            { status: 503 }
+          );
+        }
+      }
+    }
 
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('vehicle-images')
+      .from(bucketName)
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false,
       });
 
     if (uploadError) {
-      // If bucket doesn't exist, create it (this is a fallback - bucket should be created manually)
       console.error('Upload error:', uploadError);
-      throw new Error('Failed to upload image. Please ensure the storage bucket exists.');
+      
+      // Provide more specific error messages
+      if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+        return NextResponse.json(
+          { 
+            error: 'Storage bucket "vehicle-images" does not exist. Please create it in Supabase Dashboard → Storage with public access enabled.',
+            instructions: 'Go to your Supabase Dashboard → Storage → New Bucket → Name: "vehicle-images" → Public: Yes'
+          },
+          { status: 503 }
+        );
+      }
+      
+      throw new Error(uploadError.message || 'Failed to upload image');
     }
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
-      .from('vehicle-images')
+      .from(bucketName)
       .getPublicUrl(filePath);
 
     // Save image record to database
@@ -108,7 +148,7 @@ export async function POST(
 
     if (dbError) {
       // Clean up uploaded file if database insert fails
-      await supabase.storage.from('vehicle-images').remove([filePath]);
+      await supabase.storage.from(bucketName).remove([filePath]);
       throw dbError;
     }
 
