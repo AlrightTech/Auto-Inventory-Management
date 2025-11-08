@@ -906,6 +906,63 @@ nav button:hover {
   border-color: var(--accent) !important;
 }
 
+/* Task Action Buttons - Black text in light theme */
+.task-action-btn {
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+:not(.dark) .task-action-btn {
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+.dark .task-action-btn {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Task Field Inputs - Black or electric green borders */
+.task-field-input {
+  border-color: var(--border) !important;
+}
+
+:not(.dark) .task-field-input {
+  border-color: #000000 !important;
+}
+
+.dark .task-field-input {
+  border-color: var(--accent) !important;
+}
+
+/* Update All Button - Ensure visibility */
+.update-all-btn {
+  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3) !important;
+}
+
+:not(.dark) .update-all-btn {
+  border-color: #000000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .update-all-btn {
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3) !important;
+}
+
+/* Toast Custom Styles */
+[data-sonner-toast][data-type="success"] {
+  background: #10b981 !important;
+  color: white !important;
+  border: 1px solid #059669 !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  background: #ef4444 !important;
+  color: white !important;
+  border: 1px solid #dc2626 !important;
+}
+
 /* Ensure sidebar text is always visible */
 nav a,
 nav button {

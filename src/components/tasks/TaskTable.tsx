@@ -108,10 +108,28 @@ export function TaskTable({ tasks, onTaskUpdate, onViewTask, onEditTask, onDelet
         
         {selectedTasks.length > 0 && (
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="border-slate-600 text-slate-300">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="task-action-btn"
+              style={{ 
+                borderColor: 'var(--border)',
+                color: 'var(--text)',
+                backgroundColor: 'var(--card-bg)'
+              }}
+            >
               Mark as Completed
             </Button>
-            <Button variant="outline" size="sm" className="border-slate-600 text-slate-300">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="task-action-btn"
+              style={{ 
+                borderColor: 'var(--border)',
+                color: 'var(--text)',
+                backgroundColor: 'var(--card-bg)'
+              }}
+            >
               Assign to User
             </Button>
           </div>

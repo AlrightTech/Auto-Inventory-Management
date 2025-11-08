@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -2866,9 +2865,9 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
                               <div className="flex items-center gap-3">
-                                {currentVehicleImageUrl && (
+                                {vehicleImageUrl && (
                                   <img
-                                    src={currentVehicleImageUrl}
+                                    src={vehicleImageUrl}
                                     alt={`${vehicleYear} ${vehicleMake} ${vehicleModel}`}
                                     className="w-16 h-16 object-cover rounded border"
                                     style={{ borderColor: 'var(--border)' }}

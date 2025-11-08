@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 // DELETE - Delete an image
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; imageId: string } }
+  { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { imageId } = params;
+    const { imageId } = await params;
 
     // Get image record to find file path
     const { data: image, error: fetchError } = await supabase

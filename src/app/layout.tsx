@@ -40,6 +40,7 @@ export default function RootLayout({
                 color: 'hsl(var(--card-foreground))',
                 border: '1px solid hsl(var(--border))',
               },
+              className: 'toast-custom',
             }}
           />
         </ThemeProvider>

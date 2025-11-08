@@ -131,10 +131,10 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
               value={filters.category}
               onValueChange={(value) => handleFilterChange('category', value)}
             >
-              <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
+              <SelectTrigger className="task-field-input" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
-              <SelectContent className="glass-card border-slate-700">
+              <SelectContent className="glass-card" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                 <SelectItem value="all">All categories</SelectItem>
                 {taskCategories.map((category) => (
                   <SelectItem key={category} value={category}>
@@ -195,7 +195,8 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
+                    className="w-full justify-start text-left font-normal task-field-input"
+                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {filters.dateRange.from ? format(filters.dateRange.from, 'MMM dd') : 'From date'}
@@ -215,7 +216,8 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
+                    className="w-full justify-start text-left font-normal task-field-input"
+                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {filters.dateRange.to ? format(filters.dateRange.to, 'MMM dd') : 'To date'}

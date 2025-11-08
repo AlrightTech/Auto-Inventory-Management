@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 // GET - Fetch all images for a vehicle
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const vehicleId = params.id;
+    const { id: vehicleId } = await params;
 
     const { data, error } = await supabase
       .from('vehicle_images')
@@ -33,11 +33,11 @@ export async function GET(
 // POST - Upload an image
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const vehicleId = params.id;
+    const { id: vehicleId } = await params;
     const formData = await request.formData();
     const file = formData.get('file') as File;
 

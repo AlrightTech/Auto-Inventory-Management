@@ -122,6 +122,12 @@ export default function EditVehiclePage() {
   }, [vehicleId, setValue, router]);
 
   const onSubmit = async (data: VehicleInput) => {
+    // Validate VIN before submission
+    if (data.vin && data.vin.trim() !== '' && data.vin.trim().length !== 10) {
+      toast.error('VIN must be exactly 10 characters');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       const cleanedData: VehicleInsert = {
@@ -252,9 +258,24 @@ export default function EditVehiclePage() {
                       <Label htmlFor="vin" style={{ color: 'var(--text)' }}>VIN</Label>
                       <Input
                         id="vin"
-                        {...register('vin')}
+                        maxLength={10}
+                        {...register('vin', {
+                          validate: (value) => {
+                            if (!value || value.trim() === '') return true; // Optional field
+                            if (value.length !== 10) {
+                              return 'VIN must be exactly 10 characters';
+                            }
+                            return true;
+                          }
+                        })}
                         style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       />
+                      {errors.vin && (
+                        <p className="text-red-500 text-sm mt-1">{errors.vin.message}</p>
+                      )}
+                      {watch('vin') && watch('vin').trim().length > 0 && watch('vin').trim().length !== 10 && (
+                        <p className="text-red-500 text-sm mt-1">VIN must be exactly 10 characters</p>
+                      )}
                     </div>
                   </div>
 
@@ -422,14 +443,18 @@ export default function EditVehiclePage() {
           <div className="fixed bottom-6 right-6 z-50">
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || Object.keys(errors).length > 0}
               size="lg"
-              className="shadow-lg"
+              className="shadow-lg update-all-btn"
               style={{
                 backgroundColor: 'var(--accent)',
                 color: 'white',
                 borderRadius: '12px',
-                padding: '12px 24px'
+                padding: '12px 24px',
+                border: '2px solid',
+                borderColor: 'var(--accent)',
+                fontWeight: '600',
+                fontSize: '16px'
               }}
             >
               {isSubmitting ? (

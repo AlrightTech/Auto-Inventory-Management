@@ -471,7 +471,12 @@ export default function AdminTasksPage() {
               placeholder="Search tasks, vehicles, or notes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+              className="pl-10 task-field-input"
+              style={{ 
+                backgroundColor: 'var(--card-bg)', 
+                borderColor: 'var(--border)',
+                color: 'var(--text)'
+              }}
             />
           </div>
         </div>

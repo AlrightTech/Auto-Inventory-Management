@@ -237,10 +237,12 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   }}
                 >
                   <div className="flex items-center space-x-3">
-                    {React.createElement(getIcon(item.icon), { 
-                      className: "w-5 h-5",
-                      style: { color: isParentActive(item.children) ? 'white' : 'var(--text)' }
-                    })}
+                    <div style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>
+                      {(() => {
+                        const IconComponent = getIcon(item.icon);
+                        return <IconComponent className="w-5 h-5" />;
+                      })()}
+                    </div>
                     <span style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>{item.name}</span>
                   </div>
                   {expandedItems.includes(item.name) ? (
@@ -341,10 +343,12 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                 }}
               >
                 <div className="flex items-center space-x-3">
-                  {React.createElement(getIcon(item.icon), { 
-                    className: "w-5 h-5",
-                    style: { color: isActive(item.href!) ? 'white' : 'var(--text)' }
-                  })}
+                  <div style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>
+                    {(() => {
+                      const IconComponent = getIcon(item.icon);
+                      return <IconComponent className="w-5 h-5" />;
+                    })()}
+                  </div>
                   <span style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>{item.name}</span>
                 </div>
                 {item.name === 'Chat' && unreadCount > 0 && (
