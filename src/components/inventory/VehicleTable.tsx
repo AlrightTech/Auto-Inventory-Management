@@ -1042,11 +1042,11 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                             >
                               {carLocationOptions.map((location) => (
                                 <SelectItem 
-                                  key={location} 
-                                  value={location}
+                                  key={location.value} 
+                                  value={location.value}
                                   style={{ color: 'var(--text)' }}
                                 >
-                                  {location}
+                                  {location.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>

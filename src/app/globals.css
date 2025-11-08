@@ -25,7 +25,7 @@
   --primary-foreground: 255 255 255; /* White */
   --secondary: 248 249 250; /* #f8f9fa */
   --secondary-foreground: 34 34 34; /* #222 */
-  --muted: 245 245 245; /* #f5f5f5 */
+  --muted: 240 240 240; /* #f0f0f0 - slightly darker for better contrast */
   --muted-foreground: 85 85 85; /* #555 */
   --accent: 0 191 255; /* #00bfff */
   --accent-foreground: 255 255 255; /* White */
@@ -806,4 +806,20 @@ nav a:hover:not([style*="backgroundColor: var(--accent)"]),
 nav button:hover:not([style*="backgroundColor: var(--accent)"]) {
   background-color: var(--muted) !important;
   color: var(--text) !important;
+}
+
+/* Ensure sidebar text and icons are always visible on hover */
+nav a:hover span,
+nav button:hover span,
+nav a:hover svg,
+nav button:hover svg {
+  color: var(--text) !important;
+}
+
+/* Active sidebar items - ensure white text */
+nav a[style*="backgroundColor: var(--accent)"] span,
+nav button[style*="backgroundColor: var(--accent)"] span,
+nav a[style*="backgroundColor: var(--accent)"] svg,
+nav button[style*="backgroundColor: var(--accent)"] svg {
+  color: white !important;
 }

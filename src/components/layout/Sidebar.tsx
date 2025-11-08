@@ -218,14 +218,21 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                     if (!isParentActive(item.children)) {
                       e.currentTarget.style.backgroundColor = 'var(--muted)';
                       e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                      e.currentTarget.style.opacity = '0.8';
+                      // Ensure text remains visible on hover
+                      const icon = e.currentTarget.querySelector('svg');
+                      const text = e.currentTarget.querySelector('span');
+                      if (icon) icon.style.color = 'var(--text)';
+                      if (text) text.style.color = 'var(--text)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isParentActive(item.children)) {
                       e.currentTarget.style.backgroundColor = 'transparent';
                       e.currentTarget.style.borderLeftColor = 'transparent';
-                      e.currentTarget.style.opacity = '1';
+                      const icon = e.currentTarget.querySelector('svg');
+                      const text = e.currentTarget.querySelector('span');
+                      if (icon) icon.style.color = 'var(--text)';
+                      if (text) text.style.color = 'var(--text)';
                     }
                   }}
                 >
@@ -275,14 +282,14 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                             if (!isActive(child.href)) {
                               e.currentTarget.style.backgroundColor = 'var(--muted)';
                               e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                              e.currentTarget.style.opacity = '0.8';
+                              e.currentTarget.style.color = 'var(--text)';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isActive(child.href)) {
                               e.currentTarget.style.backgroundColor = 'transparent';
                               e.currentTarget.style.borderLeftColor = 'transparent';
-                              e.currentTarget.style.opacity = '1';
+                              e.currentTarget.style.color = 'var(--text)';
                             }
                           }}
                         >
@@ -315,14 +322,21 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   if (!isActive(item.href!)) {
                     e.currentTarget.style.backgroundColor = 'var(--muted)';
                     e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                    e.currentTarget.style.opacity = '0.8';
+                    // Ensure text remains visible on hover
+                    const icon = e.currentTarget.querySelector('svg');
+                    const text = e.currentTarget.querySelector('span');
+                    if (icon) icon.style.color = 'var(--text)';
+                    if (text) text.style.color = 'var(--text)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive(item.href!)) {
                     e.currentTarget.style.backgroundColor = 'transparent';
                     e.currentTarget.style.borderLeftColor = 'transparent';
-                    e.currentTarget.style.opacity = '1';
+                    const icon = e.currentTarget.querySelector('svg');
+                    const text = e.currentTarget.querySelector('span');
+                    if (icon) icon.style.color = 'var(--text)';
+                    if (text) text.style.color = 'var(--text)';
                   }
                 }}
               >
