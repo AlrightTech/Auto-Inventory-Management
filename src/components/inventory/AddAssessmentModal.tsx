@@ -237,6 +237,7 @@ export function AddAssessmentModal({
                   value={conductedName}
                   onChange={(e) => setConductedName(e.target.value)}
                   placeholder="Inspector name or email"
+                  className="vehicle-details-field"
                   style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
               </div>
@@ -248,6 +249,7 @@ export function AddAssessmentModal({
                   value={milesIn}
                   onChange={(e) => setMilesIn(e.target.value)}
                   placeholder="Optional"
+                  className="vehicle-details-field"
                   style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
               </div>
@@ -258,6 +260,7 @@ export function AddAssessmentModal({
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
                   placeholder="Optional"
+                  className="vehicle-details-field"
                   style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
               </div>
@@ -268,50 +271,9 @@ export function AddAssessmentModal({
                   value={crNumber}
                   onChange={(e) => setCrNumber(e.target.value)}
                   placeholder="Optional"
+                  className="vehicle-details-field"
                   style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label style={{ color: 'var(--text)' }}>Image Upload (JPG/PNG only)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png"
-                    multiple
-                    onChange={handleImageSelect}
-                    className="flex-1"
-                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                  />
-                  {selectedImages.length > 0 && (
-                    <Button
-                      onClick={handleImageUpload}
-                      size="sm"
-                      style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload ({selectedImages.length})
-                    </Button>
-                  )}
-                </div>
-                {uploadedImageUrls.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {uploadedImageUrls.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img src={url} alt={`Assessment ${index + 1}`} className="w-full h-24 object-cover rounded" />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="absolute top-1 right-1"
-                          onClick={() => handleRemoveImage(index)}
-                          style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: 'white' }}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="space-y-2 md:col-span-2">
@@ -320,6 +282,7 @@ export function AddAssessmentModal({
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={handleFileSelect}
+                  className="vehicle-details-field"
                   style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
                 {assessmentFileUrl && (
@@ -345,7 +308,8 @@ export function AddAssessmentModal({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || !selectedDate || !assessmentTime || !conductedName}
-            style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+            className="submit-assessment-btn"
+            style={{ backgroundColor: 'var(--accent)' }}
           >
             {isSubmitting ? (
               <>

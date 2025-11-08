@@ -1703,7 +1703,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger style={{ 
+                      <SelectTrigger className="vehicle-details-field" style={{ 
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
@@ -1735,7 +1735,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger style={{ 
+                      <SelectTrigger className="vehicle-details-field" style={{ 
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
@@ -1830,7 +1830,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       value={auctionName}
                       onValueChange={setAuctionName}
                     >
-                      <SelectTrigger style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', border: '1px solid var(--border)' }}>
+                      <SelectTrigger className="vehicle-details-field" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', border: '1px solid var(--border)' }}>
                         <SelectValue placeholder="Select auction" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1848,7 +1848,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left font-normal"
+                          className="w-full justify-start text-left font-normal vehicle-details-field"
                           style={{ 
                             backgroundColor: 'var(--card-bg)', 
                             borderColor: 'var(--border)', 
@@ -1918,7 +1918,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                         placeholder="Enter your notes here"
                         value={newNoteText}
                         onChange={(e) => setNewNoteText(e.target.value)}
-                        className="min-h-[100px]"
+                        className="min-h-[100px] vehicle-details-field"
                         style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       />
                       <Button
@@ -2082,7 +2082,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
                   Loading tasks...
                 </div>
-              ) : !vehicleTasks || vehicleTasks.length === 0 ? (
+              ) : (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -2090,314 +2090,8 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}
                 >
                   <ClipboardList className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
-                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No tasks found for this vehicle.</div>
-                  <div className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
-                    Get started by adding your first task for this vehicle.
-                  </div>
-                  <Button
-                    onClick={() => setIsAddTaskModalOpen(true)}
-                    size="sm"
-                    className="add-task-btn"
-                    style={{ 
-                      backgroundColor: 'var(--accent)', 
-                      color: 'white', 
-                      borderRadius: '8px',
-                      border: '1px solid',
-                      borderColor: 'var(--accent)'
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Task
-                  </Button>
+                  <div className="text-lg font-medium mb-2" style={{ color: 'var(--text)' }}>No tasks to display.</div>
                 </motion.div>
-              ) : (
-                <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
-                  <Table className="min-w-[1000px]">
-                    <TableHeader>
-                      <TableRow style={{ borderColor: 'var(--border)' }} className="hover:bg-transparent">
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>#</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Vehicle</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Task</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Status</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Due</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assigned</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assigned Date</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Notes</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Options</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedTasks && paginatedTasks.length > 0 ? paginatedTasks.map((task, index) => {
-                        if (!task || !task.id) return null;
-                        
-                        const isPending = task.status === 'pending';
-                        const rowIndex = (currentPage - 1) * tasksPerPage + index + 1;
-                        
-                        return (
-                          <motion.tr
-                            key={task.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="transition-all duration-200"
-                            style={{
-                              borderColor: 'var(--border)',
-                              backgroundColor: isPending ? 'rgba(251, 191, 36, 0.1)' : 'transparent',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isPending) {
-                                e.currentTarget.style.backgroundColor = 'var(--card-bg)';
-                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isPending) {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.boxShadow = 'none';
-                              }
-                            }}
-                          >
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {rowIndex}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {vehicleYear} {vehicleMake} {vehicleModel}
-                              {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)', fontWeight: '500' }}>
-                              {task.task_name || 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              <Select
-                                value={task.status || 'pending'}
-                                onValueChange={(value) => handleStatusChange(task.id, value as 'pending' | 'completed' | 'cancelled')}
-                              >
-                                <SelectTrigger 
-                                  className="w-[120px] h-9 text-sm transition-all duration-200"
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)', 
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="completed">Completed</SelectItem>
-                                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {task.due_date ? (() => {
-                                try {
-                                  return format(new Date(task.due_date), 'dd-MM-yyyy');
-                                } catch {
-                                  return 'Invalid Date';
-                                }
-                              })() : 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              <Select
-                                value={task.assigned_to || 'unassigned'}
-                                onValueChange={(value) => handleAssignedChange(task.id, value)}
-                              >
-                                <SelectTrigger 
-                                  className="w-[160px] h-9 text-sm transition-all duration-200"
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)', 
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <SelectValue placeholder="Not Assigned" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="unassigned">Not Assigned</SelectItem>
-                                  {(users || []).map((user) => {
-                                    if (!user || !user.id) return null;
-                                    const displayName = getUserDisplayName(user.id);
-                                    return (
-                                      <SelectItem key={user.id} value={user.id}>
-                                        {displayName}
-                                      </SelectItem>
-                                    );
-                                  })}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              {task.assigned_to && task.created_at 
-                                ? (() => {
-                                    try {
-                                      return format(new Date(task.created_at), 'dd-MM-yyyy');
-                                    } catch {
-                                      return 'Invalid Date';
-                                    }
-                                  })()
-                                : 'N/A'}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              {editingNotesId === task.id ? (
-                                <div className="flex items-center gap-2">
-                                  <Input
-                                    value={editingNotesText}
-                                    onChange={(e) => setEditingNotesText(e.target.value)}
-                                    className="flex-1 h-8 text-sm"
-                                    style={{ 
-                                      backgroundColor: 'var(--card-bg)', 
-                                      borderColor: 'var(--border)', 
-                                      color: 'var(--text)',
-                                      borderRadius: '6px'
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        handleUpdateNotes(task.id);
-                                      } else if (e.key === 'Escape') {
-                                        setEditingNotesId(null);
-                                        setEditingNotesText('');
-                                      }
-                                    }}
-                                    autoFocus
-                                  />
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleUpdateNotes(task.id)}
-                                    style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '6px' }}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setEditingNotesId(null);
-                                      setEditingNotesText('');
-                                    }}
-                                    style={{ color: 'var(--text)' }}
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div 
-                                  className="text-sm cursor-pointer hover:bg-opacity-10 p-2 rounded transition-colors"
-                                  style={{ color: 'var(--text)', minWidth: '150px' }}
-                                  onClick={() => {
-                                    setEditingNotesId(task.id);
-                                    setEditingNotesText(task.notes || '');
-                                  }}
-                                  title="Click to edit"
-                                >
-                                  {task.notes || <span style={{ color: 'var(--subtext)', fontStyle: 'italic' }}>Click to add notes</span>}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-9 w-9 p-0 rounded-lg" 
-                                    style={{ 
-                                      color: 'var(--text)',
-                                      borderRadius: '8px'
-                                    }}
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent 
-                                  align="end" 
-                                  style={{ 
-                                    backgroundColor: 'var(--card-bg)', 
-                                    borderColor: 'var(--border)',
-                                    color: 'var(--text)',
-                                    borderRadius: '8px'
-                                  }}
-                                >
-                                  <DropdownMenuItem 
-                                    style={{ color: 'var(--text)' }}
-                                    onClick={() => task && handleEditTask(task)}
-                                  >
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    style={{ color: '#ef4444' }}
-                                    onClick={() => task?.id && handleDeleteTask(task.id)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    style={{ color: 'var(--text)' }}
-                                    onClick={() => task?.id && handleMarkAsSold(task.id)}
-                                  >
-                                    <DollarSign className="mr-2 h-4 w-4" />
-                                    Mark as Sold
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </motion.tr>
-                        );
-                      }).filter(Boolean) : (
-                        <TableRow>
-                          <TableCell colSpan={10} style={{ padding: '24px', textAlign: 'center', color: 'var(--subtext)' }}>
-                            No tasks found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {/* Pagination */}
-              {vehicleTasks && vehicleTasks.length > tasksPerPage && (
-                <div className="flex items-center justify-between pt-4">
-                  <div className="text-sm" style={{ color: 'var(--subtext)' }}>
-                    Showing {(currentPage - 1) * tasksPerPage + 1} to {Math.min(currentPage * tasksPerPage, vehicleTasks.length)} of {vehicleTasks.length} tasks
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      style={{ 
-                        backgroundColor: 'var(--card-bg)', 
-                        borderColor: 'var(--border)', 
-                        color: 'var(--text)',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Previous
-                    </Button>
-                    <div className="text-sm" style={{ color: 'var(--text)' }}>
-                      Page {currentPage} of {totalPages}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      style={{ 
-                        backgroundColor: 'var(--card-bg)', 
-                        borderColor: 'var(--border)', 
-                        color: 'var(--text)',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
               )}
 
               {/* Add Task Modal */}
@@ -2455,7 +2149,8 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                     setIsAddAssessmentModalOpen(true);
                   }}
                   size="sm"
-                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
+                  className="add-assessment-btn"
+                  style={{ backgroundColor: 'var(--accent)', borderRadius: '8px' }}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Assessment

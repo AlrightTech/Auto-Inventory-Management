@@ -950,6 +950,45 @@ nav button:hover {
   box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3) !important;
 }
 
+/* Vehicle Details Page - Black borders in light theme */
+.vehicle-details-field {
+  border-color: var(--border) !important;
+}
+
+:not(.dark) .vehicle-details-field {
+  border-color: #000000 !important;
+}
+
+.dark .vehicle-details-field {
+  border-color: var(--border) !important;
+}
+
+/* Add Assessment Button - Black text in light theme */
+.add-assessment-btn {
+  color: white !important;
+}
+
+:not(.dark) .add-assessment-btn {
+  color: #000000 !important;
+}
+
+.dark .add-assessment-btn {
+  color: white !important;
+}
+
+/* Submit Button - Black text in light theme */
+.submit-assessment-btn {
+  color: white !important;
+}
+
+:not(.dark) .submit-assessment-btn {
+  color: #000000 !important;
+}
+
+.dark .submit-assessment-btn {
+  color: white !important;
+}
+
 /* Toast Custom Styles */
 [data-sonner-toast][data-type="success"] {
   background: #10b981 !important;
