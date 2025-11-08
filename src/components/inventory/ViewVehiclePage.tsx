@@ -12,7 +12,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
-import { Car, Calendar as CalendarIcon, DollarSign, MapPin, User, FileText, CheckCircle, AlertCircle, ClipboardList, ClipboardCheck, Wrench, Truck, Clock, Upload, Download, X, Plus, Image as ImageIcon, Link as LinkIcon, Loader2, Edit, Trash2, MoreHorizontal, FileText as FileTextIcon, ArrowLeft } from 'lucide-react';
+import { Car, Calendar as CalendarIcon, DollarSign, MapPin, User, FileText, CheckCircle, AlertCircle, ClipboardList, ClipboardCheck, Wrench, Truck, Clock, Upload, Download, X, Plus, Link as LinkIcon, Loader2, Edit, Trash2, MoreHorizontal, FileText as FileTextIcon, ArrowLeft } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { TaskWithRelations, User as UserType } from '@/types';
 import { format } from 'date-fns';
@@ -37,36 +37,20 @@ interface VehicleNote {
   updated_at?: string;
 }
 
-interface VehicleImage {
-  id: string;
-  file_name: string;
-  file_url: string;
-  file_size?: number;
-  file_type?: string;
-  created_at: string;
-}
 
 export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('details');
-  const [vehicleImageUrl, setVehicleImageUrl] = useState<string | null>((vehicle as any)?.image_url || null);
-  const [isUploadingVehicleImage, setIsUploadingVehicleImage] = useState(false);
-  const vehicleImageInputRef = useRef<HTMLInputElement>(null);
   // Fetch location options dynamically (for future use if needed)
   const { options: locationOptions } = useDropdownOptions('car_location', true);
   const [vehicleTasks, setVehicleTasks] = useState<TaskWithRelations[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [notes, setNotes] = useState<VehicleNote[]>([]);
-  const [images, setImages] = useState<VehicleImage[]>([]);
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
-  const [isLoadingImages, setIsLoadingImages] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteText, setEditingNoteText] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<'Pending' | 'Sold' | 'Withdrew' | 'Complete' | 'ARB' | 'In Progress'>((vehicle?.status as any) || 'Pending');
   const [titleStatus, setTitleStatus] = useState<'Absent' | 'In Transit' | 'Received' | 'Available not Received' | 'Present' | 'Released' | 'Validated' | 'Sent but not Validated'>((vehicle?.title_status as any) || 'Absent');
   const [arbStatus, setArbStatus] = useState((vehicle as any)?.arb_status || 'Absent');
@@ -291,29 +275,9 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
         }
       };
 
-      const loadImages = async () => {
-        try {
-          setIsLoadingImages(true);
-          const response = await fetch(`/api/vehicles/${vehicle.id}/images`);
-          if (response.ok) {
-            const { data } = await response.json();
-            setImages(data || []);
-          } else {
-            setImages([]);
-          }
-        } catch (error) {
-          console.error('Error loading images:', error);
-          setImages([]);
-        } finally {
-          setIsLoadingImages(false);
-        }
-      };
-
       loadNotes();
-      loadImages();
     } else {
       setNotes([]);
-      setImages([]);
     }
   }, [vehicle?.id]);
 
@@ -500,94 +464,6 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
   const auctionOptions = ['iaai', 'Manheim', 'CarMax', 'Adesa', 'Western', 'Default Auction'];
   // locationOptions will be fetched dynamically
 
-  // Handle file selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    
-    const validFiles = files.filter(file => {
-      const isValidType = ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type);
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
-      return isValidType && isValidSize;
-    });
-
-    if (validFiles.length !== files.length) {
-      toast.error('Some files were rejected. Only JPG/PNG files under 10MB are allowed.');
-    }
-
-    if (validFiles.length > 0) {
-      setSelectedFiles(prev => [...prev, ...validFiles]);
-      toast.success(`${validFiles.length} file(s) selected`);
-    }
-    
-    // Reset input to allow selecting the same file again
-    if (e.target) {
-      e.target.value = '';
-    }
-  };
-
-  // Handle image upload
-  const handleImageUpload = async () => {
-    if (selectedFiles.length === 0) {
-      toast.error('Please select at least one file');
-      return;
-    }
-
-    setIsUploadingImage(true);
-    try {
-      for (const file of selectedFiles) {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const response = await fetch(`/api/vehicles/${vehicle.id}/images`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to upload image');
-        }
-      }
-
-      toast.success(`Successfully uploaded ${selectedFiles.length} image(s)`);
-      setSelectedFiles([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-
-      // Reload images
-      const response = await fetch(`/api/vehicles/${vehicle.id}/images`);
-      if (response.ok) {
-        const { data } = await response.json();
-        setImages(data || []);
-      }
-    } catch (error: any) {
-      console.error('Error uploading images:', error);
-      toast.error(error.message || 'Failed to upload images');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
-
-  // Handle delete image
-  const handleDeleteImage = async (imageId: string) => {
-    try {
-      const response = await fetch(`/api/vehicles/${vehicle.id}/images/${imageId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete image');
-      }
-
-      toast.success('Image deleted successfully');
-      setImages(prev => prev.filter(img => img.id !== imageId));
-    } catch (error: any) {
-      console.error('Error deleting image:', error);
-      toast.error(error.message || 'Failed to delete image');
-    }
-  };
 
   // Handle add note
   const handleAddNote = async () => {
@@ -1646,67 +1522,6 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
   );
   const totalPages = Math.ceil((vehicleTasks || []).length / tasksPerPage);
 
-  // Handle vehicle image upload
-  const handleVehicleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !vehicle?.id) return;
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Only JPG and PNG files are allowed');
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error('File size must be less than 10MB');
-      return;
-    }
-
-    setIsUploadingVehicleImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Upload to vehicle_images table (for now, we'll also update vehicle.image_url)
-      const response = await fetch(`/api/vehicles/${vehicle.id}/images`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to upload image');
-      }
-
-      const { data } = await response.json();
-      const imageUrl = data.file_url;
-
-      // Update vehicle's image_url field
-      const updateResponse = await fetch(`/api/vehicles/${vehicle.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_url: imageUrl }),
-      });
-
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update vehicle image');
-      }
-
-      setVehicleImageUrl(imageUrl);
-      toast.success('Vehicle image uploaded successfully');
-    } catch (error: any) {
-      console.error('Error uploading vehicle image:', error);
-      toast.error(error.message || 'Failed to upload image');
-    } finally {
-      setIsUploadingVehicleImage(false);
-      if (vehicleImageInputRef.current) {
-        vehicleImageInputRef.current.value = '';
-      }
-    }
-  };
 
   if (!vehicle) {
     return (
@@ -1720,88 +1535,28 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       <div className="dashboard-card neon-glow instrument-cluster p-6">
         {/* Header with Back Button */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="flex items-center gap-2"
-              style={{ color: 'var(--text)' }}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-            <div className="flex items-center">
-              <Car className="w-6 h-6 mr-2" style={{ color: 'var(--accent)' }} />
-              <h1 className="text-2xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
-                Vehicle Details
-              </h1>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.back()}
+                className="flex items-center gap-2"
+                style={{ color: 'var(--text)' }}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+              <div className="flex items-center">
+                <Car className="w-6 h-6 mr-2" style={{ color: 'var(--accent)' }} />
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                  Vehicle Details
+                </h1>
+              </div>
             </div>
-          </div>
             {((activeTab === 'details' || activeTab === 'tasks' || activeTab === 'assessment')) && (
               <div className="flex items-center gap-2">
-                {/* Upload Title button - only show for details and tasks tabs */}
-                {(activeTab === 'details' || activeTab === 'tasks') && (
-                  <>
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      className="hidden"
-                      id="title-upload"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setIsUploadingImage(true);
-                          try {
-                            const formData = new FormData();
-                            formData.append('file', file);
-
-                            const response = await fetch(`/api/vehicles/${vehicle.id}/images`, {
-                              method: 'POST',
-                              body: formData,
-                            });
-
-                            if (!response.ok) {
-                              const error = await response.json();
-                              throw new Error(error.error || 'Failed to upload title');
-                            }
-
-                            toast.success('Title document uploaded successfully');
-                            
-                            // Reload images
-                            const imagesResponse = await fetch(`/api/vehicles/${vehicle.id}/images`);
-                            if (imagesResponse.ok) {
-                              const { data } = await imagesResponse.json();
-                              setImages(data || []);
-                            }
-                          } catch (error: any) {
-                            console.error('Error uploading title:', error);
-                            toast.error(error.message || 'Failed to upload title document');
-                          } finally {
-                            setIsUploadingImage(false);
-                            if (e.target) {
-                              (e.target as HTMLInputElement).value = '';
-                            }
-                          }
-                        }
-                      }}
-                    />
-                    <label htmlFor="title-upload">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
-                        asChild
-                      >
-                        <span>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Title
-                        </span>
-                      </Button>
-                    </label>
-                  </>
-                )}
                 {activeTab === 'details' && (
                   <Button
                     variant="outline"
@@ -1839,6 +1594,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                 )}
               </div>
             )}
+          </div>
           <p style={{ color: 'var(--subtext)' }} className="ml-12">
             Complete information about this vehicle
           </p>
@@ -1925,96 +1681,6 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                     <div style={{ color: 'var(--subtext)' }}>Location</div>
                     <div className="font-medium" style={{ color: 'var(--text)' }}>
                       {vehicle.vehicle_location || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Vehicle Image Upload Section */}
-                <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <ImageIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                    <h5 className="font-semibold" style={{ color: 'var(--text)' }}>Vehicle Image</h5>
-                  </div>
-                  <div className="space-y-4">
-                    {vehicleImageUrl ? (
-                      <div className="relative inline-block">
-                        <img
-                          src={vehicleImageUrl}
-                          alt="Vehicle"
-                          className="max-w-full h-auto rounded-lg border"
-                          style={{ 
-                            maxHeight: '400px', 
-                            borderColor: 'var(--border)',
-                            objectFit: 'contain'
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setVehicleImageUrl(null);
-                            // Update vehicle to remove image_url
-                            fetch(`/api/vehicles/${vehicle.id}`, {
-                              method: 'PATCH',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ image_url: null }),
-                            }).catch(console.error);
-                          }}
-                          className="absolute top-2 right-2"
-                          style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: 'white' }}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="border-2 border-dashed rounded-lg p-8 text-center" style={{ borderColor: 'var(--border)' }}>
-                        <ImageIcon className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
-                        <p className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
-                          No vehicle image uploaded
-                        </p>
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        ref={vehicleImageInputRef}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png"
-                        onChange={handleVehicleImageUpload}
-                        className="hidden"
-                        id="vehicle-image-upload"
-                        disabled={isUploadingVehicleImage}
-                      />
-                      <label htmlFor="vehicle-image-upload">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isUploadingVehicleImage}
-                          className="cursor-pointer"
-                          style={{ 
-                            borderColor: 'var(--border)', 
-                            color: 'var(--text)',
-                            backgroundColor: 'var(--card-bg)'
-                          }}
-                          asChild
-                        >
-                          <span>
-                            {isUploadingVehicleImage ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Uploading...
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="w-4 h-4 mr-2" />
-                                {vehicleImageUrl ? 'Change Image' : 'Upload Image'}
-                              </>
-                            )}
-                          </span>
-                        </Button>
-                      </label>
-                      <p className="text-xs mt-2" style={{ color: 'var(--subtext)' }}>
-                        JPEG or PNG, max 10MB
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -2864,26 +2530,16 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                               {rowIndex}
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>
-                              <div className="flex items-center gap-3">
-                                {vehicleImageUrl && (
-                                  <img
-                                    src={vehicleImageUrl}
-                                    alt={`${vehicleYear} ${vehicleMake} ${vehicleModel}`}
-                                    className="w-16 h-16 object-cover rounded border"
-                                    style={{ borderColor: 'var(--border)' }}
-                                  />
-                                )}
-                                <div>
-                                  <div className="font-medium">
-                                    {vehicleYear} {vehicleMake} {vehicleModel}
-                                    {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
-                                  </div>
-                                  {vehicle?.vin && (
-                                    <div className="text-xs" style={{ color: 'var(--subtext)' }}>
-                                      VIN: {vehicle.vin}
-                                    </div>
-                                  )}
+                              <div>
+                                <div className="font-medium">
+                                  {vehicleYear} {vehicleMake} {vehicleModel}
+                                  {vehicle?.trim && <span className="ml-1" style={{ color: 'var(--subtext)' }}>({vehicle.trim})</span>}
                                 </div>
+                                {vehicle?.vin && (
+                                  <div className="text-xs" style={{ color: 'var(--subtext)' }}>
+                                    VIN: {vehicle.vin}
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', color: 'var(--text)' }}>

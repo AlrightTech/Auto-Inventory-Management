@@ -1,20 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Clock, Upload, X, Plus, Trash2, Loader2 } from 'lucide-react';
+import { CalendarIcon, Clock, Upload, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
-import { motion } from 'framer-motion';
 
 interface AddAssessmentModalProps {
   isOpen: boolean;
@@ -25,13 +22,6 @@ interface AddAssessmentModalProps {
   editingAssessment?: any;
 }
 
-interface DamageMarker {
-  id: string;
-  x: number;
-  y: number;
-  type: 'dent' | 'scratch';
-  notes?: string;
-}
 
 export function AddAssessmentModal({ 
   isOpen, 
@@ -51,17 +41,8 @@ export function AddAssessmentModal({
   const [crNumber, setCrNumber] = useState('');
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
-  const [damageMarkers, setDamageMarkers] = useState<DamageMarker[]>([]);
-  const [markerType, setMarkerType] = useState<'dent' | 'scratch'>('dent');
-  const [preAccidentDefects, setPreAccidentDefects] = useState('');
-  const [otherDefects, setOtherDefects] = useState('');
-  const [workRequested, setWorkRequested] = useState<string[]>(['']);
-  const [ownerInstructions, setOwnerInstructions] = useState<string[]>(['']);
-  const [fuelLevel, setFuelLevel] = useState(0);
   const [assessmentFile, setAssessmentFile] = useState<File | null>(null);
   const [assessmentFileUrl, setAssessmentFileUrl] = useState<string | null>(null);
-  
-  const carDiagramRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   // Load editing assessment data
@@ -73,12 +54,6 @@ export function AddAssessmentModal({
       setMilesIn(editingAssessment.miles_in?.toString() || '');
       setColor(editingAssessment.color || '');
       setCrNumber(editingAssessment.cr_number || '');
-      setDamageMarkers(editingAssessment.damage_markers || []);
-      setPreAccidentDefects(editingAssessment.pre_accident_defects || '');
-      setOtherDefects(editingAssessment.other_defects || '');
-      setWorkRequested(editingAssessment.work_requested?.length > 0 ? editingAssessment.work_requested : ['']);
-      setOwnerInstructions(editingAssessment.owner_instructions?.length > 0 ? editingAssessment.owner_instructions : ['']);
-      setFuelLevel(editingAssessment.fuel_level || 0);
       setAssessmentFileUrl(editingAssessment.assessment_file_url || null);
       setUploadedImageUrls(editingAssessment.images || []);
     } else if (!editingAssessment && isOpen) {
@@ -91,12 +66,6 @@ export function AddAssessmentModal({
       setCrNumber('');
       setSelectedImages([]);
       setUploadedImageUrls([]);
-      setDamageMarkers([]);
-      setPreAccidentDefects('');
-      setOtherDefects('');
-      setWorkRequested(['']);
-      setOwnerInstructions(['']);
-      setFuelLevel(0);
       setAssessmentFile(null);
       setAssessmentFileUrl(null);
       setActiveTab('vehicle-info');
@@ -144,54 +113,6 @@ export function AddAssessmentModal({
     setUploadedImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleCarDiagramClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!carDiagramRef.current) return;
-    
-    const rect = carDiagramRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    const newMarker: DamageMarker = {
-      id: Date.now().toString(),
-      x,
-      y,
-      type: markerType,
-    };
-
-    setDamageMarkers(prev => [...prev, newMarker]);
-  };
-
-  const handleRemoveMarker = (id: string) => {
-    setDamageMarkers(prev => prev.filter(m => m.id !== id));
-  };
-
-  const handleResetMarkers = () => {
-    setDamageMarkers([]);
-  };
-
-  const handleAddWorkItem = () => {
-    setWorkRequested(prev => [...prev, '']);
-  };
-
-  const handleRemoveWorkItem = (index: number) => {
-    setWorkRequested(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleWorkItemChange = (index: number, value: string) => {
-    setWorkRequested(prev => prev.map((item, i) => i === index ? value : item));
-  };
-
-  const handleAddInstruction = () => {
-    setOwnerInstructions(prev => [...prev, '']);
-  };
-
-  const handleRemoveInstruction = (index: number) => {
-    setOwnerInstructions(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleInstructionChange = (index: number, value: string) => {
-    setOwnerInstructions(prev => prev.map((item, i) => i === index ? value : item));
-  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -236,12 +157,12 @@ export function AddAssessmentModal({
         miles_in: milesIn ? parseInt(milesIn) : null,
         color: color || null,
         cr_number: crNumber || null,
-        damage_markers: damageMarkers,
-        pre_accident_defects: preAccidentDefects || null,
-        other_defects: otherDefects || null,
-        work_requested: workRequested.filter(item => item.trim() !== ''),
-        owner_instructions: ownerInstructions.filter(item => item.trim() !== ''),
-        fuel_level: fuelLevel,
+        damage_markers: [],
+        pre_accident_defects: null,
+        other_defects: null,
+        work_requested: [],
+        owner_instructions: [],
+        fuel_level: null,
         assessment_file_url: assessmentFileUrl,
         assessment_file_name: assessmentFile?.name || null,
         images: uploadedImageUrls,
@@ -269,10 +190,8 @@ export function AddAssessmentModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+          <TabsList className="grid w-full grid-cols-1" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
             <TabsTrigger value="vehicle-info" style={{ color: 'var(--text)' }}>Vehicle Info</TabsTrigger>
-            <TabsTrigger value="dents-scratches" style={{ color: 'var(--text)' }}>Dents & Scratches</TabsTrigger>
-            <TabsTrigger value="defects-fuel" style={{ color: 'var(--text)' }}>Defects & Fuel</TabsTrigger>
           </TabsList>
 
           {/* Vehicle Info Tab */}
@@ -410,201 +329,6 @@ export function AddAssessmentModal({
                     </a>
                   </div>
                 )}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Dents & Scratches Tab */}
-          <TabsContent value="dents-scratches" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Label style={{ color: 'var(--text)' }}>Marker Type:</Label>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant={markerType === 'dent' ? 'default' : 'outline'}
-                    onClick={() => setMarkerType('dent')}
-                    style={{ 
-                      backgroundColor: markerType === 'dent' ? '#ef4444' : 'var(--card-bg)',
-                      color: markerType === 'dent' ? 'white' : 'var(--text)'
-                    }}
-                  >
-                    Red (Dent)
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={markerType === 'scratch' ? 'default' : 'outline'}
-                    onClick={() => setMarkerType('scratch')}
-                    style={{ 
-                      backgroundColor: markerType === 'scratch' ? '#3b82f6' : 'var(--card-bg)',
-                      color: markerType === 'scratch' ? 'white' : 'var(--text)'
-                    }}
-                  >
-                    Blue (Scratch)
-                  </Button>
-                </div>
-                <div className="flex gap-2 ml-auto">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleResetMarkers}
-                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                  >
-                    Reset All
-                  </Button>
-                </div>
-              </div>
-
-              <div
-                ref={carDiagramRef}
-                className="relative w-full h-96 border-2 rounded-lg cursor-crosshair"
-                style={{ 
-                  backgroundColor: '#f3f4f6', 
-                  borderColor: 'var(--border)',
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'200\' height=\'200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M50 50 L150 50 L150 150 L50 150 Z\' fill=\'none\' stroke=\'%23ccc\' stroke-width=\'2\'/%3E%3C/svg%3E")',
-                  backgroundSize: 'contain',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'center'
-                }}
-                onClick={handleCarDiagramClick}
-              >
-                {damageMarkers.map((marker) => (
-                  <motion.div
-                    key={marker.id}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute cursor-pointer"
-                    style={{
-                      left: `${marker.x}%`,
-                      top: `${marker.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      backgroundColor: marker.type === 'dent' ? '#ef4444' : '#3b82f6',
-                      border: '2px solid white',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveMarker(marker.id);
-                    }}
-                    title={marker.notes || `${marker.type}`}
-                  />
-                ))}
-              </div>
-              <p className="text-sm" style={{ color: 'var(--subtext)' }}>
-                Click on the car diagram to place markers. Click on a marker to remove it.
-              </p>
-            </div>
-          </TabsContent>
-
-          {/* Defects & Fuel Level Tab */}
-          <TabsContent value="defects-fuel" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label style={{ color: 'var(--text)' }}>Pre-accident / Other Defects</Label>
-                <Textarea
-                  value={preAccidentDefects}
-                  onChange={(e) => setPreAccidentDefects(e.target.value)}
-                  placeholder="Describe any existing defects..."
-                  rows={4}
-                  style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label style={{ color: 'var(--text)' }}>Other Defects</Label>
-                <Textarea
-                  value={otherDefects}
-                  onChange={(e) => setOtherDefects(e.target.value)}
-                  placeholder="Describe any other defects..."
-                  rows={4}
-                  style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label style={{ color: 'var(--text)' }}>Work Requested / Owner Instructions</Label>
-                {workRequested.map((item, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={item}
-                      onChange={(e) => handleWorkItemChange(index, e.target.value)}
-                      placeholder={`Work item ${index + 1}`}
-                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                    />
-                    {workRequested.length > 1 && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleRemoveWorkItem(index)}
-                        style={{ color: '#ef4444' }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddWorkItem}
-                  style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Work Item
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <Label style={{ color: 'var(--text)' }}>Owner Instructions</Label>
-                {ownerInstructions.map((item, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={item}
-                      onChange={(e) => handleInstructionChange(index, e.target.value)}
-                      placeholder={`Instruction ${index + 1}`}
-                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                    />
-                    {ownerInstructions.length > 1 && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleRemoveInstruction(index)}
-                        style={{ color: '#ef4444' }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddInstruction}
-                  style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Instruction
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <Label style={{ color: 'var(--text)' }}>Fuel Gauge: {fuelLevel}%</Label>
-                <Input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={fuelLevel}
-                  onChange={(e) => setFuelLevel(parseInt(e.target.value))}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs" style={{ color: 'var(--subtext)' }}>
-                  <span>0%</span>
-                  <span>50%</span>
-                  <span>100%</span>
-                </div>
               </div>
             </div>
           </TabsContent>
