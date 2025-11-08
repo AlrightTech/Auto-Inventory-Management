@@ -207,19 +207,25 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   style={isParentActive(item.children) ? { 
                     backgroundColor: 'var(--accent)', 
                     color: 'white',
-                    boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)'
+                    boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
+                    borderLeft: '3px solid var(--accent)'
                   } : { 
                     backgroundColor: 'transparent',
-                    color: 'var(--text)'
+                    color: 'var(--text)',
+                    borderLeft: '3px solid transparent'
                   }}
                   onMouseEnter={(e) => {
                     if (!isParentActive(item.children)) {
                       e.currentTarget.style.backgroundColor = 'var(--muted)';
+                      e.currentTarget.style.borderLeftColor = 'var(--accent)';
+                      e.currentTarget.style.opacity = '0.8';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isParentActive(item.children)) {
                       e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.borderLeftColor = 'transparent';
+                      e.currentTarget.style.opacity = '1';
                     }
                   }}
                 >
@@ -257,19 +263,26 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                           style={isActive(child.href) ? { 
                             backgroundColor: 'var(--accent)', 
                             color: 'white',
-                            boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)'
+                            boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
+                            borderLeft: '3px solid var(--accent)',
+                            fontWeight: '600'
                           } : { 
                             backgroundColor: 'transparent',
-                            color: 'var(--text)'
+                            color: 'var(--text)',
+                            borderLeft: '3px solid transparent'
                           }}
                           onMouseEnter={(e) => {
                             if (!isActive(child.href)) {
                               e.currentTarget.style.backgroundColor = 'var(--muted)';
+                              e.currentTarget.style.borderLeftColor = 'var(--accent)';
+                              e.currentTarget.style.opacity = '0.8';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isActive(child.href)) {
                               e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.borderLeftColor = 'transparent';
+                              e.currentTarget.style.opacity = '1';
                             }
                           }}
                         >
@@ -290,19 +303,26 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                 style={isActive(item.href!) ? { 
                   backgroundColor: 'var(--accent)', 
                   color: 'white',
-                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)'
+                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
+                  borderLeft: '3px solid var(--accent)',
+                  fontWeight: '600'
                 } : { 
                   backgroundColor: 'transparent',
-                  color: 'var(--text)'
+                  color: 'var(--text)',
+                  borderLeft: '3px solid transparent'
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive(item.href!)) {
                     e.currentTarget.style.backgroundColor = 'var(--muted)';
+                    e.currentTarget.style.borderLeftColor = 'var(--accent)';
+                    e.currentTarget.style.opacity = '0.8';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive(item.href!)) {
                     e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderLeftColor = 'transparent';
+                    e.currentTarget.style.opacity = '1';
                   }
                 }}
               >

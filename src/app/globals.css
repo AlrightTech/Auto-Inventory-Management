@@ -763,12 +763,47 @@ button {
 }
 
 button[type="submit"],
-button.primary {
+button.primary,
+button[style*="backgroundColor: var(--accent)"],
+button[style*="background-color: var(--accent)"] {
   background-color: var(--accent) !important;
   color: white !important;
+}
+
+/* Ensure all submit buttons are visible in both themes */
+button[type="submit"] {
+  background-color: var(--accent) !important;
+  color: white !important;
+  border: none !important;
 }
 
 /* Dropdown menu items hover */
 [data-radix-dropdown-menu-item]:hover {
   background-color: var(--muted) !important;
+}
+
+/* Sidebar hover and active states - Enhanced visibility */
+nav a:hover,
+nav button:hover {
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Ensure sidebar text is always visible */
+nav a,
+nav button {
+  color: var(--text) !important;
+}
+
+/* Active sidebar items */
+nav a[style*="backgroundColor: var(--accent)"],
+nav button[style*="backgroundColor: var(--accent)"] {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Sidebar hover state - better contrast in light mode */
+nav a:hover:not([style*="backgroundColor: var(--accent)"]),
+nav button:hover:not([style*="backgroundColor: var(--accent)"]) {
+  background-color: var(--muted) !important;
+  color: var(--text) !important;
 }

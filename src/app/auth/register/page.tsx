@@ -269,7 +269,24 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full gradient-primary hover:opacity-90 transition-opacity glow-border"
+                className="w-full"
+                style={{
+                  backgroundColor: 'var(--accent)',
+                  color: 'white',
+                  borderRadius: '12px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease-in-out',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.9';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
               >
                 {isLoading ? 'Creating account...' : 'Create Account'}
               </Button>

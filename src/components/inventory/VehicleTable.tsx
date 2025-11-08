@@ -132,6 +132,8 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
 
   // Load vehicles from API
   useEffect(() => {
+    let isMounted = true;
+    
     const loadVehicles = async () => {
       try {
         setIsLoading(true);
@@ -142,27 +144,44 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         }
         
         const { data } = await response.json();
-        setVehicles(data || []);
+        
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setVehicles(data || []);
+        }
       } catch (error) {
         console.error('Error loading vehicles:', error);
-        toast.error('Failed to load vehicles');
+        if (isMounted) {
+          toast.error('Failed to load vehicles');
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadVehicles();
-  }, [onVehicleAdded, refreshTrigger]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshTrigger]);
 
   // Filter vehicles based on search term and filters
   useEffect(() => {
+    if (!vehicles || vehicles.length === 0) {
+      setFilteredVehicles([]);
+      return;
+    }
+    
     let filtered = [...vehicles];
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(vehicle =>
-        vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (vehicle.make && vehicle.make.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (vehicle.model && vehicle.model.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (vehicle.vin && vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
