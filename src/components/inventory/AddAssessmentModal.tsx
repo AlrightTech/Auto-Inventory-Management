@@ -41,8 +41,6 @@ export function AddAssessmentModal({
   const [crNumber, setCrNumber] = useState('');
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
-  const [assessmentFile, setAssessmentFile] = useState<File | null>(null);
-  const [assessmentFileUrl, setAssessmentFileUrl] = useState<string | null>(null);
   const supabase = createClient();
 
   // Load editing assessment data
@@ -54,7 +52,6 @@ export function AddAssessmentModal({
       setMilesIn(editingAssessment.miles_in?.toString() || '');
       setColor(editingAssessment.color || '');
       setCrNumber(editingAssessment.cr_number || '');
-      setAssessmentFileUrl(editingAssessment.assessment_file_url || null);
       setUploadedImageUrls(editingAssessment.images || []);
     } else if (!editingAssessment && isOpen) {
       // Reset form for new assessment
@@ -66,8 +63,6 @@ export function AddAssessmentModal({
       setCrNumber('');
       setSelectedImages([]);
       setUploadedImageUrls([]);
-      setAssessmentFile(null);
-      setAssessmentFileUrl(null);
       setActiveTab('vehicle-info');
     }
   }, [editingAssessment, isOpen]);
@@ -113,34 +108,6 @@ export function AddAssessmentModal({
     setUploadedImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${vehicleId}/assessment-${Date.now()}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from('vehicle-assessments')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('vehicle-assessments')
-        .getPublicUrl(fileName);
-
-      setAssessmentFileUrl(publicUrl);
-      setAssessmentFile(file);
-      toast.success('File uploaded successfully');
-    } catch (error: any) {
-      console.error('Error uploading file:', error);
-      toast.error('Failed to upload file');
-    }
-  };
-
   const handleSubmit = async () => {
     // Validation
     if (!selectedDate || !assessmentTime || !conductedName) {
@@ -163,8 +130,8 @@ export function AddAssessmentModal({
         work_requested: [],
         owner_instructions: [],
         fuel_level: null,
-        assessment_file_url: assessmentFileUrl,
-        assessment_file_name: assessmentFile?.name || null,
+        assessment_file_url: null,
+        assessment_file_name: null,
         images: uploadedImageUrls,
       };
 
@@ -274,24 +241,6 @@ export function AddAssessmentModal({
                   className="vehicle-details-field"
                   style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label style={{ color: 'var(--text)' }}>Assessment File (PDF, Image, etc.)</Label>
-                <Input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileSelect}
-                  className="vehicle-details-field"
-                  style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                />
-                {assessmentFileUrl && (
-                  <div className="mt-2">
-                    <a href={assessmentFileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>
-                      View uploaded file
-                    </a>
-                  </div>
-                )}
               </div>
             </div>
           </TabsContent>

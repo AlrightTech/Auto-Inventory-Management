@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -114,46 +114,53 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
   );
   const assessmentsTotalPages = Math.ceil(assessments.length / assessmentsPerPage);
 
+  // Load tasks function - extracted for reuse and memoized
+  const loadVehicleTasks = useCallback(async () => {
+    if (!vehicle?.id) {
+      setVehicleTasks([]);
+      return;
+    }
+
+    try {
+      setIsLoadingTasks(true);
+      const response = await fetch(`/api/tasks?vehicleId=${vehicle.id}&limit=100`);
+      if (response.ok) {
+        const responseData = await response.json();
+        const tasks = responseData.data || responseData || [];
+        // Ensure tasks is an array and filter by vehicle ID as backup
+        const filteredTasks = Array.isArray(tasks) 
+          ? tasks.filter((task: TaskWithRelations) => task.vehicle_id === vehicle.id)
+          : [];
+        setVehicleTasks(filteredTasks);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to load tasks:', response.statusText, errorData);
+        setVehicleTasks([]);
+        // Don't show error toast for 404 or empty results
+        if (response.status !== 404) {
+          toast.error('Failed to load tasks');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error loading tasks:', error);
+      setVehicleTasks([]);
+      // Only show error if it's not a network error or expected error
+      if (error?.message && !error.message.includes('fetch')) {
+        toast.error('Failed to load tasks');
+      }
+    } finally {
+      setIsLoadingTasks(false);
+    }
+  }, [vehicle?.id]);
+
   // Load tasks for this vehicle
   useEffect(() => {
     if (vehicle?.id && activeTab === 'tasks') {
-      const loadTasks = async () => {
-        try {
-          setIsLoadingTasks(true);
-          const response = await fetch(`/api/tasks?vehicleId=${vehicle.id}&limit=100`);
-          if (response.ok) {
-            const responseData = await response.json();
-            const tasks = responseData.data || responseData || [];
-            // Ensure tasks is an array and filter by vehicle ID as backup
-            const filteredTasks = Array.isArray(tasks) 
-              ? tasks.filter((task: TaskWithRelations) => task.vehicle_id === vehicle.id)
-              : [];
-            setVehicleTasks(filteredTasks);
-          } else {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Failed to load tasks:', response.statusText, errorData);
-            setVehicleTasks([]);
-            // Don't show error toast for 404 or empty results
-            if (response.status !== 404) {
-              toast.error('Failed to load tasks');
-            }
-          }
-        } catch (error: any) {
-          console.error('Error loading tasks:', error);
-          setVehicleTasks([]);
-          // Only show error if it's not a network error or expected error
-          if (error?.message && !error.message.includes('fetch')) {
-            toast.error('Failed to load tasks');
-          }
-        } finally {
-          setIsLoadingTasks(false);
-        }
-      };
-      loadTasks();
+      loadVehicleTasks();
     } else if (!vehicle?.id) {
       setVehicleTasks([]);
     }
-  }, [vehicle?.id, activeTab]);
+  }, [vehicle?.id, activeTab, loadVehicleTasks]);
 
   // Load assessments for this vehicle
   useEffect(() => {
@@ -752,20 +759,11 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
         throw new Error(error.error || 'Failed to create task');
       }
 
-      toast.success('? Task added successfully');
+      toast.success('✅ Task added successfully');
       setIsAddTaskModalOpen(false);
       
-      // Reload tasks - ensure we filter by vehicle ID
-      const tasksResponse = await fetch(`/api/tasks?vehicleId=${vehicle.id}&limit=100`);
-      if (tasksResponse.ok) {
-        const responseData = await tasksResponse.json();
-        const tasks = responseData.data || responseData || [];
-        // Additional client-side filtering as backup
-        const filteredTasks = Array.isArray(tasks) 
-          ? tasks.filter((task: TaskWithRelations) => task.vehicle_id === vehicle.id)
-          : [];
-        setVehicleTasks(filteredTasks);
-      }
+      // Reload tasks using the same function as initial load
+      await loadVehicleTasks();
     } catch (error: any) {
       console.error('Error adding task:', error);
       toast.error(error.message || 'Failed to add task');
@@ -1561,7 +1559,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-white border-slate-600 hover:bg-slate-700/50"
+                    className="dark:text-white dark:border-slate-600 dark:hover:bg-slate-700/50 text-[var(--text)] border-[var(--border)] hover:bg-[var(--muted)]"
                     onClick={handleDownload}
                   >
                     <Download className="w-4 h-4 mr-2" />
@@ -1572,7 +1570,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-white border-slate-600 hover:bg-slate-700/50"
+                    className="dark:text-white dark:border-slate-600 dark:hover:bg-slate-700/50 text-[var(--text)] border-[var(--border)] hover:bg-[var(--muted)]"
                     onClick={handleExportTasksPDF}
                     disabled={vehicleTasks.length === 0}
                   >
@@ -1584,7 +1582,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-white border-slate-600 hover:bg-slate-700/50"
+                    className="dark:text-white dark:border-slate-600 dark:hover:bg-slate-700/50 text-[var(--text)] border-[var(--border)] hover:bg-[var(--muted)]"
                     onClick={handleExportAssessmentsPDF}
                     disabled={assessments.length === 0}
                   >
@@ -1885,7 +1883,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                     <Button
                       onClick={handleAuctionUpdate}
                       disabled={isUpdatingAuction}
-                      className="w-full dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
+                      className="w-full dark:bg-[var(--accent)] bg-[var(--accent)] dark:text-white text-white hover:bg-[var(--accent-hover)] dark:hover:bg-[var(--accent)]/90"
                       style={{ 
                         border: '1px solid var(--border)'
                       }}
@@ -2028,7 +2026,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   onClick={handleDetailsUpdate}
                   disabled={isUpdatingStatus || isUpdatingAuction}
                   size="lg"
-                  className="min-w-[140px] dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
+                  className="min-w-[140px] dark:bg-[var(--accent)] bg-[var(--accent)] dark:text-white text-white hover:bg-[var(--accent-hover)] dark:hover:bg-[var(--accent)]/90"
                   style={{ 
                     border: '1px solid var(--border)',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
@@ -2436,7 +2434,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                       setIsAddExpenseModalOpen(true);
                     }}
                     size="sm"
-                    className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
+                    className="dark:bg-[var(--accent)] bg-[var(--accent)] dark:text-white text-white hover:bg-[var(--accent-hover)] dark:hover:bg-[var(--accent)]/90"
                     style={{ 
                       borderRadius: '8px',
                       border: '1px solid transparent'
@@ -2560,7 +2558,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                                 <Button
                                   size="sm"
                                   onClick={() => handleUpdateExpenseCost(expense.id)}
-                                  className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
+                                  className="dark:bg-[var(--accent)] bg-[var(--accent)] dark:text-white text-white hover:bg-[var(--accent-hover)] dark:hover:bg-[var(--accent)]/90"
                                   style={{ 
                                     borderRadius: '6px',
                                     border: '1px solid transparent'
@@ -2620,7 +2618,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                                 <Button
                                   size="sm"
                                   onClick={() => handleUpdateExpenseNote(expense.id)}
-                                  className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
+                                  className="dark:bg-[var(--accent)] bg-[var(--accent)] dark:text-white text-white hover:bg-[var(--accent-hover)] dark:hover:bg-[var(--accent)]/90"
                                   style={{ 
                                     borderRadius: '6px',
                                     border: '1px solid transparent'
@@ -2801,7 +2799,7 @@ export function ViewVehiclePage({ vehicle }: ViewVehiclePageProps) {
                   <Button
                     onClick={handleSubmitDispatch}
                     disabled={isSubmittingDispatch}
-                    className="dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
+                    className="dark:bg-[var(--accent)] bg-[var(--accent)] dark:text-white text-white hover:bg-[var(--accent-hover)] dark:hover:bg-[var(--accent)]/90"
                     style={{ borderRadius: '8px' }}
                   >
                     {isSubmittingDispatch ? (

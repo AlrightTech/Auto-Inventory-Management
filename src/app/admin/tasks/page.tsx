@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,51 +53,49 @@ export default function AdminTasksPage() {
   
   const supabase = createClient();
 
-  // Load tasks from database
-  useEffect(() => {
-    
-    const loadTasks = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const { data: tasksData, error } = await supabase
-          .from('tasks')
-          .select(`
-            *,
-            vehicle:vehicles(*),
-            assigned_user:profiles!tasks_assigned_to_fkey(*)
-          `)
-          .order('created_at', { ascending: false });
+  // Load tasks function - extracted for reuse and memoized
+  const loadTasks = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { data: tasksData, error } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          vehicle:vehicles(*),
+          assigned_user:profiles!tasks_assigned_to_fkey(*)
+        `)
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error loading tasks:', error);
-          setError('Failed to load tasks. Please try again.');
-          return;
-        }
+      if (error) {
+        console.error('Error loading tasks:', error);
+        setError('Failed to load tasks. Please try again.');
+        return;
+      }
 
-        if (tasksData) {
-          const tasksWithRelations: TaskWithRelations[] = tasksData.map(task => ({
-            id: task.id,
-            task_name: task.task_name,
-            vehicle_id: task.vehicle_id,
-            assigned_to: task.assigned_to,
-            assigned_by: task.assigned_by,
-            due_date: task.due_date,
-            notes: task.notes,
-            category: task.category,
-            status: task.status,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
-            vehicle: task.vehicle ? {
-              id: task.vehicle.id,
-              make: task.vehicle.make,
-              model: task.vehicle.model,
-              year: task.vehicle.year,
-              vin: task.vehicle.vin,
-              status: task.vehicle.status,
-              created_by: task.vehicle.created_by,
-              created_at: task.vehicle.created_at,
-            } : undefined,
+      if (tasksData) {
+        const tasksWithRelations: TaskWithRelations[] = tasksData.map(task => ({
+          id: task.id,
+          task_name: task.task_name,
+          vehicle_id: task.vehicle_id,
+          assigned_to: task.assigned_to,
+          assigned_by: task.assigned_by,
+          due_date: task.due_date,
+          notes: task.notes,
+          category: task.category,
+          status: task.status,
+          created_at: task.created_at,
+          updated_at: task.updated_at,
+          vehicle: task.vehicle ? {
+            id: task.vehicle.id,
+            make: task.vehicle.make,
+            model: task.vehicle.model,
+            year: task.vehicle.year,
+            vin: task.vehicle.vin,
+            status: task.vehicle.status,
+            created_by: task.vehicle.created_by,
+            created_at: task.vehicle.created_at,
+          } : undefined,
             assigned_user: task.assigned_user ? {
               id: task.assigned_user.id,
               email: task.assigned_user.email,
@@ -128,10 +126,12 @@ export default function AdminTasksPage() {
       } finally {
         setIsLoading(false);
       }
-    };
-
-    loadTasks();
   }, [supabase]);
+
+  // Load tasks from database on mount
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
 
   // Apply filters and search
   useEffect(() => {
@@ -242,11 +242,14 @@ export default function AdminTasksPage() {
           } : undefined,
         };
 
-        setTasks(prev => [newTask, ...prev]);
+        // Reload all tasks to ensure we have the latest data with all relations
+        await loadTasks();
         setIsAddModalOpen(false);
+        toast.success('✅ Task added successfully');
       }
     } catch (error) {
       console.error('Error creating task:', error);
+      toast.error('Failed to add task');
     }
   };
 
