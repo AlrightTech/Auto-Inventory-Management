@@ -845,25 +845,94 @@ a:hover:not([style*="backgroundColor: var(--accent)"]) {
   color: var(--text) !important;
 }
 
-/* Light Mode - Ensure all buttons have dark text (except accent buttons) */
-button:not([style*="backgroundColor: var(--accent)"]):not([style*="background-color: var(--accent)"]):not(.gradient-primary):not([class*="bg-blue"]):not([class*="bg-accent"]) {
+/* ============================================
+   COMPREHENSIVE BUTTON TEXT COLOR - LIGHT THEME
+   All buttons should have black text in light theme
+   ============================================ */
+
+/* Light Theme - All buttons get black text by default */
+:not(.dark) button,
+:not(.dark) [role="button"],
+:not(.dark) .button,
+:not(.dark) button[class*="Button"],
+:not(.dark) [data-radix-collection-item][role="button"] {
+  color: #000000 !important;
+}
+
+/* Light Theme - Buttons with inline white color style (override) */
+:not(.dark) button[style*="color: white"],
+:not(.dark) button[style*="color: #fff"],
+:not(.dark) button[style*="color: #ffffff"],
+:not(.dark) button[style*="color:white"] {
+  color: #000000 !important;
+}
+
+/* Light Theme - Buttons with accent background - keep black text */
+:not(.dark) button[style*="backgroundColor: var(--accent)"],
+:not(.dark) button[style*="background-color: var(--accent)"],
+:not(.dark) button[style*="backgroundColor:var(--accent)"],
+:not(.dark) button[style*="background-color:var(--accent)"] {
+  color: #000000 !important;
+}
+
+/* Light Theme - All button variants get black text */
+:not(.dark) button[class*="outline"],
+:not(.dark) button[class*="ghost"],
+:not(.dark) button[class*="secondary"],
+:not(.dark) button[class*="destructive"],
+:not(.dark) button[class*="default"],
+:not(.dark) button[class*="accent"],
+:not(.dark) button[class*="success"] {
+  color: #000000 !important;
+}
+
+/* Light Theme - Buttons in modals, dialogs, forms */
+:not(.dark) [data-radix-dialog-content] button,
+:not(.dark) [role="dialog"] button,
+:not(.dark) form button,
+:not(.dark) .modal button,
+:not(.dark) .dialog button {
+  color: #000000 !important;
+}
+
+/* Light Theme - Buttons with specific classes */
+:not(.dark) .control-panel,
+:not(.dark) .neon-glow,
+:not(.dark) .gradient-primary,
+:not(.dark) .submit-assessment-btn,
+:not(.dark) .add-assessment-btn,
+:not(.dark) .add-task-btn,
+:not(.dark) .task-action-btn,
+:not(.dark) .update-all-btn {
+  color: #000000 !important;
+}
+
+/* Light Theme - Button text content (but preserve icon colors when needed) */
+:not(.dark) button {
+  color: #000000 !important;
+}
+
+/* Light Theme - Button text spans (but allow icons to inherit from parent) */
+:not(.dark) button > span:not([class*="icon"]):not([class*="Icon"]) {
+  color: #000000 !important;
+}
+
+/* Light Theme - Buttons with type submit */
+:not(.dark) button[type="submit"],
+:not(.dark) button[type="button"] {
+  color: #000000 !important;
+}
+
+/* Dark Theme - Keep existing behavior */
+.dark button,
+.dark [role="button"],
+.dark .button {
   color: var(--text) !important;
 }
 
-/* Submit and primary buttons - white text on accent */
-button[type="submit"],
-button.primary,
-button[style*="backgroundColor: var(--accent)"],
-button[style*="background-color: var(--accent)"],
-button.gradient-primary {
-  background-color: var(--accent) !important;
+.dark button[style*="backgroundColor: var(--accent)"],
+.dark button[style*="background-color: var(--accent)"] {
   color: white !important;
-  border: none !important;
-}
-
-/* Dark Mode - Buttons */
-.dark button:not([style*="backgroundColor: var(--accent)"]):not([style*="background-color: var(--accent)"]) {
-  color: var(--text) !important;
 }
 
 /* Dropdown menu items hover */
@@ -963,31 +1032,8 @@ nav button:hover {
   border-color: var(--border) !important;
 }
 
-/* Add Assessment Button - Black text in light theme */
-.add-assessment-btn {
-  color: white !important;
-}
-
-:not(.dark) .add-assessment-btn {
-  color: #000000 !important;
-}
-
-.dark .add-assessment-btn {
-  color: white !important;
-}
-
-/* Submit Button - Black text in light theme */
-.submit-assessment-btn {
-  color: white !important;
-}
-
-:not(.dark) .submit-assessment-btn {
-  color: #000000 !important;
-}
-
-.dark .submit-assessment-btn {
-  color: white !important;
-}
+/* Note: Button text colors are now handled by comprehensive rules above */
+/* These specific classes are covered by the general :not(.dark) button rule */
 
 /* Toast Custom Styles */
 [data-sonner-toast][data-type="success"] {
