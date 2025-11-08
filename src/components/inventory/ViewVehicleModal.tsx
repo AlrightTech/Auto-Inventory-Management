@@ -997,10 +997,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
       return;
     }
     try {
+      // Convert "unassigned" to null for the API
+      const assignedToValue = assignedTo === 'unassigned' ? null : assignedTo;
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assigned_to: assignedTo || null }),
+        body: JSON.stringify({ assigned_to: assignedToValue }),
       });
 
       if (!response.ok) {
@@ -1847,7 +1849,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
-                        minHeight: '36px'
+                        minHeight: '36px',
+                        border: '1px solid var(--border)'
                       }}>
                         <SelectValue />
                       </SelectTrigger>
@@ -1878,7 +1881,8 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
-                        minHeight: '36px'
+                        minHeight: '36px',
+                        border: '1px solid var(--border)'
                       }}>
                         <SelectValue />
                       </SelectTrigger>
@@ -1905,11 +1909,12 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       }}
                       disabled={isUpdatingStatus}
                     >
-                      <SelectTrigger style={{ 
+                      <SelectTrigger style={{
                         backgroundColor: 'var(--card-bg)', 
                         borderColor: 'var(--border)', 
                         color: 'var(--text)',
-                        minHeight: '36px'
+                        minHeight: '36px',
+                        border: '1px solid var(--border)'
                       }}>
                         <SelectValue />
                       </SelectTrigger>
@@ -1967,7 +1972,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       value={auctionName}
                       onValueChange={setAuctionName}
                     >
-                      <SelectTrigger style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                      <SelectTrigger style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)', border: '1px solid var(--border)' }}>
                         <SelectValue placeholder="Select auction" />
                       </SelectTrigger>
                       <SelectContent>
@@ -2024,7 +2029,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                       disabled={isUpdatingAuction}
                       className="w-full dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
                       style={{ 
-                        border: '1px solid transparent'
+                        border: '1px solid var(--border)'
                       }}
                     >
                       {isUpdatingAuction ? (
@@ -2062,7 +2067,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                         onClick={handleAddNote}
                         disabled={isSavingNote || !newNoteText.trim()}
                         className="mt-2 w-full"
-                        style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                        style={{ backgroundColor: 'var(--accent)', color: 'white', border: '1px solid var(--accent)' }}
                       >
                         {isSavingNote ? (
                           <>
@@ -2103,7 +2108,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                   <Button
                                     size="sm"
                                     onClick={() => handleUpdateNote(note.id)}
-                                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                                    style={{ backgroundColor: 'var(--accent)', color: 'white', border: '1px solid var(--accent)' }}
                                   >
                                     Save
                                   </Button>
@@ -2167,7 +2172,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                   size="lg"
                   className="min-w-[140px] dark:bg-[var(--accent)] bg-black dark:text-white text-white hover:bg-gray-800 dark:hover:bg-[var(--accent)]/90"
                   style={{ 
-                    border: '1px solid transparent',
+                    border: '1px solid var(--border)',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
                   }}
                 >
@@ -2199,7 +2204,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                 <Button
                   onClick={() => setIsAddTaskModalOpen(true)}
                   size="sm"
-                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px' }}
+                  style={{ backgroundColor: 'var(--accent)', color: 'white', borderRadius: '8px', border: '1px solid var(--accent)' }}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Task
@@ -2324,7 +2329,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                             </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
                               <Select
-                                value={task.assigned_to || ''}
+                                value={task.assigned_to || 'unassigned'}
                                 onValueChange={(value) => handleAssignedChange(task.id, value)}
                               >
                                 <SelectTrigger 
@@ -2339,7 +2344,7 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                   <SelectValue placeholder="Not Assigned" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="">Not Assigned</SelectItem>
+                                  <SelectItem value="unassigned">Not Assigned</SelectItem>
                                   {(users || []).map((user) => {
                                     if (!user || !user.id) return null;
                                     const displayName = getUserDisplayName(user.id);

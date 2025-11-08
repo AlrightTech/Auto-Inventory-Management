@@ -877,6 +877,22 @@ nav button:hover {
   transition: all 0.2s ease-in-out !important;
 }
 
+/* Vehicle Details Modal - Ensure all buttons and fields have borders */
+[data-radix-dialog-content] button:not([style*="border"]),
+[data-radix-dialog-content] .button:not([style*="border"]) {
+  border: 1px solid var(--border) !important;
+}
+
+[data-radix-dialog-content] input:not([type="checkbox"]):not([type="radio"]):not([style*="border"]),
+[data-radix-dialog-content] textarea:not([style*="border"]),
+[data-radix-dialog-content] select:not([style*="border"]) {
+  border: 1px solid var(--border) !important;
+}
+
+[data-radix-dialog-content] [data-radix-select-trigger]:not([style*="border"]) {
+  border: 1px solid var(--border) !important;
+}
+
 /* Ensure sidebar text is always visible */
 nav a,
 nav button {
