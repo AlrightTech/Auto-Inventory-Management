@@ -190,7 +190,7 @@ export default function UserManagementPage() {
                   placeholder="Search users by name, email, or role..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                  className="pl-10 pr-4 py-3 bg-slate-800/50 border-slate-600 text-black placeholder:text-black/70 focus:border-blue-500 focus:ring-blue-500/20"
                 />
               </div>
             </div>

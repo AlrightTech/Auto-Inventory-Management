@@ -76,11 +76,11 @@ export function UserTable({ users, onViewUser, onDeleteUser, isDeleting }: UserT
       <table className="w-full">
         <thead>
           <tr className="border-b border-slate-700/50">
-            <th className="text-left p-4 text-slate-300 font-medium">Name</th>
-            <th className="text-left p-4 text-slate-300 font-medium">Email</th>
-            <th className="text-left p-4 text-slate-300 font-medium">Role</th>
-            <th className="text-left p-4 text-slate-300 font-medium">Created</th>
-            <th className="text-left p-4 text-slate-300 font-medium">Actions</th>
+            <th className="text-left p-4 text-black font-medium">Name</th>
+            <th className="text-left p-4 text-black font-medium">Email</th>
+            <th className="text-left p-4 text-black font-medium">Role</th>
+            <th className="text-left p-4 text-black font-medium">Created</th>
+            <th className="text-left p-4 text-black font-medium">Actions</th>
           </tr>
         </thead>
         <tbody>
