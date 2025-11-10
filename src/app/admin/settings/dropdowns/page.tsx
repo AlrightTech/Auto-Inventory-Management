@@ -140,14 +140,19 @@ export default function DropdownManagerPage() {
 
   // Handle edit
   const handleEdit = (item: DropdownSetting) => {
-    setEditingItem(item);
-    setFormData({
-      category: item.category,
-      label: item.label,
-      value: item.value,
-      is_active: item.is_active,
-    });
-    setIsDialogOpen(true);
+    try {
+      setEditingItem(item);
+      setFormData({
+        category: item.category || selectedCategory,
+        label: item.label || '',
+        value: item.value || '',
+        is_active: item.is_active ?? true,
+      });
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Error opening edit dialog:', error);
+      toast.error('Failed to open edit dialog');
+    }
   };
 
   // Handle delete
@@ -244,7 +249,15 @@ export default function DropdownManagerPage() {
               Add Option
             </Button>
           </DialogTrigger>
-          <DialogContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+          <DialogContent 
+            className="max-w-md"
+            style={{ 
+              backgroundColor: 'var(--card-bg)', 
+              borderColor: 'var(--border)',
+              zIndex: 9999,
+              color: 'var(--text)'
+            }}
+          >
             <DialogHeader>
               <DialogTitle style={{ color: 'var(--text)' }}>
                 {editingItem ? 'Edit Dropdown Option' : 'Add Dropdown Option'}
@@ -253,33 +266,33 @@ export default function DropdownManagerPage() {
                 {editingItem ? 'Update the dropdown option details.' : 'Create a new dropdown option for the selected category.'}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="category" style={{ color: 'var(--text)' }}>Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                  disabled={!!editingItem}
-                >
-                  <SelectTrigger
-                    id="category"
-                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+            <form key={editingItem?.id || 'new'} onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="category" style={{ color: 'var(--text)' }}>Category</Label>
+                  <Select
+                    value={formData.category || selectedCategory}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                    disabled={!!editingItem}
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem
-                        key={cat.value}
-                        value={cat.value}
-                        style={{ color: 'var(--text)' }}
-                      >
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                    <SelectTrigger
+                      id="category"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    >
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', zIndex: 10000 }}>
+                      {CATEGORIES.map((cat) => (
+                        <SelectItem
+                          key={cat.value}
+                          value={cat.value}
+                          style={{ color: 'var(--text)' }}
+                        >
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               <div>
                 <Label htmlFor="label" style={{ color: 'var(--text)' }}>
                   Label <span className="text-red-500">*</span>
@@ -441,12 +454,15 @@ export default function DropdownManagerPage() {
                           {item.value}
                         </TableCell>
                         <TableCell style={{ padding: '16px' }}>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <Switch
                               checked={item.is_active}
                               onCheckedChange={() => handleToggleActive(item)}
                             />
-                            <span style={{ color: item.is_active ? 'var(--accent)' : 'var(--subtext)' }}>
+                            <span 
+                              className="text-sm font-medium min-w-[60px]"
+                              style={{ color: item.is_active ? '#10b981' : 'var(--subtext)' }}
+                            >
                               {item.is_active ? 'Active' : 'Inactive'}
                             </span>
                           </div>
