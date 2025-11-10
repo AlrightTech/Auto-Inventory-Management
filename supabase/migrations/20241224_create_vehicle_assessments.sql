@@ -56,3 +56,4 @@ CREATE POLICY "Users can update assessments" ON vehicle_assessments
 CREATE POLICY "Users can delete assessments" ON vehicle_assessments
   FOR DELETE USING (true);
 
+
