@@ -1184,14 +1184,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
     }
   };
 
-  const handleDownloadAssessment = (assessment: any) => {
-    if (assessment.assessment_file_url) {
-      window.open(assessment.assessment_file_url, '_blank');
-    } else {
-      toast.error('No file available for this assessment');
-    }
-  };
-
   const handleEditAssessment = (assessment: any) => {
     setEditingAssessment(assessment);
     setIsAddAssessmentModalOpen(true);
@@ -2664,8 +2656,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Assessment Time</TableHead>
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Conducted Name</TableHead>
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Status</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>Icon</TableHead>
-                        <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)' }}>File</TableHead>
                         <TableHead style={{ padding: '16px', fontWeight: '600', color: 'var(--text)', textAlign: 'right' }}>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -2751,28 +2741,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                 </SelectContent>
                               </Select>
                             </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'center' }}>
-                              {assessment.status === 'Completed' ? (
-                                <CheckCircle className="w-5 h-5 mx-auto" style={{ color: '#10b981' }} />
-                              ) : (
-                                <AlertCircle className="w-5 h-5 mx-auto" style={{ color: '#f59e0b' }} />
-                              )}
-                            </TableCell>
-                            <TableCell style={{ padding: '16px', verticalAlign: 'middle' }}>
-                              {assessment.assessment_file_url ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDownloadAssessment(assessment)}
-                                  style={{ color: 'var(--accent)' }}
-                                >
-                                  <FileText className="w-4 h-4 mr-2" />
-                                  View File
-                                </Button>
-                              ) : (
-                                <span style={{ color: 'var(--subtext)' }}>No file</span>
-                              )}
-                            </TableCell>
                             <TableCell style={{ padding: '16px', verticalAlign: 'middle', textAlign: 'right' }}>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -2811,15 +2779,6 @@ export function ViewVehicleModal({ vehicle, isOpen, onClose }: ViewVehicleModalP
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Delete
                                   </DropdownMenuItem>
-                                  {assessment.assessment_file_url && (
-                                    <DropdownMenuItem 
-                                      style={{ color: 'var(--text)' }}
-                                      onClick={() => handleDownloadAssessment(assessment)}
-                                    >
-                                      <Download className="mr-2 h-4 w-4" />
-                                      Download
-                                    </DropdownMenuItem>
-                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>

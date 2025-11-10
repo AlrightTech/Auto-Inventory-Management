@@ -104,8 +104,6 @@ export async function POST(
       work_requested: Array.isArray(body.work_requested) ? body.work_requested : [],
       owner_instructions: Array.isArray(body.owner_instructions) ? body.owner_instructions : [],
       fuel_level: body.fuel_level !== null && body.fuel_level !== undefined ? parseInt(body.fuel_level) : null,
-      assessment_file_url: body.assessment_file_url?.trim() || null,
-      assessment_file_name: body.assessment_file_name?.trim() || null,
       images: Array.isArray(body.images) ? body.images : [],
     };
 

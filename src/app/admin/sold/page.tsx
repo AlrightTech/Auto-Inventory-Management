@@ -29,8 +29,6 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
-  Plus,
-  Upload,
   FileText,
   Loader2
 } from 'lucide-react';
@@ -88,8 +86,6 @@ const getPaymentStatusColor = (status: string) => {
 export default function SoldPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicles, setVehicles] = useState<SoldVehicle[]>([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<SoldVehicle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -173,6 +169,41 @@ export default function SoldPage() {
         updateField = 'bought_price';
     }
     
+    // Update local state immediately for dynamic insights
+    setVehicles(prevVehicles => {
+      return prevVehicles.map(vehicle => {
+        if (vehicle.id === vehicleId) {
+          const updatedVehicle = { ...vehicle };
+          
+          switch (field) {
+            case 'soldPrice':
+              updatedVehicle.soldPrice = numValue;
+              break;
+            case 'boughtPrice':
+              updatedVehicle.boughtPrice = numValue;
+              break;
+            case 'buyFee':
+              updatedVehicle.buyFee = numValue;
+              break;
+            case 'otherCharges':
+              updatedVehicle.otherCharges = numValue;
+              break;
+          }
+          
+          // Recalculate totalCost and netProfit
+          const boughtPrice = updatedVehicle.boughtPrice || 0;
+          const buyFee = updatedVehicle.buyFee || 0;
+          const otherCharges = updatedVehicle.otherCharges || 0;
+          const soldPrice = updatedVehicle.soldPrice || 0;
+          updatedVehicle.totalCost = boughtPrice + buyFee + otherCharges;
+          updatedVehicle.netProfit = soldPrice - updatedVehicle.totalCost;
+          
+          return updatedVehicle;
+        }
+        return vehicle;
+      });
+    });
+    
     try {
       const response = await fetch(`/api/vehicles/${vehicleId}`, {
         method: 'PATCH',
@@ -186,12 +217,14 @@ export default function SoldPage() {
         throw new Error('Failed to update vehicle price');
       }
 
-      // Refresh the data
+      // Refresh the data to ensure sync with server
       setRefreshTrigger(prev => prev + 1);
       toast.success('Vehicle price updated successfully');
     } catch (error) {
       console.error('Error updating vehicle price:', error);
       toast.error('Failed to update vehicle price');
+      // Revert on error by refreshing
+      setRefreshTrigger(prev => prev + 1);
     }
   };
 
@@ -220,13 +253,6 @@ export default function SoldPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="gradient-primary hover:opacity-90"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Vehicle
-          </Button>
           <Button variant="outline" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -454,14 +480,6 @@ export default function SoldPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedVehicle(vehicle)}
-                          className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                        >
-                          <Upload className="w-4 h-4" />
-                        </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">

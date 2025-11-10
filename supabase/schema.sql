@@ -71,6 +71,41 @@ CREATE TABLE IF NOT EXISTS vehicles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create vehicle_assessments table
+CREATE TABLE IF NOT EXISTS vehicle_assessments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vehicle_id UUID REFERENCES vehicles(id) ON DELETE CASCADE NOT NULL,
+  
+  -- Assessment Info
+  assessment_date DATE NOT NULL,
+  assessment_time TIME NOT NULL,
+  conducted_name TEXT NOT NULL,
+  status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Completed')),
+  
+  -- Vehicle Info Section
+  miles_in INTEGER,
+  color TEXT,
+  cr_number TEXT,
+  
+  -- Dents & Scratches (stored as JSON)
+  damage_markers JSONB DEFAULT '[]'::jsonb, -- Array of {x, y, type: 'dent'|'scratch', notes}
+  
+  -- Defects & Fuel Level
+  pre_accident_defects TEXT,
+  other_defects TEXT,
+  work_requested JSONB DEFAULT '[]'::jsonb, -- Array of work items
+  owner_instructions JSONB DEFAULT '[]'::jsonb, -- Array of instruction items
+  fuel_level INTEGER CHECK (fuel_level >= 0 AND fuel_level <= 100), -- 0-100%
+  
+  -- Images
+  images JSONB DEFAULT '[]'::jsonb, -- Array of image URLs
+  
+  -- System Fields
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Create tasks table
 CREATE TABLE IF NOT EXISTS tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -140,6 +175,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read);
+CREATE INDEX IF NOT EXISTS idx_vehicle_assessments_vehicle_id ON vehicle_assessments(vehicle_id);
+CREATE INDEX IF NOT EXISTS idx_vehicle_assessments_date ON vehicle_assessments(assessment_date);
+CREATE INDEX IF NOT EXISTS idx_vehicle_assessments_status ON vehicle_assessments(status);
 
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -149,6 +187,7 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_status ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicle_assessments ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for profiles table
 CREATE POLICY "Users can view all profiles" ON profiles
@@ -289,6 +328,19 @@ CREATE POLICY "Users can update own status" ON user_status
 CREATE POLICY "Users can insert own status" ON user_status
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
+-- RLS Policies for vehicle_assessments table
+CREATE POLICY "Users can view assessments" ON vehicle_assessments
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can create assessments" ON vehicle_assessments
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Users can update assessments" ON vehicle_assessments
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Users can delete assessments" ON vehicle_assessments
+  FOR DELETE USING (true);
+
 -- Create functions for updated_at timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -312,6 +364,9 @@ CREATE TRIGGER update_events_updated_at BEFORE UPDATE ON events
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_user_status_updated_at BEFORE UPDATE ON user_status
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_vehicle_assessments_updated_at BEFORE UPDATE ON vehicle_assessments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Enable realtime for messages table

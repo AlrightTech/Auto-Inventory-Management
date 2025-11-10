@@ -130,8 +130,6 @@ export function AddAssessmentModal({
         work_requested: [],
         owner_instructions: [],
         fuel_level: null,
-        assessment_file_url: null,
-        assessment_file_name: null,
         images: uploadedImageUrls,
       };
 
