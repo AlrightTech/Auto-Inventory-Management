@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -270,11 +269,15 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className={`dashboard-card ${vehicleToEdit ? 'max-w-6xl' : 'max-w-5xl'}`} style={{ maxHeight: '90vh', overflowY: 'auto', padding: '0' }}>
-            <DialogHeader className="sticky top-0 z-10 px-6 pt-6 pb-4" style={{ backgroundColor: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent 
+        className={`dashboard-card ${vehicleToEdit ? 'max-w-6xl' : 'max-w-5xl'}`} 
+        style={{ 
+          maxHeight: '90vh', 
+          overflowY: 'auto'
+        }}
+      >
+            <DialogHeader className="sticky top-0 z-10 px-6 pt-6 pb-4 mb-0" style={{ backgroundColor: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
               <DialogTitle className="text-2xl font-bold flex items-center justify-between" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
@@ -1268,9 +1271,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                   </div>
                   )}
               </form>
-          </DialogContent>
-        </Dialog>
-      )}
-    </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   );
 }
