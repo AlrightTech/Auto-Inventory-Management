@@ -398,86 +398,94 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6" style={{ overflowY: 'visible', overflowX: 'hidden', maxHeight: 'none', height: 'auto' }}>
+            <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6 space-y-6" style={{ overflowY: 'visible', overflowX: 'hidden', maxHeight: 'none', height: 'auto' }}>
               {/* Details Tab Content */}
               {(activeTab === 'details' || !vehicleToEdit) && (
                 <>
                 {/* Vehicle Basic Information */}
-                <div className="form-section">
-                  <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
-                    Vehicle Information
-                  </h3>
+                <div className="form-section p-6 rounded-xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                      <Car className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    </div>
+                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
+                      Vehicle Information
+                    </h3>
+                  </div>
                   
-                  <div className="form-row">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Make */}
-                    <div className="form-field">
-                      <Label htmlFor="make" style={{ color: 'var(--text)' }}>
-                        Make *
+                    <div className="space-y-2">
+                      <Label htmlFor="make" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                        Make <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="make"
                         placeholder="e.g., Chevrolet"
                         {...register('make')}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.make && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.make.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.make.message}</p>
                       )}
                     </div>
 
                     {/* Model */}
-                    <div className="form-field">
-                      <Label htmlFor="model" style={{ color: 'var(--text)' }}>
-                        Model *
+                    <div className="space-y-2">
+                      <Label htmlFor="model" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                        Model <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="model"
                         placeholder="e.g., Silverado"
                         {...register('model')}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.model && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.model.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.model.message}</p>
                       )}
                     </div>
 
                     {/* Year */}
-                    <div className="form-field">
-                      <Label htmlFor="year" style={{ color: 'var(--text)' }}>
-                        Year *
+                    <div className="space-y-2">
+                      <Label htmlFor="year" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                        Year <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="year"
                         type="number"
                         placeholder="2021"
                         {...register('year', { valueAsNumber: true })}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.year && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.year.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.year.message}</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="form-row">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     {/* VIN */}
-                    <div className="form-field">
-                      <Label htmlFor="vin" style={{ color: 'var(--text)' }}>
+                    <div className="space-y-2">
+                      <Label htmlFor="vin" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         VIN Number
                       </Label>
                       <Input
@@ -485,39 +493,41 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         placeholder="17-character VIN (optional)"
                         maxLength={17}
                         {...register('vin')}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.vin && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.vin.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.vin.message}</p>
                       )}
                     </div>
 
                     {/* Trim */}
-                    <div className="form-field">
-                      <Label htmlFor="trim" style={{ color: 'var(--text)' }}>
+                    <div className="space-y-2">
+                      <Label htmlFor="trim" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Trim
                       </Label>
                       <Input
                         id="trim"
                         placeholder="e.g., LT, XLT"
                         {...register('trim')}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                     </div>
 
                     {/* Odometer */}
-                    <div className="form-field">
-                      <Label htmlFor="odometer" style={{ color: 'var(--text)' }}>
+                    <div className="space-y-2">
+                      <Label htmlFor="odometer" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Odometer (miles)
                       </Label>
                       <Input
@@ -525,52 +535,55 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         type="number"
                         placeholder="45000"
                         {...register('odometer', { valueAsNumber: true })}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.odometer && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.odometer.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.odometer.message}</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="form-row">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     {/* Exterior Color */}
-                    <div className="form-field">
-                      <Label htmlFor="exterior_color" style={{ color: 'var(--text)' }}>
+                    <div className="space-y-2">
+                      <Label htmlFor="exterior_color" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Exterior Color
                       </Label>
                       <Input
                         id="exterior_color"
                         placeholder="e.g., Blue, White, Black"
                         {...register('exterior_color')}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                     </div>
 
                     {/* Interior Color */}
-                    <div className="form-field">
-                      <Label htmlFor="interior_color" style={{ color: 'var(--text)' }}>
+                    <div className="space-y-2">
+                      <Label htmlFor="interior_color" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Interior Color
                       </Label>
                       <Input
                         id="interior_color"
                         placeholder="e.g., Black, Gray, Beige"
                         {...register('interior_color')}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                     </div>
@@ -578,26 +591,32 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                 </div>
 
                 {/* Status and Financial Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2" style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
-                    Status & Financial Information
-                  </h3>
+                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                      <FileText className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    </div>
+                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
+                      Status & Financial Information
+                    </h3>
+                  </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="status" style={{ color: 'var(--text)' }}>
-                        Status *
+                      <Label htmlFor="status" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                        Status <span className="text-red-500">*</span>
                       </Label>
-                      <Select onValueChange={(value) => setValue('status', value as any)}>
-                        <SelectTrigger className="control-panel" style={{ 
+                      <Select value={watch('status') || ''} onValueChange={(value) => setValue('status', value as any)}>
+                        <SelectTrigger className="h-11" style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
-                        <SelectContent className="dashboard-card neon-glow instrument-cluster">
+                        <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                           {statusOptions.map((status) => (
                             <SelectItem key={status} value={status} style={{ color: 'var(--text)' }}>
                               {status}
@@ -606,24 +625,25 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         </SelectContent>
                       </Select>
                       {errors.status && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.status.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>
                       )}
                     </div>
 
                     {/* Title Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="title_status" style={{ color: 'var(--text)' }}>
+                      <Label htmlFor="title_status" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Title Status
                       </Label>
-                      <Select onValueChange={(value) => setValue('title_status', value as 'Absent' | 'Released' | 'Received' | 'Present' | 'In Transit' | 'Available not Received' | 'Validated' | 'Sent but not Validated')}>
-                        <SelectTrigger className="control-panel" style={{ 
+                      <Select value={watch('title_status') || ''} onValueChange={(value) => setValue('title_status', value as 'Absent' | 'Released' | 'Received' | 'Present' | 'In Transit' | 'Available not Received' | 'Validated' | 'Sent but not Validated')}>
+                        <SelectTrigger className="h-11" style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}>
                           <SelectValue placeholder="Select title status" />
                         </SelectTrigger>
-                        <SelectContent className="dashboard-card neon-glow instrument-cluster">
+                        <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                           {titleStatusOptions.map((status) => (
                             <SelectItem key={status} value={status} style={{ color: 'var(--text)' }}>
                               {status}
@@ -632,30 +652,31 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         </SelectContent>
                       </Select>
                       {errors.title_status && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.title_status.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.title_status.message}</p>
                       )}
                     </div>
 
                     {/* Sale Invoice Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="sale_invoice_status" style={{ color: 'var(--text)' }}>
+                      <Label htmlFor="sale_invoice_status" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Sale Invoice Status
                       </Label>
-                      <Select onValueChange={(value) => setValue('sale_invoice_status', value as 'PAID' | 'UNPAID')}>
-                        <SelectTrigger className="control-panel" style={{ 
+                      <Select value={watch('sale_invoice_status') || ''} onValueChange={(value) => setValue('sale_invoice_status', value as 'PAID' | 'UNPAID')}>
+                        <SelectTrigger className="h-11" style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}>
                           <SelectValue placeholder="Select invoice status" />
                         </SelectTrigger>
-                        <SelectContent className="dashboard-card neon-glow instrument-cluster">
+                        <SelectContent style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                           <SelectItem value="PAID" style={{ color: 'var(--text)' }}>PAID</SelectItem>
                           <SelectItem value="UNPAID" style={{ color: 'var(--text)' }}>UNPAID</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.sale_invoice_status && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.sale_invoice_status.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.sale_invoice_status.message}</p>
                       )}
                     </div>
                   </div>
@@ -663,7 +684,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Bought Price */}
                     <div className="space-y-2">
-                      <Label htmlFor="bought_price" style={{ color: 'var(--text)' }}>
+                      <Label htmlFor="bought_price" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Bought Price ($)
                       </Label>
                       <Input
@@ -672,21 +693,22 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         step="0.01"
                         placeholder="25000.00"
                         {...register('bought_price', { valueAsNumber: true })}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.bought_price && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.bought_price.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.bought_price.message}</p>
                       )}
                     </div>
 
                     {/* Buy Fee */}
                     <div className="space-y-2">
-                      <Label htmlFor="buy_fee" style={{ color: 'var(--text)' }}>
+                      <Label htmlFor="buy_fee" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Buy Fee ($)
                       </Label>
                       <Input
@@ -695,21 +717,22 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         step="0.01"
                         placeholder="735.00"
                         {...register('buy_fee', { valueAsNumber: true })}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.buy_fee && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.buy_fee.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.buy_fee.message}</p>
                       )}
                     </div>
 
                     {/* Other Charges */}
                     <div className="space-y-2">
-                      <Label htmlFor="other_charges" style={{ color: 'var(--text)' }}>
+                      <Label htmlFor="other_charges" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Other Charges ($)
                       </Label>
                       <Input
@@ -718,41 +741,53 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         step="0.01"
                         placeholder="0.00"
                         {...register('other_charges', { valueAsNumber: true })}
-                        className="control-panel"
+                        className="h-11"
                         style={{ 
                           backgroundColor: 'var(--card-bg)', 
                           borderColor: 'var(--border)', 
-                          color: 'var(--text)' 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
                         }}
                       />
                       {errors.other_charges && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.other_charges.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.other_charges.message}</p>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* Sale Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
-                    Sale Information
-                  </h3>
+                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                      <CalendarIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    </div>
+                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
+                      Sale Information
+                    </h3>
+                  </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Sale Date */}
                     <div className="space-y-2">
-                      <Label className="text-slate-700 dark:text-slate-300">Sale Date</Label>
+                      <Label className="text-sm font-medium" style={{ color: 'var(--text)' }}>Sale Date</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
+                            className="w-full justify-start text-left font-normal h-11"
+                            style={{ 
+                              backgroundColor: 'var(--card-bg)', 
+                              borderColor: 'var(--border)', 
+                              color: 'var(--text)',
+                              borderRadius: '8px'
+                            }}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 glass-card border-slate-700">
+                        <PopoverContent className="w-auto p-0" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                           <Calendar
                             mode="single"
                             selected={selectedDate}
@@ -766,7 +801,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
 
                     {/* Lane */}
                     <div className="space-y-2">
-                      <Label htmlFor="lane" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="lane" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Lane
                       </Label>
                       <Input
@@ -774,16 +809,22 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         type="number"
                         placeholder="74"
                         {...register('lane', { valueAsNumber: true })}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                       {errors.lane && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.lane.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.lane.message}</p>
                       )}
                     </div>
 
                     {/* Run */}
                     <div className="space-y-2">
-                      <Label htmlFor="run" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="run" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Run
                       </Label>
                       <Input
@@ -791,45 +832,68 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                         type="number"
                         placeholder="71"
                         {...register('run', { valueAsNumber: true })}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                       {errors.run && (
-                        <p className="text-red-600 dark:text-red-400 text-sm">{errors.run.message}</p>
+                        <p className="text-red-500 text-xs mt-1">{errors.run.message}</p>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* Location Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
-                    Location Information
-                  </h3>
+                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                      <Truck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    </div>
+                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
+                      Location Information
+                    </h3>
+                  </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Facilitating Location */}
                     <div className="space-y-2">
-                      <Label htmlFor="facilitating_location" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="facilitating_location" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Facilitating Location
                       </Label>
                       <Input
                         id="facilitating_location"
                         placeholder="Manheim Dallas"
                         {...register('facilitating_location')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
 
                     {/* Vehicle Location */}
                     <div className="space-y-2">
-                      <Label htmlFor="vehicle_location" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="vehicle_location" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Vehicle Location
                       </Label>
                       <Input
                         id="vehicle_location"
                         placeholder="Manheim Dallas"
                         {...register('vehicle_location')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
                   </div>
@@ -837,27 +901,39 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Pickup Address */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_address1" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="pickup_location_address1" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Pickup Address
                       </Label>
                       <Input
                         id="pickup_location_address1"
                         placeholder="5333 W Kiest Blvd"
                         {...register('pickup_location_address1')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
 
                     {/* Pickup City */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_city" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="pickup_location_city" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Pickup City
                       </Label>
                       <Input
                         id="pickup_location_city"
                         placeholder="Dallas"
                         {...register('pickup_location_city')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
                   </div>
@@ -865,75 +941,110 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Pickup State */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_state" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="pickup_location_state" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Pickup State
                       </Label>
                       <Input
                         id="pickup_location_state"
                         placeholder="TX"
                         {...register('pickup_location_state')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
 
                     {/* Pickup Zip */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_zip" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="pickup_location_zip" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Pickup Zip
                       </Label>
                       <Input
                         id="pickup_location_zip"
                         placeholder="75236-1055"
                         {...register('pickup_location_zip')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
 
                     {/* Pickup Phone */}
                     <div className="space-y-2">
-                      <Label htmlFor="pickup_location_phone" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="pickup_location_phone" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Pickup Phone
                       </Label>
                       <Input
                         id="pickup_location_phone"
                         placeholder="(214) 330-1800"
                         {...register('pickup_location_phone')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Seller and Buyer Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2">
-                    Seller & Buyer Information
-                  </h3>
+                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                      <FileText className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    </div>
+                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
+                      Seller & Buyer Information
+                    </h3>
+                  </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Seller Name */}
                     <div className="space-y-2">
-                      <Label htmlFor="seller_name" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="seller_name" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Seller Name
                       </Label>
                       <Input
                         id="seller_name"
                         placeholder="HILEY SUBARU OF FORT WORTH"
                         {...register('seller_name')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
 
                     {/* Buyer Dealership */}
                     <div className="space-y-2">
-                      <Label htmlFor="buyer_dealership" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="buyer_dealership" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Buyer Dealership
                       </Label>
                       <Input
                         id="buyer_dealership"
                         placeholder="AUTO PLANET"
                         {...register('buyer_dealership')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
                   </div>
@@ -941,27 +1052,39 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Buyer Contact Name */}
                     <div className="space-y-2">
-                      <Label htmlFor="buyer_contact_name" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="buyer_contact_name" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Buyer Contact Name
                       </Label>
                       <Input
                         id="buyer_contact_name"
                         placeholder="MIAD KARIMI"
                         {...register('buyer_contact_name')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
 
                     {/* Buyer AA ID */}
                     <div className="space-y-2">
-                      <Label htmlFor="buyer_aa_id" className="text-slate-700 dark:text-slate-300">
+                      <Label htmlFor="buyer_aa_id" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                         Buyer AA ID
                       </Label>
                       <Input
                         id="buyer_aa_id"
                         placeholder="****"
                         {...register('buyer_aa_id')}
-                        className="bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-11"
+                        style={{ 
+                          backgroundColor: 'var(--card-bg)', 
+                          borderColor: 'var(--border)', 
+                          color: 'var(--text)',
+                          borderRadius: '8px'
+                        }}
                       />
                     </div>
                   </div>
@@ -1092,16 +1215,17 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
 
                   {/* Action Buttons - Only show on Details tab or when adding */}
                   {(activeTab === 'details' || !vehicleToEdit) && (
-                  <div className="form-actions">
+                  <div className="flex items-center justify-end gap-3 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleClose}
-                      className="control-panel"
+                      className="h-11 px-6"
                       style={{ 
                         backgroundColor: 'transparent', 
                         borderColor: 'var(--border)', 
-                        color: 'var(--text)' 
+                        color: 'var(--text)',
+                        borderRadius: '8px'
                       }}
                     >
                       <X className="w-4 h-4 mr-2" />
@@ -1110,19 +1234,27 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="control-panel neon-glow"
+                      className="h-11 px-6 font-medium"
                       style={{
                         backgroundColor: 'var(--accent)',
                         color: 'white',
-                        borderRadius: '25px',
-                        fontWeight: '500',
-                        transition: '0.3s'
+                        borderRadius: '8px',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(0, 191, 255, 0.3)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 191, 255, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 191, 255, 0.3)';
                       }}
                     >
                       {isSubmitting ? (
                         <>
-                          <div className="w-4 h-4 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Adding Vehicle...
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          {vehicleToEdit ? 'Updating...' : 'Adding Vehicle...'}
                         </>
                       ) : (
                         <>
