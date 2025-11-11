@@ -273,12 +273,14 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogContent className={`dashboard-card neon-glow instrument-cluster ${vehicleToEdit ? 'max-w-6xl' : 'max-w-4xl'} no-scroll`}>
-            <DialogHeader>
+          <DialogContent className={`dashboard-card ${vehicleToEdit ? 'max-w-6xl' : 'max-w-5xl'}`} style={{ maxHeight: '90vh', overflowY: 'auto', padding: '0' }}>
+            <DialogHeader className="sticky top-0 z-10 px-6 pt-6 pb-4" style={{ backgroundColor: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
               <DialogTitle className="text-2xl font-bold flex items-center justify-between" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
-                <div className="flex items-center">
-                  <Car className="w-6 h-6 mr-2" />
-                  {vehicleToEdit ? 'Edit Vehicle' : 'Add New Vehicle'}
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                    <Car className="w-6 h-6" style={{ color: 'var(--accent)' }} />
+                  </div>
+                  <span>{vehicleToEdit ? 'Edit Vehicle' : 'Add New Vehicle'}</span>
                 </div>
                 {vehicleToEdit && activeTab === 'details' && (
                   <div className="flex items-center gap-2">
@@ -370,7 +372,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
 
             {/* Tab Navigation - Only show when editing */}
             {vehicleToEdit && (
-              <div className="border-b" style={{ borderColor: 'var(--border)' }}>
+              <div className="border-b px-6" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex space-x-1 overflow-x-auto">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
@@ -398,22 +400,22 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="form-container mt-6 space-y-6" style={{ overflowY: 'visible', overflowX: 'hidden', maxHeight: 'none', height: 'auto' }}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 px-6 pb-6">
               {/* Details Tab Content */}
               {(activeTab === 'details' || !vehicleToEdit) && (
                 <>
                 {/* Vehicle Basic Information */}
-                <div className="form-section p-6 rounded-xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                <div className="p-6 rounded-xl space-y-6" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center gap-3 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.15 }}>
                       <Car className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                     </div>
-                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
-                      Vehicle Information
-                    </h3>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+                    Vehicle Information
+                  </h3>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Make */}
                     <div className="space-y-2">
                       <Label htmlFor="make" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -482,7 +484,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* VIN */}
                     <div className="space-y-2">
                       <Label htmlFor="vin" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -549,7 +551,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Exterior Color */}
                     <div className="space-y-2">
                       <Label htmlFor="exterior_color" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -591,17 +593,17 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                 </div>
 
                 {/* Status and Financial Information */}
-                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                <div className="p-6 rounded-xl space-y-6" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center gap-3 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.15 }}>
                       <FileText className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                     </div>
-                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
-                      Status & Financial Information
-                    </h3>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+                    Status & Financial Information
+                  </h3>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Status */}
                     <div className="space-y-2">
                       <Label htmlFor="status" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -681,7 +683,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                     {/* Bought Price */}
                     <div className="space-y-2">
                       <Label htmlFor="bought_price" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -757,17 +759,17 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                 </div>
 
                 {/* Sale Information */}
-                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                <div className="p-6 rounded-xl space-y-6" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center gap-3 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.15 }}>
                       <CalendarIcon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                     </div>
-                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
-                      Sale Information
-                    </h3>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+                    Sale Information
+                  </h3>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Sale Date */}
                     <div className="space-y-2">
                       <Label className="text-sm font-medium" style={{ color: 'var(--text)' }}>Sale Date</Label>
@@ -848,17 +850,17 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                 </div>
 
                 {/* Location Information */}
-                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                <div className="p-6 rounded-xl space-y-6" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center gap-3 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.15 }}>
                       <Truck className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                     </div>
-                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
-                      Location Information
-                    </h3>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+                    Location Information
+                  </h3>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Facilitating Location */}
                     <div className="space-y-2">
                       <Label htmlFor="facilitating_location" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -898,7 +900,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Pickup Address */}
                     <div className="space-y-2">
                       <Label htmlFor="pickup_location_address1" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -938,7 +940,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Pickup State */}
                     <div className="space-y-2">
                       <Label htmlFor="pickup_location_state" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -999,17 +1001,17 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                 </div>
 
                 {/* Seller and Buyer Information */}
-                <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.1 }}>
+                <div className="p-6 rounded-xl space-y-6" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center gap-3 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent)', opacity: 0.15 }}>
                       <FileText className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                     </div>
-                    <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
-                      Seller & Buyer Information
-                    </h3>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+                    Seller & Buyer Information
+                  </h3>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Seller Name */}
                     <div className="space-y-2">
                       <Label htmlFor="seller_name" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -1049,7 +1051,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Buyer Contact Name */}
                     <div className="space-y-2">
                       <Label htmlFor="buyer_contact_name" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
@@ -1215,7 +1217,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
 
                   {/* Action Buttons - Only show on Details tab or when adding */}
                   {(activeTab === 'details' || !vehicleToEdit) && (
-                  <div className="flex items-center justify-end gap-3 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
+                  <div className="sticky bottom-0 flex items-center justify-end gap-3 pt-6 pb-4 mt-8 border-t -mx-6 px-6" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-bg)' }}>
                     <Button
                       type="button"
                       variant="outline"
