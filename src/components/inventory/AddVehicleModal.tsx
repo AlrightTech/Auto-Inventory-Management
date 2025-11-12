@@ -263,10 +263,28 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
     }
   };
 
-  const handleClose = () => {
-    reset();
-    onClose();
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      reset();
+      onClose();
+    }
   };
+
+  // Reset form when modal opens for new vehicle
+  useEffect(() => {
+    if (isOpen && !vehicleToEdit) {
+      reset({
+        status: 'Pending',
+        title_status: 'Absent',
+        sale_invoice_status: 'UNPAID',
+        channel: 'Simulcast',
+        psi_status: 'Not Eligible',
+        dealshield_arbitration_status: '--',
+      });
+      setSelectedDate(new Date());
+      setActiveTab('details');
+    }
+  }, [isOpen, vehicleToEdit, reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

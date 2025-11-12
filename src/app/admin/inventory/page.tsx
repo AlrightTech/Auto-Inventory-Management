@@ -271,7 +271,12 @@ export default function InventoryPage() {
           </p>
         </div>
         <Button 
-          onClick={() => setIsAddVehicleModalOpen(true)}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsAddVehicleModalOpen(true);
+          }}
           className="control-panel neon-glow"
           style={{
             backgroundColor: 'var(--accent)',

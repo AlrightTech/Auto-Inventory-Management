@@ -18,10 +18,13 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-[49] bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
-    style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+    style={{ 
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      zIndex: 9998
+    }}
     {...props}
   />
 ));
@@ -54,7 +57,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed z-[51] w-full border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+          "fixed z-[9999] w-full border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
           className
         )}
         style={{
@@ -71,17 +74,19 @@ const DialogContent = React.forwardRef<
           width: '100%',
           maxWidth: maxWidthMap[maxWidth] || '32rem',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          zIndex: 9999
         }}
         {...props}
       >
         {children}
         <DialogPrimitive.Close 
-          className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none"
+          className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none z-10"
           style={{ 
             color: 'var(--text)',
             backgroundColor: 'transparent',
-            border: 'none'
+            border: 'none',
+            zIndex: 10
           }}
         >
           <X className="h-4 w-4" />
