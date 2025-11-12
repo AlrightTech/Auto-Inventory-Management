@@ -284,7 +284,8 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
       setSelectedDate(new Date());
       setActiveTab('details');
     }
-  }, [isOpen, vehicleToEdit, reset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, vehicleToEdit]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
