@@ -5,9 +5,8 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AddVehicleModal } from '@/components/inventory/AddVehicleModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
-import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, FileText, CalendarIcon } from 'lucide-react';
+import { Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, FileText, CalendarIcon } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -16,7 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import * as XLSX from 'xlsx';
 
 export default function InventoryPage() {
-  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -270,20 +268,6 @@ export default function InventoryPage() {
             Manage your vehicle inventory with comprehensive tracking and analytics.
           </p>
         </div>
-        <Button 
-          onClick={() => setIsAddVehicleModalOpen(true)}
-          className="control-panel neon-glow"
-          style={{
-            backgroundColor: 'var(--accent)',
-            color: 'white',
-            borderRadius: '25px',
-            fontWeight: '500',
-            transition: '0.3s'
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Vehicle
-        </Button>
       </motion.div>
 
       {/* Inventory Stats Cards */}
@@ -595,15 +579,6 @@ export default function InventoryPage() {
           onExportPDF={(filteredVehicles) => handleExportPDF(filteredVehicles, exportDateFrom, exportDateTo)}
         />
       </motion.div>
-
-      {/* Add Vehicle Modal */}
-      <AddVehicleModal 
-        isOpen={isAddVehicleModalOpen}
-        onClose={() => setIsAddVehicleModalOpen(false)}
-        onVehicleAdded={() => {
-          setRefreshTrigger(prev => prev + 1);
-        }}
-      />
 
     </div>
   );

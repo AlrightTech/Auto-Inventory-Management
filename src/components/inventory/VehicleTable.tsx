@@ -43,7 +43,6 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
-import { AddVehicleModal } from './AddVehicleModal';
 import { useDropdownOptions } from '@/hooks/useDropdownOptions';
 import { useRouter } from 'next/navigation';
 
