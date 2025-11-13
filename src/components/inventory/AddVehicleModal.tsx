@@ -265,8 +265,8 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
 
   const handleClose = (open: boolean) => {
     if (!open) {
-      reset();
-      onClose();
+    reset();
+    onClose();
     }
   };
 

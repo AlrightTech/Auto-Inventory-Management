@@ -33,7 +33,8 @@ import {
   Trash2,
   DollarSign,
   FileText,
-  Car
+  Car,
+  Plus
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
@@ -117,6 +118,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
     dateTo: null,
   });
   const [showFilters, setShowFilters] = useState(showFiltersProp || false);
+  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
   
   useEffect(() => {
     if (showFiltersProp !== undefined) {
@@ -646,19 +648,40 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
               Showing {filteredVehicles.length} vehicles
             </CardDescription>
           </div>
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--subtext)' }} />
-            <Input
-              placeholder="Search by make, model, or VIN..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 control-panel"
-              style={{ 
-                backgroundColor: 'var(--card-bg)', 
-                borderColor: 'var(--border)', 
-                color: 'var(--text)' 
+          <div className="flex items-center gap-3">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--subtext)' }} />
+              <Input
+                placeholder="Search by make, model, or VIN..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 control-panel"
+                style={{ 
+                  backgroundColor: 'var(--card-bg)', 
+                  borderColor: 'var(--border)', 
+                  color: 'var(--text)' 
+                }}
+              />
+            </div>
+            <Button 
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsAddVehicleModalOpen(true);
               }}
-            />
+              className="control-panel neon-glow"
+              style={{
+                backgroundColor: 'var(--accent)',
+                color: 'white',
+                borderRadius: '8px',
+                fontWeight: '500',
+                transition: '0.3s'
+              }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Inventory
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -1182,7 +1205,29 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         </div>
       </CardContent>
 
-
+      {/* Add Vehicle Modal */}
+      <AddVehicleModal 
+        isOpen={isAddVehicleModalOpen}
+        onClose={() => setIsAddVehicleModalOpen(false)}
+        onVehicleAdded={() => {
+          if (onVehicleAdded) {
+            onVehicleAdded();
+          }
+          // Reload vehicles
+          const loadVehicles = async () => {
+            try {
+              const response = await fetch('/api/vehicles');
+              if (response.ok) {
+                const { data } = await response.json();
+                setVehicles(data || []);
+              }
+            } catch (error) {
+              console.error('Error reloading vehicles:', error);
+            }
+          };
+          loadVehicles();
+        }}
+      />
     </Card>
   );
 }
