@@ -231,14 +231,23 @@ export default function InventoryPage() {
     const loadVehicles = async () => {
       try {
         setIsLoadingStats(true);
-        const response = await fetch('/api/vehicles');
+        const response = await fetch('/api/vehicles', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
         if (response.ok) {
           const { data } = await response.json();
           setVehicles(data || []);
+        } else if (response.status === 401) {
+          toast.error('Authentication required. Please log in again.');
         }
       } catch (error) {
         console.error('Error loading vehicles for stats:', error);
+        toast.error('Failed to load vehicles');
       } finally {
         setIsLoadingStats(false);
       }

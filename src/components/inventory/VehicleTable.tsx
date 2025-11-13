@@ -136,10 +136,22 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
     const loadVehicles = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/vehicles');
+        const response = await fetch('/api/vehicles', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
         if (!response.ok) {
-          throw new Error('Failed to load vehicles');
+          if (response.status === 401) {
+            toast.error('Authentication required. Please log in again.');
+            router.push('/auth/login');
+            return;
+          }
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to load vehicles');
         }
         
         const { data } = await response.json();
@@ -151,7 +163,8 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
       } catch (error) {
         console.error('Error loading vehicles:', error);
         if (isMounted) {
-          toast.error('Failed to load vehicles');
+          const errorMessage = error instanceof Error ? error.message : 'Failed to load vehicles';
+          toast.error(errorMessage);
         }
       } finally {
         if (isMounted) {
@@ -1216,10 +1229,19 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
           // Reload vehicles
           const loadVehicles = async () => {
             try {
-              const response = await fetch('/api/vehicles');
+              const response = await fetch('/api/vehicles', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
               if (response.ok) {
                 const { data } = await response.json();
                 setVehicles(data || []);
+              } else if (response.status === 401) {
+                toast.error('Authentication required. Please log in again.');
+                router.push('/auth/login');
               }
             } catch (error) {
               console.error('Error reloading vehicles:', error);
