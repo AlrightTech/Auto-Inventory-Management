@@ -194,6 +194,9 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
       const url = vehicleToEdit ? `/api/vehicles/${vehicleToEdit.id}` : '/api/vehicles';
       const method = vehicleToEdit ? 'PATCH' : 'POST';
 
+      console.log('Making request to:', url, 'with method:', method);
+      console.log('Request data:', cleanedData);
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -202,9 +205,23 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
         body: JSON.stringify(cleanedData),
       });
 
+      console.log('Response status:', response.status, response.statusText);
+      console.log('Response URL:', response.url);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${vehicleToEdit ? 'update' : 'create'} vehicle`);
+        // Handle 404 specifically
+        if (response.status === 404) {
+          throw new Error('API endpoint not found. Please check if the server is running correctly.');
+        }
+        
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { error: `Server returned ${response.status}: ${response.statusText}` };
+        }
+        
+        throw new Error(errorData.error || errorData.details || `Failed to ${vehicleToEdit ? 'update' : 'create'} vehicle`);
       }
 
       const result = await response.json();

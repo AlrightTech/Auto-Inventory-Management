@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/vehicles - Create new vehicle (admin only)
 export async function POST(request: NextRequest) {
+  console.log('POST /api/vehicles called');
   try {
     const supabase = await createClient();
     
@@ -85,12 +86,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate VIN if provided
-    if (body.vin && body.vin.length !== 17) {
-      return NextResponse.json(
-        { error: 'VIN must be 17 characters' },
-        { status: 400 }
-      );
+    // Validate VIN if provided (accepts both 10 and 17 characters)
+    if (body.vin && body.vin.trim() !== '') {
+      const vinLength = body.vin.trim().length;
+      if (vinLength !== 10 && vinLength !== 17) {
+        return NextResponse.json(
+          { error: 'VIN must be either 10 or 17 characters' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if VIN already exists

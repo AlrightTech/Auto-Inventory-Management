@@ -7,8 +7,9 @@ export const vehicleSchema = z.object({
   year: z.number().min(1900, 'Invalid year').max(new Date().getFullYear() + 1, 'Year cannot be in the future'),
   vin: z.string().refine((val) => {
     if (!val || val.trim() === '') return true; // Optional field
-    return val.length === 10;
-  }, { message: 'VIN must be exactly 10 characters' }).optional().or(z.literal('')),
+    const trimmed = val.trim();
+    return trimmed.length === 10 || trimmed.length === 17;
+  }, { message: 'VIN must be either 10 or 17 characters' }).optional().or(z.literal('')),
   trim: z.string().optional(),
   exterior_color: z.string().optional(),
   interior_color: z.string().optional(),
