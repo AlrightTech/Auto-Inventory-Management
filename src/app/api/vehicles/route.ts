@@ -9,15 +9,8 @@ export async function GET(request: NextRequest) {
     
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError) {
-      console.error('Auth error in GET /api/vehicles:', userError);
-      return NextResponse.json({ error: 'Authentication error', details: userError.message }, { status: 401 });
-    }
-    
     if (!user) {
-      console.error('No user found in GET /api/vehicles');
-      return NextResponse.json({ error: 'Unauthorized - Please log in' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user is admin
@@ -27,14 +20,7 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (profileError) {
-      console.error('Profile error in GET /api/vehicles:', profileError);
-      // If profile doesn't exist, still return 403
-      return NextResponse.json({ error: 'Forbidden - Admin access required', details: profileError.message }, { status: 403 });
-    }
-
-    if (profile?.role !== 'admin') {
-      console.error(`User ${user.id} is not admin, role: ${profile?.role}`);
+    if (profileError || profile?.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 

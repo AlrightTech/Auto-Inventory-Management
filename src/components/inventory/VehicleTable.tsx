@@ -33,8 +33,7 @@ import {
   Trash2,
   DollarSign,
   FileText,
-  Car,
-  Plus
+  Car
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
@@ -118,7 +117,6 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
     dateTo: null,
   });
   const [showFilters, setShowFilters] = useState(showFiltersProp || false);
-  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
   
   useEffect(() => {
     if (showFiltersProp !== undefined) {
@@ -136,22 +134,10 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
     const loadVehicles = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/vehicles', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const response = await fetch('/api/vehicles');
         
         if (!response.ok) {
-          if (response.status === 401) {
-            toast.error('Authentication required. Please log in again.');
-            router.push('/auth/login');
-            return;
-          }
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Failed to load vehicles');
+          throw new Error('Failed to load vehicles');
         }
         
         const { data } = await response.json();
@@ -163,8 +149,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
       } catch (error) {
         console.error('Error loading vehicles:', error);
         if (isMounted) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to load vehicles';
-          toast.error(errorMessage);
+          toast.error('Failed to load vehicles');
         }
       } finally {
         if (isMounted) {
@@ -661,40 +646,19 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
               Showing {filteredVehicles.length} vehicles
             </CardDescription>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--subtext)' }} />
-              <Input
-                placeholder="Search by make, model, or VIN..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 control-panel"
-                style={{ 
-                  backgroundColor: 'var(--card-bg)', 
-                  borderColor: 'var(--border)', 
-                  color: 'var(--text)' 
-                }}
-              />
-            </div>
-            <Button 
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsAddVehicleModalOpen(true);
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--subtext)' }} />
+            <Input
+              placeholder="Search by make, model, or VIN..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 control-panel"
+              style={{ 
+                backgroundColor: 'var(--card-bg)', 
+                borderColor: 'var(--border)', 
+                color: 'var(--text)' 
               }}
-              className="control-panel neon-glow"
-              style={{
-                backgroundColor: 'var(--accent)',
-                color: 'white',
-                borderRadius: '8px',
-                fontWeight: '500',
-                transition: '0.3s'
-              }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Inventory
-            </Button>
+            />
           </div>
         </div>
       </CardHeader>
@@ -1218,38 +1182,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         </div>
       </CardContent>
 
-      {/* Add Vehicle Modal */}
-      <AddVehicleModal 
-        isOpen={isAddVehicleModalOpen}
-        onClose={() => setIsAddVehicleModalOpen(false)}
-        onVehicleAdded={() => {
-          if (onVehicleAdded) {
-            onVehicleAdded();
-          }
-          // Reload vehicles
-          const loadVehicles = async () => {
-            try {
-              const response = await fetch('/api/vehicles', {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              });
-              if (response.ok) {
-                const { data } = await response.json();
-                setVehicles(data || []);
-              } else if (response.status === 401) {
-                toast.error('Authentication required. Please log in again.');
-                router.push('/auth/login');
-              }
-            } catch (error) {
-              console.error('Error reloading vehicles:', error);
-            }
-          };
-          loadVehicles();
-        }}
-      />
+
     </Card>
   );
 }

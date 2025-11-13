@@ -763,33 +763,16 @@ textarea::placeholder {
   left: 50% !important;
   top: 50% !important;
   transform: translate(-50%, -50%) !important;
-  z-index: 9999 !important;
+  z-index: 50 !important;
   overflow-x: hidden !important; /* Prevent horizontal scroll */
   max-width: 90vw !important; /* Ensure modal doesn't exceed viewport */
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: flex !important;
 }
 
 /* Ensure modal overlay covers entire viewport */
 [data-radix-dialog-overlay] {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 9998 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* Ensure modal is visible when open */
-[data-state="open"][data-radix-dialog-content] {
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: flex !important;
-}
-
-[data-state="open"][data-radix-dialog-overlay] {
-  visibility: visible !important;
-  opacity: 1 !important;
+  z-index: 50 !important;
 }
 
 /* Smooth transitions for all interactive elements */

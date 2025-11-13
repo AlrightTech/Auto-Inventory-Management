@@ -231,23 +231,14 @@ export default function InventoryPage() {
     const loadVehicles = async () => {
       try {
         setIsLoadingStats(true);
-        const response = await fetch('/api/vehicles', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const response = await fetch('/api/vehicles');
         
         if (response.ok) {
           const { data } = await response.json();
           setVehicles(data || []);
-        } else if (response.status === 401) {
-          toast.error('Authentication required. Please log in again.');
         }
       } catch (error) {
         console.error('Error loading vehicles for stats:', error);
-        toast.error('Failed to load vehicles');
       } finally {
         setIsLoadingStats(false);
       }
@@ -280,12 +271,7 @@ export default function InventoryPage() {
           </p>
         </div>
         <Button 
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsAddVehicleModalOpen(true);
-          }}
+          onClick={() => setIsAddVehicleModalOpen(true)}
           className="control-panel neon-glow"
           style={{
             backgroundColor: 'var(--accent)',
