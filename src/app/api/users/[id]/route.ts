@@ -76,20 +76,14 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { username, role, email } = body;
+    const { username, email } = body;
 
-    // Validate role if provided
-    if (role && !['admin', 'seller', 'transporter'].includes(role)) {
-      return NextResponse.json(
-        { error: 'Invalid role. Must be admin, seller, or transporter' },
-        { status: 400 }
-      );
-    }
+    // Note: role assignment is now handled via /api/users/assign-role endpoint
+    // This endpoint only updates username and email
 
     // Update profile
     const updateData: any = {};
     if (username !== undefined) updateData.username = username;
-    if (role !== undefined) updateData.role = role;
     if (email !== undefined) updateData.email = email;
 
     const { data: updatedUser, error } = await supabase

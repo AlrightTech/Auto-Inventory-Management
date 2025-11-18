@@ -20,9 +20,18 @@ interface UserProfile {
   id: string;
   email: string;
   username: string;
-  role: 'admin' | 'seller' | 'transporter';
+  role: 'admin' | 'seller' | 'transporter' | 'office_staff';
+  role_id?: string | null;
   created_at: string;
   last_sign_in_at?: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string | null;
+  is_system_role: boolean;
 }
 
 interface EditUserModalProps {
@@ -36,9 +45,32 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    role: 'seller' as 'admin' | 'seller' | 'transporter',
+    role_id: '',
   });
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+
+  // Fetch roles
+  useEffect(() => {
+    async function fetchRoles() {
+      try {
+        const response = await fetch('/api/roles');
+        if (!response.ok) throw new Error('Failed to fetch roles');
+        const { data } = await response.json();
+        setRoles(data);
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+        toast.error('Failed to load roles');
+      } finally {
+        setLoadingRoles(false);
+      }
+    }
+    
+    if (isOpen) {
+      fetchRoles();
+    }
+  }, [isOpen]);
 
   // Initialize form data when user changes
   useEffect(() => {
@@ -46,7 +78,7 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
       setFormData({
         username: user.username || '',
         email: user.email || '',
-        role: user.role || 'seller',
+        role_id: user.role_id || '',
       });
     }
   }, [user]);
@@ -75,7 +107,8 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
     try {
       setIsSaving(true);
 
-      const response = await fetch(`/api/users/${user.id}`, {
+      // Update user basic info
+      const updateResponse = await fetch(`/api/users/${user.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -83,13 +116,31 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
         body: JSON.stringify({
           username: formData.username.trim(),
           email: formData.email.trim(),
-          role: formData.role,
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
         throw new Error(errorData.error || 'Failed to update user');
+      }
+
+      // Assign role if role_id is selected
+      if (formData.role_id) {
+        const roleResponse = await fetch('/api/users/assign-role', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: user.id,
+            role_id: formData.role_id,
+          }),
+        });
+
+        if (!roleResponse.ok) {
+          const errorData = await roleResponse.json();
+          throw new Error(errorData.error || 'Failed to assign role');
+        }
       }
 
       toast.success('User updated successfully');
@@ -163,21 +214,33 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
               Role
             </Label>
             <Select
-              value={formData.role}
-              onValueChange={(value: 'admin' | 'seller' | 'transporter') =>
-                setFormData({ ...formData, role: value })
+              value={formData.role_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, role_id: value })
               }
-              disabled={isSaving}
+              disabled={isSaving || loadingRoles}
             >
               <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
-                <SelectValue placeholder="Select role" />
+                <SelectValue placeholder={loadingRoles ? "Loading roles..." : "Select role"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="seller">Seller</SelectItem>
-                <SelectItem value="transporter">Transporter</SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{role.display_name}</span>
+                      {role.is_system_role && (
+                        <span className="text-xs opacity-70">(System)</span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {formData.role_id && (
+              <p className="text-xs text-slate-400 mt-1">
+                {roles.find(r => r.id === formData.role_id)?.description || ''}
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

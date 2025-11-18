@@ -20,7 +20,15 @@ interface UserProfile {
   id: string;
   email: string;
   username: string;
-  role: 'admin' | 'seller' | 'transporter';
+  role: 'admin' | 'seller' | 'transporter' | 'office_staff';
+  role_id?: string | null;
+  role?: {
+    id: string;
+    name: string;
+    display_name: string;
+    description: string | null;
+    is_system_role: boolean;
+  };
   created_at: string;
   last_sign_in_at?: string;
 }
@@ -56,6 +64,8 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
     switch (role) {
       case 'admin':
         return 'bg-red-500/20 text-red-400 border-red-500';
+      case 'office_staff':
+        return 'bg-purple-500/20 text-purple-400 border-purple-500';
       case 'seller':
         return 'bg-green-500/20 text-green-400 border-green-500';
       case 'transporter':
@@ -92,10 +102,12 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
     switch (role) {
       case 'admin':
         return 'Full system access with administrative privileges';
+      case 'office_staff':
+        return 'Office staff with access to everything except profit/financial data';
       case 'seller':
         return 'Can manage inventory, tasks, and sales';
       case 'transporter':
-        return 'Can browse vehicles and manage orders';
+        return 'Can view inventory and update vehicle locations';
       default:
         return 'Standard user access';
     }
@@ -151,10 +163,12 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
                     className={`${getRoleColor(user.role)} border-current flex items-center space-x-1 w-fit`}
                   >
                     {getRoleIcon(user.role)}
-                    <span className="capitalize">{user.role}</span>
+                    <span className="capitalize">
+                      {user.role?.display_name || user.role || 'No Role'}
+                    </span>
                   </Badge>
                   <span className="text-slate-400 text-sm">
-                    {getRoleDescription(user.role)}
+                    {user.role?.description || getRoleDescription(user.role)}
                   </span>
                 </div>
               </CardContent>

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { PermissionGate } from '@/components/permissions/PermissionGate';
+import { PERMISSIONS } from '@/lib/permissions';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -25,86 +27,105 @@ import {
   User,
   TrendingUp,
   Users,
+  FileText,
 } from 'lucide-react';
 
-const defaultNavigation = [
+interface NavigationItem {
+  name: string;
+  href?: string;
+  icon: string | React.ComponentType<{ className?: string }>;
+  children?: { name: string; href: string; permission?: string }[];
+  permission?: string | string[];
+}
+
+const defaultNavigation: NavigationItem[] = [
   {
     name: 'Dashboard',
     href: '/admin',
     icon: LayoutDashboard,
+    permission: PERMISSIONS.DASHBOARD.VIEW,
   },
   {
     name: 'Task Management',
     href: '/admin/tasks',
     icon: CheckSquare,
+    permission: PERMISSIONS.TASKS.VIEW,
   },
   {
     name: 'Inventory',
     icon: Package,
+    permission: PERMISSIONS.INVENTORY.VIEW,
     children: [
-      { name: 'All', href: '/admin/inventory' },
-      { name: 'Buyer Withdrew', href: '/admin/inventory/buyer-withdrew' },
+      { name: 'All', href: '/admin/inventory', permission: PERMISSIONS.INVENTORY.VIEW },
+      { name: 'Buyer Withdrew', href: '/admin/inventory/buyer-withdrew', permission: PERMISSIONS.INVENTORY.VIEW },
     ],
+  },
+  {
+    name: 'Missing Titles',
+    icon: FileText,
+    href: '/admin/missing-titles',
+    permission: PERMISSIONS.TITLE.MISSING_DASHBOARD,
   },
   {
     name: 'ARB',
     href: '/admin/arb',
     icon: AlertTriangle,
+    permission: PERMISSIONS.ARB.VIEW,
   },
   {
     name: 'Events',
     href: '/admin/events',
     icon: Calendar,
+    permission: PERMISSIONS.EVENTS.VIEW,
   },
   {
     name: 'Chat',
     href: '/admin/chat',
     icon: MessageSquare,
+    permission: PERMISSIONS.CHAT.VIEW,
   },
   {
     name: 'Sold',
     href: '/admin/sold',
     icon: DollarSign,
+    permission: PERMISSIONS.SOLD.VIEW,
   },
   {
     name: 'Accounting',
     icon: BarChart3,
+    permission: PERMISSIONS.ACCOUNTING.VIEW,
     children: [
-      { name: 'Summary', href: '/admin/accounting' },
-      { name: 'Purchases', href: '/admin/accounting/purchases' },
-      { name: 'Sold', href: '/admin/accounting/sold' },
-      { name: 'Reports', href: '/admin/accounting/reports' },
+      { name: 'Summary', href: '/admin/accounting', permission: PERMISSIONS.ACCOUNTING.VIEW },
+      { name: 'Purchases', href: '/admin/accounting/purchases', permission: PERMISSIONS.ACCOUNTING.VIEW },
+      { name: 'Sold', href: '/admin/accounting/sold', permission: PERMISSIONS.ACCOUNTING.VIEW },
+      { name: 'Reports', href: '/admin/accounting/reports', permission: PERMISSIONS.ACCOUNTING.VIEW },
     ],
   },
   {
     name: 'VIN Decode',
     href: '/admin/vin-decode',
     icon: Car,
+    permission: PERMISSIONS.VIN_DECODE.VIEW,
   },
   {
     name: 'User Management',
     href: '/admin/users',
     icon: Users,
+    permission: PERMISSIONS.SYSTEM.USERS_VIEW,
   },
   {
     name: 'Settings',
     icon: Settings,
+    permission: PERMISSIONS.SETTINGS.VIEW,
     children: [
-      { name: 'General', href: '/admin/settings' },
-      { name: 'Roles & Permissions', href: '/admin/settings/roles' },
-      { name: 'Dropdowns', href: '/admin/settings/dropdowns' },
-      { name: 'Staff', href: '/admin/settings/staff' },
-      { name: 'Transporter', href: '/admin/settings/transporter' },
+      { name: 'General', href: '/admin/settings', permission: PERMISSIONS.SETTINGS.VIEW },
+      { name: 'Roles & Permissions', href: '/admin/settings/roles', permission: PERMISSIONS.ROLES.VIEW },
+      { name: 'Dropdowns', href: '/admin/settings/dropdowns', permission: PERMISSIONS.SETTINGS.DROPDOWNS_MANAGE },
+      { name: 'Staff', href: '/admin/settings/staff', permission: PERMISSIONS.SETTINGS.STAFF_MANAGE },
+      { name: 'Transporter', href: '/admin/settings/transporter', permission: PERMISSIONS.SETTINGS.TRANSPORTER_MANAGE },
     ],
   },
 ];
-
-interface NavigationItem {
-  name: string;
-  href?: string;
-  icon: string | React.ComponentType<{ className?: string }>;
-  children?: { name: string; href: string }[];
-}
 
 interface SidebarProps {
   navigation?: NavigationItem[];
@@ -131,6 +152,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShoppingCart,
   User,
   TrendingUp,
+  Users,
+  FileText,
 };
 
 export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggle, unreadCount = 0 }: SidebarProps) {
@@ -196,35 +219,148 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
         {navigation.map((item, index) => (
-          <motion.div
+          <PermissionGate
             key={item.name}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
+            permission={item.permission || ''}
+            fallback={null}
           >
-            {item.children ? (
-              <div>
-                <button
-                  onClick={() => toggleExpanded(item.name)}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              {item.children ? (
+                <div>
+                  <button
+                    onClick={() => toggleExpanded(item.name)}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
+                      "hover:bg-opacity-80"
+                    )}
+                    style={isParentActive(item.children) ? { 
+                      backgroundColor: 'var(--accent)', 
+                      color: 'white',
+                      boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
+                      borderLeft: '3px solid var(--accent)'
+                    } : { 
+                      backgroundColor: 'transparent',
+                      color: 'var(--text)',
+                      borderLeft: '3px solid transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isParentActive(item.children)) {
+                        e.currentTarget.style.backgroundColor = 'var(--muted)';
+                        e.currentTarget.style.borderLeftColor = 'var(--accent)';
+                        const icon = e.currentTarget.querySelector('svg');
+                        const text = e.currentTarget.querySelector('span');
+                        if (icon) icon.style.color = 'var(--text)';
+                        if (text) text.style.color = 'var(--text)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isParentActive(item.children)) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.borderLeftColor = 'transparent';
+                        const icon = e.currentTarget.querySelector('svg');
+                        const text = e.currentTarget.querySelector('span');
+                        if (icon) icon.style.color = 'var(--text)';
+                        if (text) text.style.color = 'var(--text)';
+                      }
+                    }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>
+                        {(() => {
+                          const IconComponent = getIcon(item.icon);
+                          return <IconComponent className="w-5 h-5" />;
+                        })()}
+                      </div>
+                      <span style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>{item.name}</span>
+                    </div>
+                    {expandedItems.includes(item.name) ? (
+                      <ChevronDown className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
+                    )}
+                  </button>
+                  
+                  <AnimatePresence>
+                    {expandedItems.includes(item.name) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="ml-8 mt-1 space-y-0.5 border-l pl-3"
+                        style={{ borderColor: 'var(--border)' }}
+                      >
+                        {item.children.map((child) => (
+                          <PermissionGate
+                            key={child.name}
+                            permission={child.permission || item.permission || ''}
+                            fallback={null}
+                          >
+                            <Link
+                              href={child.href}
+                              className={cn(
+                                "block px-3 py-2 text-sm rounded-lg transition-all duration-200 ease-in-out",
+                                "hover:bg-opacity-80"
+                              )}
+                              style={isActive(child.href) ? { 
+                                backgroundColor: 'var(--accent)', 
+                                color: 'white',
+                                boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
+                                borderLeft: '3px solid var(--accent)',
+                                fontWeight: '600'
+                              } : { 
+                                backgroundColor: 'transparent',
+                                color: 'var(--text)',
+                                borderLeft: '3px solid transparent'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isActive(child.href)) {
+                                  e.currentTarget.style.backgroundColor = 'var(--muted)';
+                                  e.currentTarget.style.borderLeftColor = 'var(--accent)';
+                                  e.currentTarget.style.color = 'var(--text)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isActive(child.href)) {
+                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                  e.currentTarget.style.borderLeftColor = 'transparent';
+                                  e.currentTarget.style.color = 'var(--text)';
+                                }
+                              }}
+                            >
+                              {child.name}
+                            </Link>
+                          </PermissionGate>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <Link
+                  href={item.href!}
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
+                    "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
                     "hover:bg-opacity-80"
                   )}
-                  style={isParentActive(item.children) ? { 
+                  style={isActive(item.href!) ? { 
                     backgroundColor: 'var(--accent)', 
                     color: 'white',
                     boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
-                    borderLeft: '3px solid var(--accent)'
+                    borderLeft: '3px solid var(--accent)',
+                    fontWeight: '600'
                   } : { 
                     backgroundColor: 'transparent',
                     color: 'var(--text)',
                     borderLeft: '3px solid transparent'
                   }}
                   onMouseEnter={(e) => {
-                    if (!isParentActive(item.children)) {
+                    if (!isActive(item.href!)) {
                       e.currentTarget.style.backgroundColor = 'var(--muted)';
                       e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                      // Ensure text remains visible on hover
                       const icon = e.currentTarget.querySelector('svg');
                       const text = e.currentTarget.querySelector('span');
                       if (icon) icon.style.color = 'var(--text)';
@@ -232,7 +368,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isParentActive(item.children)) {
+                    if (!isActive(item.href!)) {
                       e.currentTarget.style.backgroundColor = 'transparent';
                       e.currentTarget.style.borderLeftColor = 'transparent';
                       const icon = e.currentTarget.querySelector('svg');
@@ -243,131 +379,26 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   }}
                 >
                   <div className="flex items-center space-x-3">
-                    <div style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>
+                    <div style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>
                       {(() => {
                         const IconComponent = getIcon(item.icon);
                         return <IconComponent className="w-5 h-5" />;
                       })()}
                     </div>
-                    <span style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>{item.name}</span>
+                    <span style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>{item.name}</span>
                   </div>
-                  {expandedItems.includes(item.name) ? (
-                    <ChevronDown className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
-                  )}
-                </button>
-                
-                <AnimatePresence>
-                  {expandedItems.includes(item.name) && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="ml-8 mt-1 space-y-0.5 border-l pl-3"
-                      style={{ borderColor: 'var(--border)' }}
+                  {item.name === 'Chat' && unreadCount > 0 && (
+                    <span 
+                      className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center font-medium" 
+                      style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)' }}
                     >
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.name}
-                          href={child.href}
-                          className={cn(
-                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200 ease-in-out",
-                            "hover:bg-opacity-80"
-                          )}
-                          style={isActive(child.href) ? { 
-                            backgroundColor: 'var(--accent)', 
-                            color: 'white',
-                            boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
-                            borderLeft: '3px solid var(--accent)',
-                            fontWeight: '600'
-                          } : { 
-                            backgroundColor: 'transparent',
-                            color: 'var(--text)',
-                            borderLeft: '3px solid transparent'
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!isActive(child.href)) {
-                              e.currentTarget.style.backgroundColor = 'var(--muted)';
-                              e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                              e.currentTarget.style.color = 'var(--text)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isActive(child.href)) {
-                              e.currentTarget.style.backgroundColor = 'transparent';
-                              e.currentTarget.style.borderLeftColor = 'transparent';
-                              e.currentTarget.style.color = 'var(--text)';
-                            }
-                          }}
-                        >
-                          {child.name}
-                        </Link>
-                      ))}
-                    </motion.div>
+                      {unreadCount}
+                    </span>
                   )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <Link
-                href={item.href!}
-                className={cn(
-                  "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
-                  "hover:bg-opacity-80"
-                )}
-                style={isActive(item.href!) ? { 
-                  backgroundColor: 'var(--accent)', 
-                  color: 'white',
-                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
-                  borderLeft: '3px solid var(--accent)',
-                  fontWeight: '600'
-                } : { 
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  borderLeft: '3px solid transparent'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive(item.href!)) {
-                    e.currentTarget.style.backgroundColor = 'var(--muted)';
-                    e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                    // Ensure text remains visible on hover
-                    const icon = e.currentTarget.querySelector('svg');
-                    const text = e.currentTarget.querySelector('span');
-                    if (icon) icon.style.color = 'var(--text)';
-                    if (text) text.style.color = 'var(--text)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive(item.href!)) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderLeftColor = 'transparent';
-                    const icon = e.currentTarget.querySelector('svg');
-                    const text = e.currentTarget.querySelector('span');
-                    if (icon) icon.style.color = 'var(--text)';
-                    if (text) text.style.color = 'var(--text)';
-                  }
-                }}
-              >
-                <div className="flex items-center space-x-3">
-                  <div style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>
-                    {(() => {
-                      const IconComponent = getIcon(item.icon);
-                      return <IconComponent className="w-5 h-5" />;
-                    })()}
-                  </div>
-                  <span style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>{item.name}</span>
-                </div>
-                {item.name === 'Chat' && unreadCount > 0 && (
-                  <span 
-                    className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center font-medium" 
-                    style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)' }}
-                  >
-                    {unreadCount}
-                  </span>
-                )}
-              </Link>
-            )}
-          </motion.div>
+                </Link>
+              )}
+            </motion.div>
+          </PermissionGate>
         ))}
       </nav>
 

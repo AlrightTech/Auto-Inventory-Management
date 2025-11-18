@@ -1,5 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { requiresPermission } from '@/lib/route-permissions';
+import { checkRoutePermission } from '@/lib/middleware/route-protection';
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -38,20 +40,30 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
+
   // Protected routes
   const protectedRoutes = ['/admin', '/seller', '/transporter'];
   const authRoutes = ['/auth/login', '/auth/register'];
   
   const isProtectedRoute = protectedRoutes.some(route => 
-    request.nextUrl.pathname.startsWith(route)
+    pathname.startsWith(route)
   );
   const isAuthRoute = authRoutes.some(route => 
-    request.nextUrl.pathname.startsWith(route)
+    pathname.startsWith(route)
   );
 
   // Redirect to login if accessing protected route without auth
   if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
+
+  // Check route permissions if user is authenticated and route requires permission
+  if (isProtectedRoute && user && requiresPermission(pathname)) {
+    const permissionCheck = await checkRoutePermission(request, pathname);
+    if (permissionCheck.error) {
+      return permissionCheck.response;
+    }
   }
 
   // Redirect to dashboard if accessing auth routes while logged in
@@ -63,7 +75,7 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (profile?.role === 'admin') {
+    if (profile?.role === 'admin' || profile?.role === 'office_staff') {
       return NextResponse.redirect(new URL('/admin', request.url));
     } else if (profile?.role === 'seller') {
       return NextResponse.redirect(new URL('/seller', request.url));

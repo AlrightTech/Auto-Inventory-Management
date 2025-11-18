@@ -20,14 +20,16 @@ export default async function AdminLayout({
       redirect('/auth/login');
     }
 
-    // Check if user is admin
+    // Check if user has access to admin panel
+    // Admin, Office Staff, and Seller can access admin panel
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (profile?.role !== 'admin') {
+    const allowedRoles = ['admin', 'office_staff', 'seller'];
+    if (!profile?.role || !allowedRoles.includes(profile.role)) {
       redirect('/auth/login');
     }
 

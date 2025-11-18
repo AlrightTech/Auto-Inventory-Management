@@ -23,10 +23,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    // Get all users
+    // Get all users with role information
     const { data: users, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(`
+        *,
+        role:roles(id, name, display_name, description, is_system_role)
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {

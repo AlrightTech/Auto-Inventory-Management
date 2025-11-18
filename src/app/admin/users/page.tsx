@@ -32,7 +32,15 @@ interface UserProfile {
   id: string;
   email: string;
   username: string;
-  role: 'admin' | 'seller' | 'transporter';
+  role: 'admin' | 'seller' | 'transporter' | 'office_staff';
+  role_id?: string | null;
+  role?: {
+    id: string;
+    name: string;
+    display_name: string;
+    description: string | null;
+    is_system_role: boolean;
+  };
   created_at: string;
   last_sign_in_at?: string;
 }

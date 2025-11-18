@@ -144,7 +144,8 @@ CREATE TRIGGER update_role_permissions_updated_at BEFORE UPDATE ON role_permissi
 INSERT INTO roles (name, display_name, description, is_system_role) VALUES
   ('admin', 'Administrator', 'Full system access with all permissions', TRUE),
   ('seller', 'Seller', 'Vendor managing vehicle listings and transactions', TRUE),
-  ('transporter', 'Transporter', 'Customer browsing and purchasing vehicles', TRUE)
+  ('transporter', 'Transporter', 'Customer browsing and purchasing vehicles', TRUE),
+  ('office_staff', 'Office Staff', 'Office staff with access to everything except profit/financial data', TRUE)
 ON CONFLICT (name) DO NOTHING;
 
 -- Insert all permissions for the system
@@ -293,6 +294,22 @@ BEGIN
   JOIN profiles pr ON pr.id = user_id
   WHERE 
     (pr.role = 'admin' AND p.key LIKE '%') OR
+    (pr.role = 'office_staff' AND (
+      p.key NOT LIKE 'sold.profit.%'
+      AND p.key NOT LIKE 'accounting.profit.%'
+      AND p.key NOT LIKE 'accounting.pnl.%'
+      AND p.key NOT LIKE 'accounting.expenses.%'
+      AND p.key NOT LIKE 'reports.profit.%'
+      AND p.key != 'sold.profit.view'
+      AND p.key != 'accounting.profit.car'
+      AND p.key != 'accounting.profit.weekly'
+      AND p.key != 'accounting.profit.monthly'
+      AND p.key != 'accounting.pnl.summary'
+      AND p.key != 'accounting.expenses.view'
+      AND p.key != 'reports.profit.car'
+      AND p.key != 'reports.profit.weekly'
+      AND p.key != 'reports.profit.monthly'
+    )) OR
     (pr.role = 'seller' AND (
       p.key LIKE 'dashboard.%' OR
       p.key LIKE 'tasks.%' OR
@@ -304,13 +321,17 @@ BEGIN
       p.key LIKE 'notifications.view'
     )) OR
     (pr.role = 'transporter' AND (
-      p.key LIKE 'dashboard.%' OR
-      p.key LIKE 'tasks.view' OR
-      p.key LIKE 'inventory.view' OR
-      p.key LIKE 'events.view' OR
-      p.key LIKE 'chat.%' OR
-      p.key LIKE 'assessments.view' OR
-      p.key LIKE 'notifications.view'
+      p.key = 'inventory.view' OR
+      p.key = 'inventory.location.update'
+    )) OR
+    (pr.role = 'office_staff' AND (
+      p.key NOT LIKE '%profit%'
+      AND p.key NOT LIKE '%financial%'
+      AND p.key != 'sold.profit.view'
+      AND p.key != 'sold.expenses.view'
+      AND p.key != 'accounting.view'
+      AND p.key NOT LIKE 'accounting.%'
+      AND p.key NOT LIKE 'reports.profit.%'
     ))
   AND NOT EXISTS (
     SELECT 1 FROM role_permissions rp2
@@ -380,18 +401,13 @@ BEGIN
   END LOOP;
 END $$;
 
--- Transporter gets limited permissions
+-- Transporter gets minimal permissions (only inventory view and location update)
 DO $$
 DECLARE
   transporter_role_id UUID;
   transporter_permissions TEXT[] := ARRAY[
-    'dashboard.view',
-    'tasks.view',
     'inventory.view',
-    'events.view',
-    'chat.view', 'chat.send',
-    'assessments.view',
-    'notifications.view'
+    'inventory.location.update'
   ];
   perm_record RECORD;
 BEGIN
@@ -402,6 +418,53 @@ BEGIN
   LOOP
     INSERT INTO role_permissions (role_id, permission_id, granted)
     VALUES (transporter_role_id, perm_record.id, TRUE)
+    ON CONFLICT (role_id, permission_id) DO UPDATE SET granted = TRUE;
+  END LOOP;
+END $$;
+
+-- Office Staff gets all permissions EXCEPT profit/financial related
+DO $$
+DECLARE
+  office_staff_role_id UUID;
+  perm_record RECORD;
+  excluded_permissions TEXT[] := ARRAY[
+    -- Profit visibility
+    'sold.profit.view',
+    'accounting.profit.car',
+    'accounting.profit.weekly',
+    'accounting.profit.monthly',
+    'accounting.pnl.summary',
+    -- Expenses
+    'sold.expenses.view',
+    'accounting.expenses.view',
+    -- Accounting section (entire section)
+    'accounting.view',
+    'accounting.price.adjustment.log',
+    'accounting.reports.export',
+    -- Profit reports
+    'reports.profit.car',
+    'reports.profit.weekly',
+    'reports.profit.monthly',
+    -- Transportation costs in sold section
+    'sold.transport.cost'
+  ];
+BEGIN
+  SELECT id INTO office_staff_role_id FROM roles WHERE name = 'office_staff';
+  
+  -- Grant all permissions except profit/financial related ones
+  FOR perm_record IN 
+    SELECT id FROM permissions 
+    WHERE key != ALL(excluded_permissions)
+      AND key NOT LIKE 'sold.profit.%'
+      AND key NOT LIKE 'accounting.profit.%'
+      AND key NOT LIKE 'accounting.pnl.%'
+      AND key NOT LIKE 'accounting.expenses.%'
+      AND key NOT LIKE 'reports.profit.%'
+      AND key NOT LIKE 'sold.expenses.%'
+      AND key NOT LIKE 'accounting.%'
+  LOOP
+    INSERT INTO role_permissions (role_id, permission_id, granted)
+    VALUES (office_staff_role_id, perm_record.id, TRUE)
     ON CONFLICT (role_id, permission_id) DO UPDATE SET granted = TRUE;
   END LOOP;
 END $$;
