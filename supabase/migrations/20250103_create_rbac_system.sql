@@ -1,8 +1,52 @@
 -- RBAC System Migration
 -- Creates permissions, roles, and role_permissions tables for granular access control
 
+-- Drop existing RBAC objects if they exist (for clean migration)
+-- Drop policies first (must be done before dropping tables)
+DO $$ 
+BEGIN
+  -- Drop policies on permissions table
+  DROP POLICY IF EXISTS "Anyone can view permissions" ON permissions;
+  DROP POLICY IF EXISTS "Only admins can manage permissions" ON permissions;
+  
+  -- Drop policies on roles table
+  DROP POLICY IF EXISTS "Anyone can view roles" ON roles;
+  DROP POLICY IF EXISTS "Only admins can manage roles" ON roles;
+  
+  -- Drop policies on role_permissions table
+  DROP POLICY IF EXISTS "Anyone can view role permissions" ON role_permissions;
+  DROP POLICY IF EXISTS "Only admins can manage role permissions" ON role_permissions;
+EXCEPTION
+  WHEN undefined_table THEN NULL;
+END $$;
+
+-- Drop functions
+DROP FUNCTION IF EXISTS get_user_permissions(UUID) CASCADE;
+DROP FUNCTION IF EXISTS user_has_permission(UUID, TEXT) CASCADE;
+
+-- Drop triggers if they exist
+DROP TRIGGER IF EXISTS update_permissions_updated_at ON permissions;
+DROP TRIGGER IF EXISTS update_roles_updated_at ON roles;
+DROP TRIGGER IF EXISTS update_role_permissions_updated_at ON role_permissions;
+
+-- Drop indexes if they exist
+DROP INDEX IF EXISTS idx_permissions_key;
+DROP INDEX IF EXISTS idx_permissions_module;
+DROP INDEX IF EXISTS idx_roles_name;
+DROP INDEX IF EXISTS idx_role_permissions_role_id;
+DROP INDEX IF EXISTS idx_role_permissions_permission_id;
+DROP INDEX IF EXISTS idx_profiles_role_id;
+
+-- Drop tables (CASCADE to handle foreign key dependencies)
+DROP TABLE IF EXISTS role_permissions CASCADE;
+DROP TABLE IF EXISTS permissions CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
+
+-- Remove role_id column from profiles if it exists (will be re-added)
+ALTER TABLE profiles DROP COLUMN IF EXISTS role_id;
+
 -- Create permissions table
-CREATE TABLE IF NOT EXISTS permissions (
+CREATE TABLE permissions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   key TEXT UNIQUE NOT NULL, -- e.g., 'inventory.view', 'tasks.create'
   name TEXT NOT NULL, -- Display name e.g., 'View Inventory'
@@ -13,7 +57,7 @@ CREATE TABLE IF NOT EXISTS permissions (
 );
 
 -- Create roles table (extends beyond basic admin/seller/transporter)
-CREATE TABLE IF NOT EXISTS roles (
+CREATE TABLE roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT UNIQUE NOT NULL, -- e.g., 'admin', 'seller', 'transporter', 'custom_role_1'
   display_name TEXT NOT NULL, -- e.g., 'Administrator', 'Seller', 'Transporter'
@@ -24,7 +68,7 @@ CREATE TABLE IF NOT EXISTS roles (
 );
 
 -- Create role_permissions pivot table
-CREATE TABLE IF NOT EXISTS role_permissions (
+CREATE TABLE role_permissions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   role_id UUID REFERENCES roles(id) ON DELETE CASCADE NOT NULL,
   permission_id UUID REFERENCES permissions(id) ON DELETE CASCADE NOT NULL,
@@ -35,7 +79,7 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 );
 
 -- Add role_id to profiles table (nullable for backward compatibility)
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role_id UUID REFERENCES roles(id) ON DELETE SET NULL;
+ALTER TABLE profiles ADD COLUMN role_id UUID REFERENCES roles(id) ON DELETE SET NULL;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_permissions_key ON permissions(key);
@@ -116,15 +160,24 @@ INSERT INTO permissions (key, name, description, module) VALUES
   ('tasks.assign', 'Assign Tasks', 'Assign tasks to users', 'tasks'),
 
 -- Inventory permissions
-  ('inventory.view', 'View Inventory', 'View vehicle inventory', 'inventory'),
-  ('inventory.create', 'Create Vehicles', 'Add new vehicles to inventory', 'inventory'),
-  ('inventory.edit', 'Edit Vehicles', 'Edit existing vehicles', 'inventory'),
+  ('inventory.view', 'View Inventory List', 'View vehicle inventory list', 'inventory'),
+  ('inventory.create', 'Add New Inventory Car', 'Add new vehicles to inventory', 'inventory'),
+  ('inventory.edit', 'Edit Inventory Car Details', 'Edit existing vehicle details', 'inventory'),
   ('inventory.delete', 'Delete Vehicles', 'Delete vehicles from inventory', 'inventory'),
   ('inventory.view_all', 'View All Inventory', 'View all vehicles across all sellers', 'inventory'),
+  ('inventory.photos.manage', 'Upload/Edit Photos', 'Upload and edit vehicle photos', 'inventory'),
+  ('inventory.location.update', 'Update Car Location', 'Update vehicle location information', 'inventory'),
+  ('inventory.notes.manage', 'Condition / Mechanical Notes', 'Manage condition and mechanical notes', 'inventory'),
+  ('inventory.purchase.manage', 'Purchase Details', 'Manage purchase details (buy price, seller info)', 'inventory'),
+  ('inventory.title.manage', 'Title Status in Inventory', 'Manage title status in inventory', 'inventory'),
 
 -- ARB permissions
-  ('arb.view', 'View ARB', 'View ARB status and information', 'arb'),
-  ('arb.manage', 'Manage ARB', 'Manage ARB filings and status', 'arb'),
+  ('arb.view', 'Access to ARB dashboard', 'Access ARB dashboard and view ARB cases', 'arb'),
+  ('arb.create', 'Create / Update ARB Cases', 'Create and update ARB cases', 'arb'),
+  ('arb.outcome.enter', 'Enter ARB Outcome', 'Enter ARB outcome (Denied, Price Adjusted, Withdrawn)', 'arb'),
+  ('arb.price.adjust', 'Enter Price Adjustment Amount', 'Enter price adjustment amount for ARB cases', 'arb'),
+  ('arb.transport.manage', 'Enter Transportation Details/Cost', 'Enter transportation details and cost for withdrawn cases', 'arb'),
+  ('arb.documents.upload', 'Upload ARB Documents', 'Upload documents related to ARB cases', 'arb'),
 
 -- Events permissions
   ('events.view', 'View Events', 'View scheduled events', 'events'),
@@ -137,17 +190,24 @@ INSERT INTO permissions (key, name, description, module) VALUES
   ('chat.send', 'Send Messages', 'Send chat messages', 'chat'),
 
 -- Sold vehicles permissions
-  ('sold.view', 'View Sold Vehicles', 'View sold vehicle records', 'sold'),
-  ('sold.manage', 'Manage Sold Vehicles', 'Manage sold vehicle records', 'sold'),
+  ('sold.view', 'View Sold Cars', 'View sold vehicle records', 'sold'),
+  ('sold.edit', 'Edit Sold Car Details', 'Edit details of sold vehicles', 'sold'),
+  ('sold.profit.view', 'Profit Visibility', 'View profit information for sold cars (Most restricted)', 'sold'),
+  ('sold.expenses.view', 'Expenses Visibility', 'View expenses for sold vehicles', 'sold'),
+  ('sold.transport.cost', 'Transportation Costs (sold section)', 'View and manage transportation costs for sold vehicles', 'sold'),
+  ('sold.arb.view', 'ARB for Sold Cars', 'View ARB information for sold cars', 'sold'),
+  ('sold.arb.adjust_price', 'Adjust Price (sold ARB)', 'Adjust price for sold cars with ARB', 'sold'),
+  ('sold.arb.history', 'View ARB Outcome History', 'View ARB outcome history for sold cars', 'sold'),
 
 -- Accounting permissions
-  ('accounting.view', 'View Accounting', 'View accounting summary', 'accounting'),
-  ('accounting.purchases.view', 'View Purchases', 'View purchase records', 'accounting'),
-  ('accounting.purchases.manage', 'Manage Purchases', 'Create and edit purchase records', 'accounting'),
-  ('accounting.sold.view', 'View Sold Records', 'View sold vehicle accounting records', 'accounting'),
-  ('accounting.sold.manage', 'Manage Sold Records', 'Manage sold vehicle accounting records', 'accounting'),
-  ('accounting.reports.view', 'View Reports', 'View accounting reports', 'accounting'),
-  ('accounting.reports.export', 'Export Reports', 'Export accounting reports', 'accounting'),
+  ('accounting.view', 'Accounting Page', 'Access accounting page', 'accounting'),
+  ('accounting.profit.car', 'Profit Per Car (visible/invisible)', 'View profit per car information', 'accounting'),
+  ('accounting.profit.weekly', 'Weekly Profit Summary', 'View weekly profit summary', 'accounting'),
+  ('accounting.profit.monthly', 'Monthly Profit Summary', 'View monthly profit summary', 'accounting'),
+  ('accounting.pnl.summary', 'Total P&L Summary Dashboard', 'View total profit and loss summary dashboard', 'accounting'),
+  ('accounting.expenses.view', 'Expenses Section', 'View expenses section', 'accounting'),
+  ('accounting.price.adjustment.log', 'Price Adjustment Log', 'View price adjustment log', 'accounting'),
+  ('accounting.reports.export', 'Export Financial Reports', 'Export financial reports', 'accounting'),
 
 -- VIN Decode permissions
   ('vin_decode.view', 'View VIN Decode', 'Access VIN decode functionality', 'vin_decode'),
@@ -176,6 +236,40 @@ INSERT INTO permissions (key, name, description, module) VALUES
   ('assessments.create', 'Create Assessments', 'Create vehicle assessments', 'assessments'),
   ('assessments.edit', 'Edit Assessments', 'Edit vehicle assessments', 'assessments'),
   ('assessments.delete', 'Delete Assessments', 'Delete vehicle assessments', 'assessments'),
+
+-- Title & Documentation permissions
+  ('title.status.view', 'Title Status (all sections)', 'View title status across all sections', 'title'),
+  ('title.documents.upload', 'Upload Title Documents', 'Upload title documents', 'title'),
+  ('title.missing.dashboard', 'Missing Titles Dashboard', 'Access missing titles dashboard', 'title'),
+  ('title.missing.tracker', 'Days Missing Title Tracker', 'View and track days missing title', 'title'),
+
+-- Transportation / Logistics permissions
+  ('transport.location.track', 'Location Tracking (Inventory)', 'Track vehicle location in inventory', 'transportation'),
+  ('transport.assign', 'Transport Assignment', 'Assign transportation for vehicles', 'transportation'),
+  ('transport.notes', 'Transport Notes', 'View and manage transport notes', 'transportation'),
+  ('transport.cost.entry', 'Transport Cost Entry', 'Enter transportation costs', 'transportation'),
+  ('transport.history.view', 'View Transport History', 'View transportation history', 'transportation'),
+
+-- Reports permissions
+  ('reports.profit.car', 'Profit Per Car Report', 'View profit per car report', 'reports'),
+  ('reports.profit.weekly', 'Weekly Profit/Loss Report', 'View weekly profit/loss report', 'reports'),
+  ('reports.profit.monthly', 'Monthly Profit/Loss Report', 'View monthly profit/loss report', 'reports'),
+  ('reports.arb.activity', 'ARB Activity Report (count, outcome)', 'View ARB activity report with count and outcomes', 'reports'),
+  ('reports.arb.transport.cost', 'ARB Transportation Cost Report', 'View ARB transportation cost report', 'reports'),
+  ('reports.price.adjustment', 'Price Adjustment Summary', 'View price adjustment summary report', 'reports'),
+  ('reports.inventory.summary', 'Inventory Summary Report', 'View inventory summary report', 'reports'),
+  ('reports.sold.weekly', 'Sold Cars Weekly Count', 'View sold cars weekly count report', 'reports'),
+  ('reports.missing.titles', 'Missing Titles Report', 'View missing titles report', 'reports'),
+  ('reports.transport.avg_cost', 'Average Transportation Cost', 'View average transportation cost report', 'reports'),
+  ('reports.arb.adjustment.percent', 'Average ARB Adjustment Percentage', 'View average ARB adjustment percentage report', 'reports'),
+
+-- System / User Management permissions
+  ('system.users.view', 'User Accounts (view)', 'View user accounts', 'system'),
+  ('system.roles.create', 'Create Roles', 'Create new roles', 'system'),
+  ('system.roles.edit', 'Edit Roles', 'Edit existing roles', 'system'),
+  ('system.roles.assign', 'Assign Roles', 'Assign roles to users', 'system'),
+  ('system.activity.logs', 'Activity Logs', 'View system activity logs', 'system'),
+  ('system.permissions.edit', 'Permission Editing (hide/show UI)', 'Edit permissions and hide/show UI elements', 'system'),
 
 -- Notifications permissions
   ('notifications.view', 'View Notifications', 'View system notifications', 'notifications'),
@@ -265,6 +359,8 @@ DECLARE
     'dashboard.view',
     'tasks.view', 'tasks.create', 'tasks.edit',
     'inventory.view', 'inventory.create', 'inventory.edit',
+    'inventory.photos.manage', 'inventory.location.update',
+    'inventory.notes.manage', 'inventory.purchase.manage', 'inventory.title.manage',
     'events.view', 'events.create', 'events.edit',
     'chat.view', 'chat.send',
     'sold.view',

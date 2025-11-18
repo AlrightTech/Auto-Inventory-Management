@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +16,31 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Save, Plus, Trash2, Edit2, Shield, Users } from 'lucide-react';
+import {
+  Save,
+  Plus,
+  Trash2,
+  Shield,
+  Users,
+  Search,
+  Filter,
+  CheckSquare,
+  Square,
+  ChevronDown,
+  ChevronRight,
+  Lock,
+  Unlock,
+  BarChart3,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Permission {
@@ -46,6 +69,9 @@ export function RoleManagement() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedModule, setSelectedModule] = useState<string>('all');
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [newRole, setNewRole] = useState({
     name: '',
     display_name: '',
@@ -53,13 +79,54 @@ export function RoleManagement() {
   });
 
   // Group permissions by module
-  const permissionsByModule = permissions.reduce((acc, perm) => {
-    if (!acc[perm.module]) {
-      acc[perm.module] = [];
-    }
-    acc[perm.module].push(perm);
-    return acc;
-  }, {} as Record<string, Permission[]>);
+  const permissionsByModule = useMemo(() => {
+    return permissions.reduce((acc, perm) => {
+      if (!acc[perm.module]) {
+        acc[perm.module] = [];
+      }
+      acc[perm.module].push(perm);
+      return acc;
+    }, {} as Record<string, Permission[]>);
+  }, [permissions]);
+
+  // Get unique modules
+  const modules = useMemo(() => {
+    return Object.keys(permissionsByModule).sort();
+  }, [permissionsByModule]);
+
+  // Filter permissions based on search and module
+  const filteredPermissionsByModule = useMemo(() => {
+    const filtered: Record<string, Permission[]> = {};
+    
+    Object.entries(permissionsByModule).forEach(([module, perms]) => {
+      if (selectedModule !== 'all' && module !== selectedModule) {
+        return;
+      }
+      
+      const filteredPerms = perms.filter((perm) => {
+        const query = searchQuery.toLowerCase();
+        return (
+          perm.name.toLowerCase().includes(query) ||
+          perm.key.toLowerCase().includes(query) ||
+          (perm.description && perm.description.toLowerCase().includes(query))
+        );
+      });
+      
+      if (filteredPerms.length > 0) {
+        filtered[module] = filteredPerms;
+      }
+    });
+    
+    return filtered;
+  }, [permissionsByModule, searchQuery, selectedModule]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const total = permissions.length;
+    const granted = permissions.filter((p) => p.granted).length;
+    const percentage = total > 0 ? Math.round((granted / total) * 100) : 0;
+    return { total, granted, percentage };
+  }, [permissions]);
 
   useEffect(() => {
     fetchRoles();
@@ -103,11 +170,11 @@ export function RoleManagement() {
       if (!response.ok) throw new Error('Failed to fetch role');
       const { data } = await response.json();
       setSelectedRole(data);
-      // Set permissions from the role data
       if (data.permissions && Array.isArray(data.permissions)) {
         setPermissions(data.permissions);
+        // Expand all modules when loading role
+        setExpandedModules(new Set(Object.keys(permissionsByModule)));
       } else {
-        // If permissions not in response, fetch all permissions and set granted to false
         const permResponse = await fetch('/api/permissions');
         if (permResponse.ok) {
           const { data: perms } = await permResponse.json();
@@ -126,6 +193,40 @@ export function RoleManagement() {
         p.id === permissionId ? { ...p, granted: !p.granted } : p
       )
     );
+  };
+
+  const toggleModule = (module: string, grant: boolean) => {
+    setPermissions((prev) =>
+      prev.map((p) =>
+        p.module === module ? { ...p, granted: grant } : p
+      )
+    );
+  };
+
+  const toggleAllPermissions = (grant: boolean) => {
+    setPermissions((prev) =>
+      prev.map((p) => ({ ...p, granted: grant }))
+    );
+  };
+
+  const toggleModuleExpanded = (module: string) => {
+    setExpandedModules((prev) => {
+      const next = new Set(prev);
+      if (next.has(module)) {
+        next.delete(module);
+      } else {
+        next.add(module);
+      }
+      return next;
+    });
+  };
+
+  const expandAllModules = () => {
+    setExpandedModules(new Set(Object.keys(filteredPermissionsByModule)));
+  };
+
+  const collapseAllModules = () => {
+    setExpandedModules(new Set());
   };
 
   const savePermissions = async () => {
@@ -153,7 +254,7 @@ export function RoleManagement() {
       }
 
       toast.success('Permissions saved successfully');
-      await selectRole(selectedRole.id); // Refresh
+      await selectRole(selectedRole.id);
     } catch (error) {
       console.error('Error saving permissions:', error);
       toast.error(
@@ -221,6 +322,12 @@ export function RoleManagement() {
     }
   };
 
+  const getModuleStats = (module: string) => {
+    const modulePerms = permissionsByModule[module] || [];
+    const granted = modulePerms.filter((p) => p.granted).length;
+    return { total: modulePerms.length, granted };
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -234,10 +341,10 @@ export function RoleManagement() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
-            Role Management
+            Role & Permission Management
           </h1>
           <p className="mt-2 text-sm" style={{ color: 'var(--subtext)' }}>
             Manage roles and their permissions. Toggle permissions ON/OFF for
@@ -258,6 +365,7 @@ export function RoleManagement() {
             </Button>
           </DialogTrigger>
           <DialogContent
+            className="max-w-md"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border)',
@@ -367,6 +475,8 @@ export function RoleManagement() {
             border: '1px solid var(--border)',
             borderRadius: '12px',
             padding: '1rem',
+            maxHeight: 'calc(100vh - 200px)',
+            overflowY: 'auto',
           }}
         >
           <h2
@@ -374,54 +484,63 @@ export function RoleManagement() {
             style={{ color: 'var(--text)' }}
           >
             <Users className="w-5 h-5" />
-            Roles
+            Roles ({roles.length})
           </h2>
           <div className="space-y-1">
-            {roles.map((role) => (
-              <motion.button
-                key={role.id}
-                onClick={() => selectRole(role.id)}
-                className={cn(
-                  'w-full text-left px-4 py-3 rounded-lg transition-all',
-                  'flex items-center justify-between group'
-                )}
-                style={
-                  selectedRole?.id === role.id
-                    ? {
-                        backgroundColor: 'var(--accent)',
-                        color: 'white',
-                      }
-                    : {
-                        backgroundColor: 'transparent',
-                        color: 'var(--text)',
-                      }
-                }
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  <div>
-                    <div className="font-medium">{role.display_name}</div>
-                    {role.is_system_role && (
-                      <div className="text-xs opacity-70">System Role</div>
+            {roles.map((role) => {
+              const isSelected = selectedRole?.id === role.id;
+              return (
+                <motion.button
+                  key={role.id}
+                  onClick={() => selectRole(role.id)}
+                  className={cn(
+                    'w-full text-left px-4 py-3 rounded-lg transition-all',
+                    'flex items-center justify-between group'
+                  )}
+                  style={
+                    isSelected
+                      ? {
+                          backgroundColor: 'var(--accent)',
+                          color: 'white',
+                        }
+                      : {
+                          backgroundColor: 'transparent',
+                          color: 'var(--text)',
+                        }
+                  }
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {role.is_system_role ? (
+                      <Lock className="w-4 h-4 flex-shrink-0" />
+                    ) : (
+                      <Shield className="w-4 h-4 flex-shrink-0" />
                     )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">
+                        {role.display_name}
+                      </div>
+                      {role.is_system_role && (
+                        <div className="text-xs opacity-70">System Role</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {!role.is_system_role && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteRole(role.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ color: 'var(--text)' }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </motion.button>
-            ))}
+                  {!role.is_system_role && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteRole(role.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
+                      style={{ color: isSelected ? 'white' : 'var(--text)' }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
@@ -436,14 +555,28 @@ export function RoleManagement() {
                 padding: '1.5rem',
               }}
             >
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2
-                    className="text-2xl font-bold"
-                    style={{ color: 'var(--text)' }}
-                  >
-                    {selectedRole.display_name}
-                  </h2>
+              {/* Header with Stats */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <h2
+                      className="text-2xl font-bold"
+                      style={{ color: 'var(--text)' }}
+                    >
+                      {selectedRole.display_name}
+                    </h2>
+                    {selectedRole.is_system_role && (
+                      <span
+                        className="px-2 py-1 text-xs rounded-full"
+                        style={{
+                          backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                          color: 'var(--accent)',
+                        }}
+                      >
+                        System Role
+                      </span>
+                    )}
+                  </div>
                   {selectedRole.description && (
                     <p
                       className="mt-1 text-sm"
@@ -452,6 +585,18 @@ export function RoleManagement() {
                       {selectedRole.description}
                     </p>
                   )}
+                  {/* Statistics */}
+                  <div className="flex items-center gap-4 mt-3">
+                    <div
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: 'var(--subtext)' }}
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                      <span>
+                        {stats.granted} / {stats.total} permissions ({stats.percentage}%)
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <Button
                   onClick={savePermissions}
@@ -467,64 +612,278 @@ export function RoleManagement() {
                 </Button>
               </div>
 
-              <div className="space-y-6 max-h-[600px] overflow-y-auto">
-                {Object.entries(permissionsByModule).map(
-                  ([module, modulePermissions]) => (
-                    <div key={module} className="space-y-3">
-                      <h3
-                        className="text-lg font-semibold capitalize"
-                        style={{ color: 'var(--text)' }}
-                      >
-                        {module.replace('_', ' ')}
-                      </h3>
-                      <div
-                        className="space-y-2 pl-4"
-                        style={{
-                          borderLeft: '2px solid var(--border)',
-                        }}
-                      >
-                        {modulePermissions.map((permission) => (
-                          <div
-                            key={permission.id}
-                            className="flex items-center justify-between p-3 rounded-lg hover:bg-opacity-50 transition-colors"
+              {/* Search and Filters */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                    style={{ color: 'var(--subtext)' }}
+                  />
+                  <Input
+                    placeholder="Search permissions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                    style={{
+                      backgroundColor: 'var(--background)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--text)',
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      style={{ color: 'var(--subtext)' }}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <Select
+                  value={selectedModule}
+                  onValueChange={setSelectedModule}
+                >
+                  <SelectTrigger
+                    className="w-full sm:w-[200px]"
+                    style={{
+                      backgroundColor: 'var(--background)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--text)',
+                    }}
+                  >
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Filter by module" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Modules</SelectItem>
+                    {modules.map((module) => (
+                      <SelectItem key={module} value={module}>
+                        {module.charAt(0).toUpperCase() + module.slice(1).replace('_', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Bulk Actions */}
+              <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--background)' }}>
+                <span className="text-sm" style={{ color: 'var(--text)' }}>
+                  Bulk Actions:
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleAllPermissions(true)}
+                  className="flex items-center gap-1"
+                  style={{
+                    borderColor: 'var(--border)',
+                    color: 'var(--text)',
+                  }}
+                >
+                  <CheckSquare className="w-3 h-3" />
+                  Grant All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleAllPermissions(false)}
+                  className="flex items-center gap-1"
+                  style={{
+                    borderColor: 'var(--border)',
+                    color: 'var(--text)',
+                  }}
+                >
+                  <Square className="w-3 h-3" />
+                  Revoke All
+                </Button>
+                <div className="flex-1" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={expandAllModules}
+                  style={{
+                    borderColor: 'var(--border)',
+                    color: 'var(--text)',
+                  }}
+                >
+                  Expand All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={collapseAllModules}
+                  style={{
+                    borderColor: 'var(--border)',
+                    color: 'var(--text)',
+                  }}
+                >
+                  Collapse All
+                </Button>
+              </div>
+
+              {/* Permissions List */}
+              <div
+                className="space-y-4 max-h-[600px] overflow-y-auto pr-2"
+                style={{
+                  scrollbarWidth: 'thin',
+                }}
+              >
+                {Object.keys(filteredPermissionsByModule).length === 0 ? (
+                  <div
+                    className="text-center py-12"
+                    style={{ color: 'var(--subtext)' }}
+                  >
+                    <p>No permissions found matching your search.</p>
+                  </div>
+                ) : (
+                  Object.entries(filteredPermissionsByModule).map(
+                    ([module, modulePermissions]) => {
+                      const isExpanded = expandedModules.has(module);
+                      const moduleStats = getModuleStats(module);
+                      const allGranted = modulePermissions.every((p) => p.granted);
+                      const someGranted = modulePermissions.some((p) => p.granted);
+
+                      return (
+                        <div
+                          key={module}
+                          className="space-y-2"
+                          style={{
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            padding: '0.75rem',
+                          }}
+                        >
+                          {/* Module Header */}
+                          <button
+                            onClick={() => toggleModuleExpanded(module)}
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-opacity-50 transition-colors"
                             style={{
-                              backgroundColor: permission.granted
+                              backgroundColor: isExpanded
                                 ? 'rgba(0, 191, 255, 0.1)'
                                 : 'transparent',
                             }}
                           >
-                            <div className="flex-1">
-                              <div
-                                className="font-medium"
+                            <div className="flex items-center gap-3 flex-1">
+                              {isExpanded ? (
+                                <ChevronDown className="w-4 h-4" style={{ color: 'var(--text)' }} />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" style={{ color: 'var(--text)' }} />
+                              )}
+                              <h3
+                                className="text-base font-semibold capitalize"
                                 style={{ color: 'var(--text)' }}
                               >
-                                {permission.name}
-                              </div>
-                              {permission.description && (
-                                <div
-                                  className="text-sm mt-1"
-                                  style={{ color: 'var(--subtext)' }}
-                                >
-                                  {permission.description}
-                                </div>
-                              )}
-                              <div
-                                className="text-xs mt-1 font-mono"
-                                style={{ color: 'var(--subtext)' }}
+                                {module.replace('_', ' ')}
+                              </h3>
+                              <span
+                                className="text-xs px-2 py-0.5 rounded-full"
+                                style={{
+                                  backgroundColor: 'var(--background)',
+                                  color: 'var(--subtext)',
+                                }}
                               >
-                                {permission.key}
-                              </div>
+                                {moduleStats.granted}/{moduleStats.total}
+                              </span>
                             </div>
-                            <Switch
-                              checked={permission.granted}
-                              onCheckedChange={() =>
-                                togglePermission(permission.id)
-                              }
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleModule(module, true);
+                                }}
+                                className="flex items-center gap-1"
+                                style={{
+                                  borderColor: 'var(--border)',
+                                  color: 'var(--text)',
+                                }}
+                              >
+                                <CheckSquare className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleModule(module, false);
+                                }}
+                                className="flex items-center gap-1"
+                                style={{
+                                  borderColor: 'var(--border)',
+                                  color: 'var(--text)',
+                                }}
+                              >
+                                <Square className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </button>
+
+                          {/* Module Permissions */}
+                          <AnimatePresence>
+                            {isExpanded && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="space-y-2 pl-6"
+                              >
+                                {modulePermissions.map((permission) => (
+                                  <div
+                                    key={permission.id}
+                                    className="flex items-center justify-between p-3 rounded-lg hover:bg-opacity-50 transition-colors"
+                                    style={{
+                                      backgroundColor: permission.granted
+                                        ? 'rgba(0, 191, 255, 0.1)'
+                                        : 'transparent',
+                                      borderLeft: permission.granted
+                                        ? '3px solid var(--accent)'
+                                        : '3px solid transparent',
+                                    }}
+                                  >
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="font-medium"
+                                          style={{ color: 'var(--text)' }}
+                                        >
+                                          {permission.name}
+                                        </div>
+                                        {permission.granted && (
+                                          <Unlock className="w-3 h-3" style={{ color: 'var(--accent)' }} />
+                                        )}
+                                      </div>
+                                      {permission.description && (
+                                        <div
+                                          className="text-sm mt-1"
+                                          style={{ color: 'var(--subtext)' }}
+                                        >
+                                          {permission.description}
+                                        </div>
+                                      )}
+                                      <div
+                                        className="text-xs mt-1 font-mono opacity-70"
+                                        style={{ color: 'var(--subtext)' }}
+                                      >
+                                        {permission.key}
+                                      </div>
+                                    </div>
+                                    <Switch
+                                      checked={permission.granted}
+                                      onCheckedChange={() =>
+                                        togglePermission(permission.id)
+                                      }
+                                      className="ml-4"
+                                    />
+                                  </div>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    }
                   )
                 )}
               </div>
@@ -547,4 +906,3 @@ export function RoleManagement() {
     </div>
   );
 }
-
