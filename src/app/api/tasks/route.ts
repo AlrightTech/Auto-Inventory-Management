@@ -1,11 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { TaskInsert } from '@/types';
+import { requirePermission } from '@/lib/middleware/permissions';
+import { PERMISSIONS } from '@/lib/permissions';
 
 // GET /api/tasks - List all tasks
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const authResult = await requirePermission(request, PERMISSIONS.TASKS.VIEW);
+    if (authResult.error) return authResult.response;
+    const { supabase } = authResult;
     const { searchParams } = new URL(request.url);
     
     // Get query parameters
@@ -77,7 +81,10 @@ export async function GET(request: NextRequest) {
 // POST /api/tasks - Create a new task
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const authResult = await requirePermission(request, PERMISSIONS.TASKS.CREATE);
+    if (authResult.error) return authResult.response;
+    const { supabase, user } = authResult;
+    
     const body: TaskInsert = await request.json();
     
     // Validate required fields
@@ -86,12 +93,6 @@ export async function POST(request: NextRequest) {
         { error: 'Task name and due date are required' },
         { status: 400 }
       );
-    }
-    
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     // Create task

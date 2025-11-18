@@ -197,13 +197,19 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
       console.log('Making request to:', url, 'with method:', method);
       console.log('Request data:', cleanedData);
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cleanedData),
-      });
+      let response;
+      try {
+        response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(cleanedData),
+        });
+      } catch (fetchError) {
+        console.error('Fetch error:', fetchError);
+        throw new Error('Network error: Unable to connect to server. Please check your internet connection.');
+      }
 
       console.log('Response status:', response.status, response.statusText);
       console.log('Response URL:', response.url);
@@ -217,14 +223,21 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
         let errorData;
         try {
           errorData = await response.json();
-        } catch {
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError);
           errorData = { error: `Server returned ${response.status}: ${response.statusText}` };
         }
         
         throw new Error(errorData.error || errorData.details || `Failed to ${vehicleToEdit ? 'update' : 'create'} vehicle`);
       }
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        console.error('Error parsing success response:', parseError);
+        throw new Error('Received invalid response from server');
+      }
       
       // If this is a new vehicle with a purchase date, trigger ARB countdown (7 days from purchase date)
       if (!vehicleToEdit && cleanedData.sale_date) {
@@ -264,26 +277,45 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
       toast.success(`Vehicle ${vehicleToEdit ? 'updated' : 'added'} successfully!`);
       
       // Reset form and close modal
-      reset();
-      setSelectedDate(new Date());
-      onClose();
-      
-      // Notify parent component to refresh the vehicle list
-      if (onVehicleAdded) {
-        onVehicleAdded();
+      try {
+        reset();
+        setSelectedDate(new Date());
+        onClose();
+        
+        // Notify parent component to refresh the vehicle list
+        if (onVehicleAdded) {
+          onVehicleAdded();
+        }
+      } catch (closeError) {
+        console.error('Error closing modal:', closeError);
+        // Still show success even if closing fails
       }
     } catch (error) {
       console.error('Error creating vehicle:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create vehicle');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create vehicle';
+      toast.error(errorMessage);
+      // Don't close modal on error so user can fix and retry
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    reset();
-    onClose();
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      try {
+        reset();
+        onClose();
+      } catch (error) {
+        console.error('Error closing modal:', error);
+        onClose(); // Still try to close even if reset fails
+      }
+    }
   };
+
+  // Prevent rendering if modal is not open to avoid blank screen
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

@@ -88,8 +88,14 @@ const defaultNavigation = [
   },
   {
     name: 'Settings',
-    href: '/admin/settings',
     icon: Settings,
+    children: [
+      { name: 'General', href: '/admin/settings' },
+      { name: 'Roles & Permissions', href: '/admin/settings/roles' },
+      { name: 'Dropdowns', href: '/admin/settings/dropdowns' },
+      { name: 'Staff', href: '/admin/settings/staff' },
+      { name: 'Transporter', href: '/admin/settings/transporter' },
+    ],
   },
 ];
 

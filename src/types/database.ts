@@ -17,6 +17,7 @@ export interface Database {
           role: 'admin' | 'seller' | 'transporter'
           username: string | null
           avatar_url: string | null
+          role_id: string | null
           created_at: string
           updated_at: string
         }
@@ -26,6 +27,7 @@ export interface Database {
           role: 'admin' | 'seller' | 'transporter'
           username?: string | null
           avatar_url?: string | null
+          role_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -35,10 +37,18 @@ export interface Database {
           role?: 'admin' | 'seller' | 'transporter'
           username?: string | null
           avatar_url?: string | null
+          role_id?: string | null
           created_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       vehicles: {
         Row: {
@@ -319,12 +329,127 @@ export interface Database {
           }
         ]
       }
+      permissions: {
+        Row: {
+          id: string
+          key: string
+          name: string
+          description: string | null
+          module: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          name: string
+          description?: string | null
+          module: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          name?: string
+          description?: string | null
+          module?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      roles: {
+        Row: {
+          id: string
+          name: string
+          display_name: string
+          description: string | null
+          is_system_role: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          display_name: string
+          description?: string | null
+          is_system_role?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          display_name?: string
+          description?: string | null
+          is_system_role?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          id: string
+          role_id: string
+          permission_id: string
+          granted: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          role_id: string
+          permission_id: string
+          granted?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          role_id?: string
+          permission_id?: string
+          granted?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_permissions: {
+        Args: {
+          user_id: string
+        }
+        Returns: {
+          permission_key: string
+          granted: boolean
+        }[]
+      }
+      user_has_permission: {
+        Args: {
+          user_id: string
+          permission_key: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
@@ -347,6 +472,9 @@ export type Event = Tables<'events'>
 export type Message = Tables<'messages'>
 export type Notification = Tables<'notifications'>
 export type UserStatus = Tables<'user_status'>
+export type Permission = Tables<'permissions'>
+export type Role = Tables<'roles'>
+export type RolePermission = Tables<'role_permissions'>
 
 // Insert types
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
@@ -355,6 +483,9 @@ export type TaskInsert = Database['public']['Tables']['tasks']['Insert']
 export type EventInsert = Database['public']['Tables']['events']['Insert']
 export type MessageInsert = Database['public']['Tables']['messages']['Insert']
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert']
+export type PermissionInsert = Database['public']['Tables']['permissions']['Insert']
+export type RoleInsert = Database['public']['Tables']['roles']['Insert']
+export type RolePermissionInsert = Database['public']['Tables']['role_permissions']['Insert']
 
 // Update types
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
@@ -363,6 +494,9 @@ export type TaskUpdate = Database['public']['Tables']['tasks']['Update']
 export type EventUpdate = Database['public']['Tables']['events']['Update']
 export type MessageUpdate = Database['public']['Tables']['messages']['Update']
 export type NotificationUpdate = Database['public']['Tables']['notifications']['Update']
+export type PermissionUpdate = Database['public']['Tables']['permissions']['Update']
+export type RoleUpdate = Database['public']['Tables']['roles']['Update']
+export type RolePermissionUpdate = Database['public']['Tables']['role_permissions']['Update']
 
 
 
