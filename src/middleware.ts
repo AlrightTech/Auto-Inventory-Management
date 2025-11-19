@@ -42,6 +42,12 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  // Exclude certain routes from middleware processing
+  const excludedRoutes = ['/access-denied', '/auth', '/api'];
+  if (excludedRoutes.some(route => pathname.startsWith(route))) {
+    return supabaseResponse;
+  }
+
   // Protected routes
   const protectedRoutes = ['/admin', '/seller', '/transporter'];
   const authRoutes = ['/auth/login', '/auth/register'];

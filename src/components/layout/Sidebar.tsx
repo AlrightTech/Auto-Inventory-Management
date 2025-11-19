@@ -225,140 +225,30 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
             fallback={null}
           >
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              {item.children ? (
-                <div>
-                  <button
-                    onClick={() => toggleExpanded(item.name)}
-                    className={cn(
-                      "w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
-                      "hover:bg-opacity-80"
-                    )}
-                    style={isParentActive(item.children) ? { 
-                      backgroundColor: 'var(--accent)', 
-                      color: 'white',
-                      boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
-                      borderLeft: '3px solid var(--accent)'
-                    } : { 
-                      backgroundColor: 'transparent',
-                      color: 'var(--text)',
-                      borderLeft: '3px solid transparent'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isParentActive(item.children)) {
-                        e.currentTarget.style.backgroundColor = 'var(--muted)';
-                        e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                        const icon = e.currentTarget.querySelector('svg');
-                        const text = e.currentTarget.querySelector('span');
-                        if (icon) icon.style.color = 'var(--text)';
-                        if (text) text.style.color = 'var(--text)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isParentActive(item.children)) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderLeftColor = 'transparent';
-                        const icon = e.currentTarget.querySelector('svg');
-                        const text = e.currentTarget.querySelector('span');
-                        if (icon) icon.style.color = 'var(--text)';
-                        if (text) text.style.color = 'var(--text)';
-                      }
-                    }}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>
-                        {(() => {
-                          const IconComponent = getIcon(item.icon);
-                          return <IconComponent className="w-5 h-5" />;
-                        })()}
-                      </div>
-                      <span style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>{item.name}</span>
-                    </div>
-                    {expandedItems.includes(item.name) ? (
-                      <ChevronDown className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
-                    )}
-                  </button>
-                  
-                  <AnimatePresence>
-                    {expandedItems.includes(item.name) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="ml-8 mt-1 space-y-0.5 border-l pl-3"
-                        style={{ borderColor: 'var(--border)' }}
-                      >
-                        {item.children.map((child) => (
-                          <PermissionGate
-                            key={child.name}
-                            permission={child.permission || item.permission || ''}
-                            fallback={null}
-                          >
-                            <Link
-                              href={child.href}
-                              className={cn(
-                                "block px-3 py-2 text-sm rounded-lg transition-all duration-200 ease-in-out",
-                                "hover:bg-opacity-80"
-                              )}
-                              style={isActive(child.href) ? { 
-                                backgroundColor: 'var(--accent)', 
-                                color: 'white',
-                                boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
-                                borderLeft: '3px solid var(--accent)',
-                                fontWeight: '600'
-                              } : { 
-                                backgroundColor: 'transparent',
-                                color: 'var(--text)',
-                                borderLeft: '3px solid transparent'
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!isActive(child.href)) {
-                                  e.currentTarget.style.backgroundColor = 'var(--muted)';
-                                  e.currentTarget.style.borderLeftColor = 'var(--accent)';
-                                  e.currentTarget.style.color = 'var(--text)';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!isActive(child.href)) {
-                                  e.currentTarget.style.backgroundColor = 'transparent';
-                                  e.currentTarget.style.borderLeftColor = 'transparent';
-                                  e.currentTarget.style.color = 'var(--text)';
-                                }
-                              }}
-                            >
-                              {child.name}
-                            </Link>
-                          </PermissionGate>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <Link
-                  href={item.href!}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            {item.children ? (
+              <div>
+                <button
+                  onClick={() => toggleExpanded(item.name)}
                   className={cn(
-                    "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
+                    "w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
                     "hover:bg-opacity-80"
                   )}
-                  style={isActive(item.href!) ? { 
+                  style={isParentActive(item.children) ? { 
                     backgroundColor: 'var(--accent)', 
                     color: 'white',
                     boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
-                    borderLeft: '3px solid var(--accent)',
-                    fontWeight: '600'
+                    borderLeft: '3px solid var(--accent)'
                   } : { 
                     backgroundColor: 'transparent',
                     color: 'var(--text)',
                     borderLeft: '3px solid transparent'
                   }}
                   onMouseEnter={(e) => {
-                    if (!isActive(item.href!)) {
+                    if (!isParentActive(item.children)) {
                       e.currentTarget.style.backgroundColor = 'var(--muted)';
                       e.currentTarget.style.borderLeftColor = 'var(--accent)';
                       const icon = e.currentTarget.querySelector('svg');
@@ -368,7 +258,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isActive(item.href!)) {
+                    if (!isParentActive(item.children)) {
                       e.currentTarget.style.backgroundColor = 'transparent';
                       e.currentTarget.style.borderLeftColor = 'transparent';
                       const icon = e.currentTarget.querySelector('svg');
@@ -379,25 +269,135 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                   }}
                 >
                   <div className="flex items-center space-x-3">
-                    <div style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>
+                    <div style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>
                       {(() => {
                         const IconComponent = getIcon(item.icon);
                         return <IconComponent className="w-5 h-5" />;
                       })()}
                     </div>
-                    <span style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>{item.name}</span>
+                    <span style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }}>{item.name}</span>
                   </div>
-                  {item.name === 'Chat' && unreadCount > 0 && (
-                    <span 
-                      className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center font-medium" 
-                      style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)' }}
-                    >
-                      {unreadCount}
-                    </span>
+                  {expandedItems.includes(item.name) ? (
+                    <ChevronDown className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" style={{ color: isParentActive(item.children) ? 'white' : 'var(--text)' }} />
                   )}
-                </Link>
-              )}
-            </motion.div>
+                </button>
+                
+                <AnimatePresence>
+                  {expandedItems.includes(item.name) && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="ml-8 mt-1 space-y-0.5 border-l pl-3"
+                      style={{ borderColor: 'var(--border)' }}
+                    >
+                      {item.children.map((child) => (
+                          <PermissionGate
+                            key={child.name}
+                            permission={child.permission || item.permission || ''}
+                            fallback={null}
+                          >
+                        <Link
+                          href={child.href}
+                          className={cn(
+                            "block px-3 py-2 text-sm rounded-lg transition-all duration-200 ease-in-out",
+                            "hover:bg-opacity-80"
+                          )}
+                          style={isActive(child.href) ? { 
+                            backgroundColor: 'var(--accent)', 
+                            color: 'white',
+                            boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
+                            borderLeft: '3px solid var(--accent)',
+                            fontWeight: '600'
+                          } : { 
+                            backgroundColor: 'transparent',
+                            color: 'var(--text)',
+                            borderLeft: '3px solid transparent'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActive(child.href)) {
+                              e.currentTarget.style.backgroundColor = 'var(--muted)';
+                              e.currentTarget.style.borderLeftColor = 'var(--accent)';
+                              e.currentTarget.style.color = 'var(--text)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive(child.href)) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.borderLeftColor = 'transparent';
+                              e.currentTarget.style.color = 'var(--text)';
+                            }
+                          }}
+                        >
+                          {child.name}
+                        </Link>
+                          </PermissionGate>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link
+                href={item.href!}
+                className={cn(
+                  "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
+                  "hover:bg-opacity-80"
+                )}
+                style={isActive(item.href!) ? { 
+                  backgroundColor: 'var(--accent)', 
+                  color: 'white',
+                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.3)',
+                  borderLeft: '3px solid var(--accent)',
+                  fontWeight: '600'
+                } : { 
+                  backgroundColor: 'transparent',
+                  color: 'var(--text)',
+                  borderLeft: '3px solid transparent'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive(item.href!)) {
+                    e.currentTarget.style.backgroundColor = 'var(--muted)';
+                    e.currentTarget.style.borderLeftColor = 'var(--accent)';
+                    const icon = e.currentTarget.querySelector('svg');
+                    const text = e.currentTarget.querySelector('span');
+                    if (icon) icon.style.color = 'var(--text)';
+                    if (text) text.style.color = 'var(--text)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive(item.href!)) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderLeftColor = 'transparent';
+                    const icon = e.currentTarget.querySelector('svg');
+                    const text = e.currentTarget.querySelector('span');
+                    if (icon) icon.style.color = 'var(--text)';
+                    if (text) text.style.color = 'var(--text)';
+                  }
+                }}
+              >
+                <div className="flex items-center space-x-3">
+                  <div style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>
+                    {(() => {
+                      const IconComponent = getIcon(item.icon);
+                      return <IconComponent className="w-5 h-5" />;
+                    })()}
+                  </div>
+                  <span style={{ color: isActive(item.href!) ? 'white' : 'var(--text)' }}>{item.name}</span>
+                </div>
+                {item.name === 'Chat' && unreadCount > 0 && (
+                  <span 
+                    className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center font-medium" 
+                    style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)' }}
+                  >
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+          </motion.div>
           </PermissionGate>
         ))}
       </nav>
