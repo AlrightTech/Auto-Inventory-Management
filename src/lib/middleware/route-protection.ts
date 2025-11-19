@@ -36,16 +36,16 @@ export async function checkRoutePermission(
     return { error: false, supabase, user };
   }
 
-  // Check if user has a profile with role_id
+  // Check if user has a profile with role
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role_id, role')
     .eq('id', user.id)
     .single();
 
-  // If user doesn't have a profile or role, redirect to login
-  if (profileError || !profile || (!profile.role_id && !profile.role)) {
-    console.log(`User ${user.id} doesn't have a profile or role, redirecting to login`);
+  // If user doesn't have a profile, redirect to login
+  if (profileError || !profile) {
+    console.log(`User ${user.id} doesn't have a profile, redirecting to login`);
     return {
       error: true,
       response: NextResponse.redirect(
@@ -54,14 +54,43 @@ export async function checkRoutePermission(
     };
   }
 
-  // Check permission(s)
+  // ADMIN BYPASS: Admin users have access to everything
+  if (profile.role === 'admin') {
+    return { error: false, supabase, user };
+  }
+
+  // For non-admin users, check if they have role_id (for RBAC system)
+  // If they have legacy role but no role_id, still allow (backward compatibility)
+  if (!profile.role_id && profile.role) {
+    // Legacy role exists, allow access (backward compatibility)
+    // But still check permissions if RBAC is set up
+    const hasAccess = Array.isArray(requiredPermission)
+      ? await hasAnyPermission(supabase, user.id, requiredPermission)
+      : await hasPermission(supabase, user.id, requiredPermission);
+    
+    if (hasAccess) {
+      return { error: false, supabase, user };
+    }
+    // If permission check fails, continue to access denied
+  } else if (!profile.role_id && !profile.role) {
+    // No role at all, redirect to login
+    console.log(`User ${user.id} doesn't have a role, redirecting to login`);
+    return {
+      error: true,
+      response: NextResponse.redirect(
+        new URL('/auth/login?error=no_role', request.url)
+      ),
+    };
+  }
+
+  // Check permission(s) for users with role_id (RBAC system)
   const hasAccess = Array.isArray(requiredPermission)
     ? await hasAnyPermission(supabase, user.id, requiredPermission)
     : await hasPermission(supabase, user.id, requiredPermission);
 
   if (!hasAccess) {
     // Log the permission check failure for debugging
-    console.log(`Permission check failed for ${pathname}, user: ${user.id}, required: ${JSON.stringify(requiredPermission)}`);
+    console.log(`Permission check failed for ${pathname}, user: ${user.id}, role: ${profile.role}, required: ${JSON.stringify(requiredPermission)}`);
     
     return {
       error: true,

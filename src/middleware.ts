@@ -75,17 +75,23 @@ export async function middleware(request: NextRequest) {
   // Redirect to dashboard if accessing auth routes while logged in
   if (isAuthRoute && user) {
     // Get user role from database
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, role_id')
       .eq('id', user.id)
       .single();
 
-    if (profile?.role === 'admin' || profile?.role === 'office_staff') {
+    // If profile doesn't exist, allow login page to handle it
+    if (profileError || !profile) {
+      return supabaseResponse;
+    }
+
+    // Redirect based on role
+    if (profile.role === 'admin' || profile.role === 'office_staff') {
       return NextResponse.redirect(new URL('/admin', request.url));
-    } else if (profile?.role === 'seller') {
+    } else if (profile.role === 'seller') {
       return NextResponse.redirect(new URL('/seller', request.url));
-    } else if (profile?.role === 'transporter') {
+    } else if (profile.role === 'transporter') {
       return NextResponse.redirect(new URL('/transporter', request.url));
     }
   }
