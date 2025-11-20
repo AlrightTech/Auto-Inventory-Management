@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/permissions';
+import { logActivity, ACTIVITY_ACTIONS } from '@/lib/activity-logs';
 
 // GET /api/roles/[id] - Get specific role with permissions (admin only)
 export async function GET(
@@ -140,6 +141,21 @@ export async function PATCH(
       );
     }
 
+    // Log activity
+    await logActivity(
+      supabase,
+      authResult.user.id,
+      ACTIVITY_ACTIONS.ROLE_UPDATED,
+      'role',
+      id,
+      {
+        role_id: id,
+        role_name: role.name,
+        changes: updateData,
+      },
+      request
+    );
+
     return NextResponse.json({ data: updatedRole });
   } catch (error) {
     console.error('Error in PATCH /api/roles/[id]:', error);
@@ -202,6 +218,13 @@ export async function DELETE(
       );
     }
 
+    // Get role details before deletion for logging
+    const { data: roleToDelete } = await supabase
+      .from('roles')
+      .select('name, display_name')
+      .eq('id', id)
+      .single();
+
     const { error } = await supabase.from('roles').delete().eq('id', id);
 
     if (error) {
@@ -211,6 +234,20 @@ export async function DELETE(
         { status: 500 }
       );
     }
+
+    // Log activity
+    await logActivity(
+      supabase,
+      authResult.user.id,
+      ACTIVITY_ACTIONS.ROLE_DELETED,
+      'role',
+      id,
+      {
+        role_name: roleToDelete?.name,
+        role_display_name: roleToDelete?.display_name,
+      },
+      request
+    );
 
     return NextResponse.json({ message: 'Role deleted successfully' });
   } catch (error) {

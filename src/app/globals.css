@@ -459,6 +459,13 @@ textarea::placeholder {
   color: #fafafa !important;
 }
 
+/* Dark Mode - Select Item Text Content: Ensure white */
+.dark [data-radix-select-item-text],
+.dark [data-radix-select-item] > span,
+.dark [data-radix-select-item] > *:not([class*="icon"]) {
+  color: #FFFFFF !important;
+}
+
 /* Vehicle Inventory Table ONLY - Enhanced Horizontal Scroll */
 .vehicle-inventory-table {
   overflow-x: auto;
@@ -923,16 +930,223 @@ a:hover:not([style*="backgroundColor: var(--accent)"]) {
   color: #000000 !important;
 }
 
-/* Dark Theme - Keep existing behavior */
+/* ============================================
+   DARK MODE TEXT COLOR ADJUSTMENTS - SETTINGS MODULE
+   All interactive elements must have white text in dark mode
+   ============================================ */
+
+/* Dark Mode - All Buttons: White Text */
 .dark button,
 .dark [role="button"],
-.dark .button {
-  color: var(--text) !important;
+.dark .button,
+.dark button[class*="Button"],
+.dark [data-radix-collection-item][role="button"] {
+  color: #FFFFFF !important;
 }
 
+/* Dark Mode - Button Variants: All have white text */
+.dark button[class*="outline"],
+.dark button[class*="ghost"],
+.dark button[class*="secondary"],
+.dark button[class*="destructive"],
+.dark button[class*="default"],
+.dark button[class*="accent"],
+.dark button[class*="success"],
+.dark button[class*="link"] {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Buttons with accent background: White text */
 .dark button[style*="backgroundColor: var(--accent)"],
-.dark button[style*="background-color: var(--accent)"] {
-  color: white !important;
+.dark button[style*="background-color: var(--accent)"],
+.dark button[style*="backgroundColor:var(--accent)"],
+.dark button[style*="background-color:var(--accent)"] {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Buttons in dialogs, modals, forms: White text */
+.dark [data-radix-dialog-content] button,
+.dark [role="dialog"] button,
+.dark form button,
+.dark .modal button,
+.dark .dialog button {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Button hover, focus, active states: Maintain white text */
+.dark button:hover,
+.dark button:focus,
+.dark button:active,
+.dark button[data-state="open"],
+.dark [role="button"]:hover,
+.dark [role="button"]:focus,
+.dark [role="button"]:active {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Button text spans and content: White */
+.dark button > span,
+.dark button > *:not(svg),
+.dark [role="button"] > span,
+.dark [role="button"] > *:not(svg) {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Input Fields: White text and placeholders */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="search"],
+.dark input[type="number"],
+.dark input[type="tel"],
+.dark input[type="url"],
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="datetime-local"],
+.dark textarea {
+  color: #FFFFFF !important;
+}
+
+.dark input[type="text"]::placeholder,
+.dark input[type="email"]::placeholder,
+.dark input[type="password"]::placeholder,
+.dark input[type="search"]::placeholder,
+.dark input[type="number"]::placeholder,
+.dark input[type="tel"]::placeholder,
+.dark input[type="url"]::placeholder,
+.dark input[type="date"]::placeholder,
+.dark input[type="time"]::placeholder,
+.dark textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Dark Mode - Input focus states: Maintain white text */
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus,
+.dark input[type="search"]:focus,
+.dark input[type="number"]:focus,
+.dark input[type="tel"]:focus,
+.dark input[type="url"]:focus,
+.dark input[type="date"]:focus,
+.dark input[type="time"]:focus,
+.dark textarea:focus {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Select/Dropdown: White text */
+.dark select,
+.dark [data-radix-select-trigger],
+.dark [data-radix-select-value],
+.dark [data-radix-select-item-text] {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Select options: White text */
+.dark [data-radix-select-item],
+.dark [data-radix-select-content] *,
+.dark select option {
+  color: #FFFFFF !important;
+  background-color: var(--card-bg) !important;
+}
+
+/* Dark Mode - Select hover/focus states: Maintain white text */
+.dark [data-radix-select-item]:hover,
+.dark [data-radix-select-item][data-highlighted],
+.dark [data-radix-select-item]:focus,
+.dark [data-radix-select-trigger]:hover,
+.dark [data-radix-select-trigger]:focus {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Dropdown Menu Items: White text */
+.dark [data-radix-dropdown-menu-item],
+.dark [data-radix-dropdown-content] [role="menuitem"],
+.dark [data-radix-dropdown-content] * {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Dropdown hover/focus states: Maintain white text */
+.dark [data-radix-dropdown-menu-item]:hover,
+.dark [data-radix-dropdown-menu-item][data-highlighted],
+.dark [data-radix-dropdown-menu-item]:focus,
+.dark [data-radix-dropdown-content] [role="menuitem"]:hover,
+.dark [data-radix-dropdown-content] [role="menuitem"][data-highlighted] {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Checkbox and Switch Labels: White text */
+.dark label,
+.dark .label,
+.dark [class*="label"],
+.dark label[for] {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Switch component text: White */
+.dark [data-radix-switch-root] + label,
+.dark [data-radix-switch-root] ~ label,
+.dark label:has(+ [data-radix-switch-root]) {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Settings Module Specific: Ensure all text is white */
+.dark [class*="settings"] button,
+.dark [class*="Settings"] button,
+.dark [data-settings-module] button,
+.dark [data-settings-module] input,
+.dark [data-settings-module] select,
+.dark [data-settings-module] textarea,
+.dark [data-settings-module] label {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Form elements in Settings: White text */
+.dark form input,
+.dark form textarea,
+.dark form select,
+.dark form button,
+.dark form label {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Card content in Settings: White text for interactive elements */
+.dark [class*="Card"] button,
+.dark [class*="Card"] input,
+.dark [class*="Card"] select,
+.dark [class*="Card"] textarea,
+.dark [class*="Card"] label {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Dialog/Modal content: White text for all interactive elements */
+.dark [data-radix-dialog-content] input,
+.dark [data-radix-dialog-content] textarea,
+.dark [data-radix-dialog-content] select,
+.dark [data-radix-dialog-content] label,
+.dark [data-radix-dialog-content] button {
+  color: #FFFFFF !important;
+}
+
+.dark [data-radix-dialog-content] input::placeholder,
+.dark [data-radix-dialog-content] textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Dark Mode - Table interactive elements: White text */
+.dark table button,
+.dark table input,
+.dark table select,
+.dark table label {
+  color: #FFFFFF !important;
+}
+
+/* Dark Mode - Ensure no dark text remains in interactive elements */
+.dark button *:not(svg):not([class*="icon"]),
+.dark input *,
+.dark select *,
+.dark textarea * {
+  color: inherit !important;
 }
 
 /* Dropdown menu items hover */

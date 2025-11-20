@@ -255,6 +255,11 @@ export function RoleManagement() {
 
       toast.success('Permissions saved successfully');
       await selectRole(selectedRole.id);
+      
+      // Trigger permission refresh for all users
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('permissions-refresh'));
+      }
     } catch (error) {
       console.error('Error saving permissions:', error);
       toast.error(

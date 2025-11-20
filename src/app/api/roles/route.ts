@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/permissions';
+import { logActivity, ACTIVITY_ACTIONS } from '@/lib/activity-logs';
 
 // GET /api/roles - Get all roles (admin only)
 export async function GET(request: NextRequest) {
@@ -74,6 +75,21 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Log activity
+    await logActivity(
+      supabase,
+      authResult.user.id,
+      ACTIVITY_ACTIONS.ROLE_CREATED,
+      'role',
+      role.id,
+      {
+        role_name: role.name,
+        role_display_name: role.display_name,
+        description: role.description,
+      },
+      request
+    );
 
     return NextResponse.json({ data: role }, { status: 201 });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/permissions';
+import { logActivity, ACTIVITY_ACTIONS } from '@/lib/activity-logs';
 
 // PUT /api/roles/[id]/permissions - Update role permissions (admin only)
 // Body: { permissions: [{ permission_id: string, granted: boolean }] }
@@ -103,6 +104,24 @@ export async function PUT(
         role_permission_id: rolePerm?.id || null,
       };
     });
+
+    // Log activity
+    const grantedCount = permissionsToInsert.length;
+    const revokedCount = permissions.length - grantedCount;
+    await logActivity(
+      supabase,
+      authResult.user.id,
+      ACTIVITY_ACTIONS.ROLE_PERMISSIONS_UPDATED,
+      'role',
+      roleId,
+      {
+        role_id: roleId,
+        granted_count: grantedCount,
+        revoked_count: revokedCount,
+        total_permissions: permissions.length,
+      },
+      request
+    );
 
     return NextResponse.json({
       data: {

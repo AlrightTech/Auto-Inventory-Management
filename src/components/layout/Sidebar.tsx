@@ -28,6 +28,7 @@ import {
   TrendingUp,
   Users,
   FileText,
+  Activity,
 } from 'lucide-react';
 
 interface NavigationItem {
@@ -125,6 +126,12 @@ const defaultNavigation: NavigationItem[] = [
       { name: 'Transporter', href: '/admin/settings/transporter', permission: PERMISSIONS.SETTINGS.TRANSPORTER_MANAGE },
     ],
   },
+  {
+    name: 'Activity Logs',
+    href: '/admin/activity-logs',
+    icon: Activity,
+    permission: PERMISSIONS.SYSTEM.ACTIVITY_LOGS,
+  },
 ];
 
 interface SidebarProps {
@@ -154,6 +161,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   TrendingUp,
   Users,
   FileText,
+  Activity,
 };
 
 export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggle, unreadCount = 0 }: SidebarProps) {
