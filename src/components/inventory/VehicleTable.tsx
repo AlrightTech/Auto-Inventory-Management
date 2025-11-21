@@ -1073,15 +1073,25 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                                 borderColor: 'var(--border)'
                               }}
                             >
-                              {carLocationOptions.map((location) => (
-                                <SelectItem 
-                                  key={location.value} 
-                                  value={location.value}
-                                  style={{ color: 'var(--text)' }}
-                                >
-                                  {location.label}
+                              {isLoadingLocations ? (
+                                <SelectItem value="loading" disabled style={{ color: 'var(--text)' }}>
+                                  Loading...
                                 </SelectItem>
-                              ))}
+                              ) : carLocationOptions.length === 0 ? (
+                                <SelectItem value="no-options" disabled style={{ color: 'var(--text)' }}>
+                                  No options available
+                                </SelectItem>
+                              ) : (
+                                carLocationOptions.map((location) => (
+                                  <SelectItem 
+                                    key={location.value} 
+                                    value={location.value}
+                                    style={{ color: 'var(--text)' }}
+                                  >
+                                    {location.label}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                         )}

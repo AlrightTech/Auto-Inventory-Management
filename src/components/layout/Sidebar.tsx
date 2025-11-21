@@ -62,12 +62,6 @@ const defaultNavigation: NavigationItem[] = [
     ],
   },
   {
-    name: 'Missing Titles',
-    icon: FileText,
-    href: '/admin/missing-titles',
-    permission: PERMISSIONS.TITLE.MISSING_DASHBOARD,
-  },
-  {
     name: 'ARB',
     href: '/admin/arb',
     icon: AlertTriangle,

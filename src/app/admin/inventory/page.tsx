@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -257,11 +256,7 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
             Inventory Management
@@ -284,15 +279,11 @@ export default function InventoryPage() {
           <Plus className="w-4 h-4 mr-2" />
           Add Vehicle
         </Button>
-      </motion.div>
+      </div>
 
       {/* Inventory Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
+        <div>
           <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -306,13 +297,9 @@ export default function InventoryPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div>
           <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -326,13 +313,9 @@ export default function InventoryPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div>
           <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -346,15 +329,11 @@ export default function InventoryPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
 
       {/* Search and Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
+      <div>
         <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
@@ -578,15 +557,10 @@ export default function InventoryPage() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Vehicle Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="mt-6"
-      >
+      <div className="mt-6">
         <VehicleTable 
           onVehicleAdded={() => setRefreshTrigger(prev => prev + 1)} 
           refreshTrigger={refreshTrigger}
@@ -594,7 +568,7 @@ export default function InventoryPage() {
           onExportCSV={(filteredVehicles) => handleExportCSV(filteredVehicles, exportDateFrom, exportDateTo)}
           onExportPDF={(filteredVehicles) => handleExportPDF(filteredVehicles, exportDateFrom, exportDateTo)}
         />
-      </motion.div>
+      </div>
 
       {/* Add Vehicle Modal */}
       <AddVehicleModal 
