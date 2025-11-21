@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,11 +17,11 @@ import {
   Search, 
   Download, 
   FileText,
-  Loader2,
   ChevronLeft,
   ChevronRight,
   CalendarIcon
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/loading-skeleton';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
@@ -87,9 +87,11 @@ export function ProfitPerCarReport() {
     }
   };
 
+  const memoizedLoadData = useCallback(loadData, [page, searchVin, dateFrom, dateTo]);
+
   useEffect(() => {
-    loadData();
-  }, [page, searchVin, dateFrom, dateTo]);
+    memoizedLoadData();
+  }, [memoizedLoadData]);
 
   const handleExportCSV = () => {
     if (data.length === 0) {
@@ -255,8 +257,8 @@ export function ProfitPerCarReport() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
+            <div className="py-8">
+              <TableSkeleton rows={10} cols={11} />
             </div>
           ) : data.length === 0 ? (
             <div className="text-center py-12">

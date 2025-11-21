@@ -15,9 +15,9 @@ import {
 } from '@/components/ui/table';
 import { 
   Download,
-  Loader2,
   Search
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/loading-skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -194,8 +194,8 @@ export function MissingTitlesReport() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
+            <div className="py-8">
+              <TableSkeleton rows={10} cols={6} />
             </div>
           ) : data.length === 0 ? (
             <div className="text-center py-12">

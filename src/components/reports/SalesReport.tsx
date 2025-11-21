@@ -14,11 +14,11 @@ import {
 } from '@/components/ui/table';
 import { 
   Download,
-  Loader2,
   CalendarIcon,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/loading-skeleton';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
@@ -208,8 +208,8 @@ export function SalesReport() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
+            <div className="py-8">
+              <TableSkeleton rows={10} cols={4} />
             </div>
           ) : data.length === 0 ? (
             <div className="text-center py-12">

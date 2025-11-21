@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,14 +215,28 @@ export default function ARBPage() {
   const soldARBCount = vehicles.filter(v => v.arbType === 'sold_arb').length;
   const inventoryARBCount = vehicles.filter(v => v.arbType === 'inventory_arb').length;
 
+  const filteredVehicles = useMemo(() => {
+    return vehicles.filter(vehicle =>
+      vehicle.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [vehicles, searchTerm]);
+
+  const handleOpenOutcomeDialog = useCallback((vehicle: ARBVehicle) => {
+    setSelectedVehicle(vehicle);
+    setOutcome(vehicle.outcome || '');
+    setAdjustmentAmount(vehicle.adjustmentAmount?.toString() || '');
+    setTransportType(vehicle.transportType || '');
+    setTransportCompany(vehicle.transportCompany || '');
+    setTransportCost(vehicle.transportCost?.toString() || '');
+    setShowOutcomeDialog(true);
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
             ARB Management
@@ -238,15 +251,11 @@ export default function ARBPage() {
             Export
           </Button>
         </div>
-      </motion.div>
+      </div>
 
       {/* ARB Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
+        <div>
           <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -260,13 +269,9 @@ export default function ARBPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div>
           <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -280,13 +285,9 @@ export default function ARBPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div>
           <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -300,13 +301,9 @@ export default function ARBPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+        <div>
           <Card className="dashboard-card neon-glow instrument-cluster">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -320,15 +317,11 @@ export default function ARBPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
 
       {/* Search and Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
+      <div>
         <Card className="dashboard-card neon-glow instrument-cluster">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -350,14 +343,10 @@ export default function ARBPage() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* ARB Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
+      <div>
         <Card className="dashboard-card neon-glow instrument-cluster">
           <CardHeader>
             <CardTitle style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
@@ -400,13 +389,10 @@ export default function ARBPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredVehicles.map((vehicle, index) => (
-                    <motion.tr
+                  {filteredVehicles.map((vehicle) => (
+                    <TableRow
                       key={vehicle.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/30 transition-colors"
+                      className="border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/30"
                     >
                       <TableCell style={{ color: 'var(--text)' }}>
                         <div>
@@ -474,14 +460,14 @@ export default function ARBPage() {
                           </DropdownMenu>
                         </div>
                       </TableCell>
-                    </motion.tr>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
             )}
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Outcome Dialog */}
       <Dialog open={showOutcomeDialog} onOpenChange={setShowOutcomeDialog}>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfitPerCarReport } from '@/components/reports/ProfitPerCarReport';
@@ -17,11 +16,7 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold" style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
             Reports & Analytics
@@ -30,14 +25,10 @@ export default function ReportsPage() {
             Comprehensive financial and operational reports based on finalized data.
           </p>
         </div>
-      </motion.div>
+      </div>
 
       {/* Reports Tabs */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
+      <div>
         <Card className="dashboard-card neon-glow instrument-cluster">
           <CardHeader>
             <CardTitle style={{ color: 'var(--accent)', letterSpacing: '0.5px' }}>
@@ -109,7 +100,7 @@ export default function ReportsPage() {
             </Tabs>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }

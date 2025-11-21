@@ -14,9 +14,9 @@ import {
 } from '@/components/ui/table';
 import { 
   Download,
-  Loader2,
   CalendarIcon
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/loading-skeleton';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,10 +34,14 @@ interface ProfitSummaryData {
   vehicles: any[];
 }
 
-export function ProfitSummaryReport() {
+interface ProfitSummaryReportProps {
+  defaultPeriod?: 'weekly' | 'monthly';
+}
+
+export function ProfitSummaryReport({ defaultPeriod = 'weekly' }: ProfitSummaryReportProps) {
   const [data, setData] = useState<ProfitSummaryData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
+  const [period, setPeriod] = useState<'weekly' | 'monthly'>(defaultPeriod);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
 
@@ -227,8 +231,8 @@ export function ProfitSummaryReport() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
+            <div className="py-8">
+              <TableSkeleton rows={10} cols={6} />
             </div>
           ) : data.length === 0 ? (
             <div className="text-center py-12">
