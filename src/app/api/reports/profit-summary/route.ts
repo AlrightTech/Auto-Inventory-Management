@@ -52,6 +52,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch vehicles' }, { status: 500 });
     }
 
+    if (!vehicles || vehicles.length === 0) {
+      return NextResponse.json({ data: [] });
+    }
+
     // Get all vehicle IDs
     const vehicleIds = vehicles.map(v => v.id);
 
@@ -72,14 +76,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate profit for each vehicle and group by period
-    const periodData: Record<string, {
+    interface PeriodData {
       totalProfit: number;
       totalLoss: number;
       vehiclesSold: number;
       vehicles: any[];
-    }> = {};
+    }
+    
+    const periodData: Record<string, PeriodData> = {};
 
-    vehicles.forEach(vehicle => {
+    vehicles.forEach((vehicle: any) => {
       const boughtPrice = Number(vehicle.bought_price) || 0;
       const buyFee = Number(vehicle.buy_fee) || 0;
       const otherCharges = Number(vehicle.other_charges) || 0;
@@ -137,18 +143,24 @@ export async function GET(request: NextRequest) {
         profit,
         saleDate: vehicle.sale_date,
       });
-    }
+    });
 
     // Convert to array and calculate averages
-    const summary = Object.entries(periodData).map(([period, data]) => ({
-      period,
-      totalProfit: data.totalProfit,
-      totalLoss: data.totalLoss,
-      netProfit: data.totalProfit - data.totalLoss,
-      vehiclesSold: data.vehiclesSold,
-      averageProfit: data.vehiclesSold > 0 ? (data.totalProfit - data.totalLoss) / data.vehiclesSold : 0,
-      vehicles: data.vehicles,
-    })).sort((a, b) => {
+    const summaryEntries = Object.entries(periodData);
+    const summary = summaryEntries.map((entry: [string, PeriodData]) => {
+      const [period, data] = entry;
+      return {
+        period,
+        totalProfit: data.totalProfit,
+        totalLoss: data.totalLoss,
+        netProfit: data.totalProfit - data.totalLoss,
+        vehiclesSold: data.vehiclesSold,
+        averageProfit: data.vehiclesSold > 0 ? (data.totalProfit - data.totalLoss) / data.vehiclesSold : 0,
+        vehicles: data.vehicles,
+      };
+    });
+    
+    summary.sort((a, b) => {
       // Sort by period (most recent first)
       return b.period.localeCompare(a.period);
     });
