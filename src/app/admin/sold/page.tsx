@@ -228,8 +228,30 @@ export default function SoldPage() {
     }
   };
 
-  const handleMoveToARB = (vehicleId: string) => {
-    handleStatusChange(vehicleId, 'ARB');
+  const handleMoveToARB = async (vehicleId: string) => {
+    try {
+      const response = await fetch('/api/vehicles/arb', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vehicleId,
+          arbType: 'sold_arb',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to initiate ARB');
+      }
+
+      toast.success('ARB initiated successfully. Vehicle moved to ARB tab.');
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error: any) {
+      console.error('Error initiating ARB:', error);
+      toast.error(error.message || 'Failed to initiate ARB');
+    }
   };
 
   const handleMoveToWithdrew = (vehicleId: string) => {

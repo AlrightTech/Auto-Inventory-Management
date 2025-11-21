@@ -295,6 +295,43 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
     }
   };
 
+  // Handle initiate ARB for inventory vehicles
+  const handleInitiateARB = async (vehicleId: string, vehicleInfo: string) => {
+    if (!confirm(`Initiate ARB for ${vehicleInfo}? This will move the vehicle to the ARB tab.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/vehicles/arb', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vehicleId,
+          arbType: 'inventory_arb',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to initiate ARB');
+      }
+
+      toast.success('ARB initiated successfully. Vehicle moved to ARB tab.');
+      // Update local state
+      setVehicles(prev => prev.map(v => 
+        v.id === vehicleId ? { ...v, status: 'ARB' as const } : v
+      ));
+      if (onVehicleAdded) {
+        onVehicleAdded();
+      }
+    } catch (error: any) {
+      console.error('Error initiating ARB:', error);
+      toast.error(error.message || 'Failed to initiate ARB');
+    }
+  };
+
   // Handle checkbox selection
   const handleSelectVehicle = (vehicleId: string, checked: boolean) => {
     setSelectedVehicles(prev => {
@@ -1163,6 +1200,15 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                               )}
                               {isMarkingAsSold === vehicle.id ? 'Updating...' : 'Mark as Sold'}
                             </DropdownMenuItem>
+                            {(vehicle.status === 'Pending' || vehicle.status === 'In Progress') && (
+                              <DropdownMenuItem 
+                                onClick={() => handleInitiateARB(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
+                                style={{ color: 'var(--text)' }}
+                              >
+                                <AlertTriangle className="mr-2 h-4 w-4" />
+                                Initiate ARB
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem 
                               style={{ color: 'var(--text)' }}
                               onClick={() => handleDownloadVehicle(vehicle)}
