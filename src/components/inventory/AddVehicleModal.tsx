@@ -1273,7 +1273,7 @@ export function AddVehicleModal({ isOpen, onClose, onVehicleAdded, vehicleToEdit
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={handleClose}
+                      onClick={() => handleClose(false)}
                       className="h-11 px-6"
                       style={{ 
                         backgroundColor: 'transparent', 

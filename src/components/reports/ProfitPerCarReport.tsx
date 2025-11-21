@@ -54,7 +54,7 @@ export function ProfitPerCarReport() {
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams();
@@ -85,13 +85,11 @@ export function ProfitPerCarReport() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const memoizedLoadData = useCallback(loadData, [page, searchVin, dateFrom, dateTo]);
+  }, [page, searchVin, dateFrom, dateTo]);
 
   useEffect(() => {
-    memoizedLoadData();
-  }, [memoizedLoadData]);
+    loadData();
+  }, [loadData]);
 
   const handleExportCSV = () => {
     if (data.length === 0) {

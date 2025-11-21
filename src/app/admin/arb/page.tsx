@@ -129,22 +129,6 @@ export default function ARBPage() {
     loadARBVehicles();
   }, [refreshTrigger]);
 
-  const filteredVehicles = vehicles.filter(vehicle =>
-    vehicle.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleOpenOutcomeDialog = (vehicle: ARBVehicle) => {
-    setSelectedVehicle(vehicle);
-    setOutcome(vehicle.outcome || '');
-    setAdjustmentAmount(vehicle.adjustmentAmount?.toString() || '');
-    setTransportType(vehicle.transportType || '');
-    setTransportCompany(vehicle.transportCompany || '');
-    setTransportCost(vehicle.transportCost?.toString() || '');
-    setShowOutcomeDialog(true);
-  };
-
   const handleSaveOutcome = async () => {
     if (!selectedVehicle || !outcome) {
       toast.error('Please select an outcome');
