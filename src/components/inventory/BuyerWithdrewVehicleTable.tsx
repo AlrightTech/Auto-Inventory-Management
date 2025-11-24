@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
 import { ViewVehicleModal } from './ViewVehicleModal';
-import { AddVehicleModal } from './AddVehicleModal';
 import { Package } from 'lucide-react';
 
 interface BuyerWithdrewVehicleTableProps {
@@ -20,13 +20,13 @@ export function BuyerWithdrewVehicleTable({
   searchTerm, 
   onVehicleUpdated 
 }: BuyerWithdrewVehicleTableProps) {
+  const router = useRouter();
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [filteredVehicles, setFilteredVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithRelations | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Load vehicles from API and filter for 'Withdrew' status
   useEffect(() => {
@@ -101,8 +101,7 @@ export function BuyerWithdrewVehicleTable({
   };
 
   const handleEdit = (vehicle: VehicleWithRelations) => {
-    setSelectedVehicle(vehicle);
-    setIsEditModalOpen(true);
+    router.push(`/admin/inventory/edit/${vehicle.id}`);
   };
 
   if (isLoading) {
@@ -231,22 +230,6 @@ export function BuyerWithdrewVehicleTable({
         />
       )}
 
-      {/* Edit Vehicle Modal */}
-      {selectedVehicle && (
-        <AddVehicleModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedVehicle(null);
-          }}
-          vehicleToEdit={selectedVehicle}
-          onVehicleAdded={() => {
-            onVehicleUpdated();
-            setIsEditModalOpen(false);
-            setSelectedVehicle(null);
-          }}
-        />
-      )}
     </>
   );
 }
