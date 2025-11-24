@@ -38,26 +38,30 @@ function LoginPageContent() {
     resolver: zodResolver(loginSchema),
   });
   
-  // Check if environment variables are available
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Configuration Error</h1>
-          <p className="text-slate-400">Supabase environment variables are not configured.</p>
-        </div>
-      </div>
-    );
-  }
-  
   const supabase = createClient();
+  
+  // Check if environment variables are available (client-side check)
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setError('Configuration error: Supabase environment variables are not configured. Please contact support.');
+    }
+  }, []);
 
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
     setError('');
 
     try {
+      // Verify Supabase client is properly initialized
+      if (!supabase || typeof supabase.auth?.signInWithPassword !== 'function') {
+        setError('Supabase client is not properly initialized. Please check your environment variables.');
+        setIsLoading(false);
+        return;
+      }
+
       console.log('Attempting to sign in with email:', data.email);
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing');
+      console.log('Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing');
       
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
