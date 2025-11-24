@@ -69,13 +69,34 @@ export async function requireAdmin(redirectTo: string = '/admin'): Promise<void>
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, role_id, role_data:roles(name)')
+      .select('role, role_id')
       .eq('id', user.id)
       .single();
 
-    if (!isAdmin(profile)) {
-      redirect(redirectTo);
+    if (!profile) {
+      redirect('/auth/login');
     }
+
+    // Check legacy admin role
+    if (profile.role === 'admin') {
+      return; // Allow access
+    }
+
+    // Check RBAC Super Admin role
+    if (profile.role_id) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('roles')
+        .select('name')
+        .eq('id', profile.role_id)
+        .maybeSingle();
+      
+      if (!roleError && roleData?.name === 'Super Admin') {
+        return; // Allow access
+      }
+    }
+
+    // Not an admin, redirect
+    redirect(redirectTo);
   } catch (error) {
     console.error('Error checking admin:', error);
     redirect('/auth/login');

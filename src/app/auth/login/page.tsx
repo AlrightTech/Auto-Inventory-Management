@@ -130,6 +130,8 @@ function LoginPageContent() {
         }
 
         console.log('User profile:', profile);
+        console.log('Profile role:', profile?.role);
+        console.log('Profile role_id:', profile?.role_id);
 
         // Check new RBAC system first (role_id)
         if (profile?.role_id) {
@@ -141,7 +143,11 @@ function LoginPageContent() {
               .eq('id', profile.role_id)
               .maybeSingle();
             
+            console.log('Role data:', roleData);
+            console.log('Role error:', roleError);
+            
             if (!roleError && roleData?.name === 'Super Admin') {
+              console.log('Redirecting to /admin (Super Admin)');
               router.push('/admin');
               return;
             }
@@ -153,12 +159,16 @@ function LoginPageContent() {
 
         // Fallback to old role field for backward compatibility
         if (profile?.role === 'admin') {
+          console.log('Redirecting to /admin (legacy admin role)');
           router.push('/admin');
         } else if (profile?.role === 'seller') {
+          console.log('Redirecting to /seller');
           router.push('/seller');
         } else if (profile?.role === 'transporter') {
+          console.log('Redirecting to /transporter');
           router.push('/transporter');
         } else {
+          console.log('No matching role, redirecting to /');
           router.push('/');
         }
       }

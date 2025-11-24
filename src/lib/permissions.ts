@@ -123,10 +123,16 @@ export function getDefaultPermissions(): RolePermissions {
 }
 
 /**
- * Check if user is admin (legacy role or Admin role)
+ * Check if user is admin (legacy role or Super Admin role)
+ * This function checks the legacy 'admin' role field
+ * For RBAC system, check role_id separately
  */
 export function isAdmin(profile: { role?: string; role_data?: { name: string } | null } | null): boolean {
   if (!profile) return false;
-  return profile.role === 'admin' || profile.role_data?.name === 'Super Admin';
+  // Check legacy role field
+  if (profile.role === 'admin') return true;
+  // Check RBAC system if role_data is available
+  if (profile.role_data?.name === 'Super Admin') return true;
+  return false;
 }
 
