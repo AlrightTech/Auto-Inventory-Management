@@ -1,0 +1,55 @@
+5a0fd4a - AyeshaMaqsood9, 3 minutes ago : updated bugs
+c54806b - AyeshaMaqsood9, 8 hours ago : Build fixes
+49c40aa - AyeshaMaqsood9, 10 hours ago : Sidebar fixes
+333a2d7 - AyeshaMaqsood9, 11 hours ago : deployment fixes
+52dd2cf - AyeshaMaqsood9, 12 hours ago : Reports Module Implementation
+471573c - AyeshaMaqsood9, 13 hours ago : ARB Implementations
+382a40f - AyeshaMaqsood9, 30 hours ago : RBAC implementation
+3394d07 - AyeshaMaqsood9, 2 days ago : fixed admin login bypass permission check
+ced74a9 - AyeshaMaqsood9, 2 days ago : deployment fixes
+233b6a6 - AyeshaMaqsood9, 2 days ago : Railway deployments
+e3cfbca - AyeshaMaqsood9, 3 days ago : RBAC detailed implementation
+158a865 - AyeshaMaqsood9, 3 days ago : updated the UI of RBAC and implementation of new Roles
+a1fae1b - AyeshaMaqsood9, 3 days ago : RBAC implementation
+06f2326 - AyeshaMaqsood9, 8 days ago : vehicle api's fixs
+4686941 - AyeshaMaqsood9, 8 days ago : ADD VEHICLE Module implemented
+76e931f - AyeshaMaqsood9, 9 days ago : removed add vehicle button
+c282bef - AyeshaMaqsood9, 9 days ago : revert add vehicle module changings
+ff04ab4 - AyeshaMaqsood9, 9 days ago : vehicles fixes
+adc55d6 - AyeshaMaqsood9, 9 days ago : vehicle page updated
+8531664 - AyeshaMaqsood9, 9 days ago : build fixs
+21787f9 - AyeshaMaqsood9, 9 days ago : UI / add vehicles
+e29d68d - AyeshaMaqsood9, 10 days ago : modal issue
+89cadcd - AyeshaMaqsood9, 11 days ago : improved the UI
+d74829e - AyeshaMaqsood9, 11 days ago : Updated the UI for add vehicle form
+ed2123f - AyeshaMaqsood9, 11 days ago : Toggle button UI fixed
+ce80b8f - AyeshaMaqsood9, 11 days ago : UI updated User Management
+6777288 - AyeshaMaqsood9, 11 days ago : UI fixes , icons and column removed
+2c34663 - AyeshaMaqsood9, 12 days ago : JOb management module
+f250f21 - AyeshaMaqsood9, 13 days ago : Tasks displayed issue
+604b6cb - AyeshaMaqsood9, 13 days ago : updated the UI For details vehicle page
+38a59c8 - AyeshaMaqsood9, 13 days ago : button ui updated
+c468d8b - AyeshaMaqsood9, 13 days ago : applied UI fixes
+40318bd - AyeshaMaqsood9, 13 days ago : remove image and dents feature
+f3a9ec8 - AyeshaMaqsood9, 13 days ago : bucket set
+718c241 - AyeshaMaqsood9, 13 days ago : builf fixes
+069681b - AyeshaMaqsood9, 13 days ago : implemented dents feature
+c1fc2cb - AyeshaMaqsood9, 13 days ago : tasks tab fixed
+2fb103a - AyeshaMaqsood9, 13 days ago : border issues fixes
+8ced285 - AyeshaMaqsood9, 13 days ago : All tabs fixed
+faf8e7a - AyeshaMaqsood9, 13 days ago : siebar hover issue fixed
+09e9ea0 - AyeshaMaqsood9, 2 weeks ago : server error fixed
+64fb169 - AyeshaMaqsood9, 2 weeks ago : UI fixed for light mode
+09d1618 - AyeshaMaqsood9, 2 weeks ago : Central dispatched Implemented
+ec2d43a - AyeshaMaqsood9, 2 weeks ago : Fixed Update all button
+e0db212 - AyeshaMaqsood9, 2 weeks ago : add missing tables in DB for dropdown
+1df3b0e - AyeshaMaqsood9, 2 weeks ago : add expense buttons fixed
+e2c4196 - AyeshaMaqsood9, 2 weeks ago : Parts & expense tab issue fixed
+137bedb - AyeshaMaqsood9, 2 weeks ago : Status dropdown issues fixes
+fbb37ab - AyeshaMaqsood9, 2 weeks ago : tasks tab issue and rows UI fixed
+a4427f4 - AyeshaMaqsood9, 2 weeks ago : Details tabs issue fixed
+25dc87b - AyeshaMaqsood9, 2 weeks ago : ADD CI/CD Pipelines
+d9ed813 - AyeshaMaqsood9, 2 weeks ago : build fixes
+1aa0018 - AyeshaMaqsood9, 2 weeks ago : Dispacthed, Timeline and Taks Tabs implmented
+c987eb4 - AyeshaMaqsood9, 2 weeks ago : details page implemented
+c8fb908 - AyeshaMaqsood9, 2 weeks ago : Vehicles Details Tabs Iplemented
