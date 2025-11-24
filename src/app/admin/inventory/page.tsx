@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AddVehicleModal } from '@/components/inventory/AddVehicleModal';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
 import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, FileText, CalendarIcon } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import * as XLSX from 'xlsx';
 
 export default function InventoryPage() {
-  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -271,7 +271,7 @@ export default function InventoryPage() {
           </p>
         </div>
         <Button 
-          onClick={() => setIsAddVehicleModalOpen(true)}
+          onClick={() => router.push('/admin/inventory/add')}
           className="control-panel neon-glow"
           style={{
             backgroundColor: 'var(--accent)',
@@ -596,14 +596,6 @@ export default function InventoryPage() {
         />
       </motion.div>
 
-      {/* Add Vehicle Modal */}
-      <AddVehicleModal 
-        isOpen={isAddVehicleModalOpen}
-        onClose={() => setIsAddVehicleModalOpen(false)}
-        onVehicleAdded={() => {
-          setRefreshTrigger(prev => prev + 1);
-        }}
-      />
 
     </div>
   );

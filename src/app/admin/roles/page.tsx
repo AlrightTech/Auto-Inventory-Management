@@ -459,7 +459,8 @@ export default function RolesPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Create/Edit Role Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
