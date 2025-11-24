@@ -49,14 +49,19 @@ export async function GET(request: NextRequest) {
 
         // Check new RBAC system first (role_id)
         if (profile?.role_id) {
-          const { data: roleData } = await supabase
-            .from('roles')
-            .select('name')
-            .eq('id', profile.role_id)
-            .single();
-          
-          if (roleData?.name === 'Super Admin') {
-            return NextResponse.redirect(`${origin}/admin`);
+          try {
+            const { data: roleData, error: roleError } = await supabase
+              .from('roles')
+              .select('name')
+              .eq('id', profile.role_id)
+              .maybeSingle();
+            
+            if (!roleError && roleData?.name === 'Super Admin') {
+              return NextResponse.redirect(`${origin}/admin`);
+            }
+          } catch (error) {
+            console.error('Error fetching role in callback:', error);
+            // Fall through to legacy role check
           }
         }
         

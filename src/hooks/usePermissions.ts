@@ -33,13 +33,10 @@ export function usePermissions(): UsePermissionsReturn {
         return;
       }
 
-      // Get profile with role data
+      // Get profile with role data (handle RLS gracefully)
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          role_data:roles(*)
-        `)
+        .select('*')
         .eq('id', user.id)
         .single();
 
@@ -53,17 +50,58 @@ export function usePermissions(): UsePermissionsReturn {
 
       setProfile(profileData as ProfileWithRole);
 
-      // If user has role_data, use its permissions
-      // Otherwise, check legacy role and load default permissions
-      if (profileData.role_data) {
-        setPermissions((profileData.role_data as any).permissions);
+      // If user has role_id, fetch role permissions separately
+      if (profileData.role_id) {
+        try {
+          const { data: roleData, error: roleError } = await supabase
+            .from('roles')
+            .select('permissions, name')
+            .eq('id', profileData.role_id)
+            .maybeSingle();
+          
+          if (!roleError && roleData) {
+            setPermissions(roleData.permissions as RolePermissions);
+            // Update profile with role data for isAdmin check
+            setProfile({ ...profileData, role_data: roleData } as ProfileWithRole);
+          } else {
+            console.error('Error fetching role:', roleError);
+            // Fall through to legacy role check
+            if (profileData.role === 'admin') {
+              // Load Super Admin role permissions
+              const { data: superAdminRole } = await supabase
+                .from('roles')
+                .select('permissions')
+                .eq('name', 'Super Admin')
+                .maybeSingle();
+              
+              if (superAdminRole) {
+                setPermissions(superAdminRole.permissions as RolePermissions);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading role permissions:', error);
+          // Fall through to legacy role check
+          if (profileData.role === 'admin') {
+            // Load Super Admin role permissions
+            const { data: superAdminRole } = await supabase
+              .from('roles')
+              .select('permissions')
+              .eq('name', 'Super Admin')
+              .maybeSingle();
+            
+            if (superAdminRole) {
+              setPermissions(superAdminRole.permissions as RolePermissions);
+            }
+          }
+        }
       } else if (profileData.role === 'admin') {
         // Load Super Admin role permissions (Admin role was removed)
         const { data: superAdminRole } = await supabase
           .from('roles')
           .select('permissions')
           .eq('name', 'Super Admin')
-          .single();
+          .maybeSingle();
         
         if (superAdminRole) {
           setPermissions(superAdminRole.permissions as RolePermissions);

@@ -130,15 +130,20 @@ function LoginPageContent() {
         // Check new RBAC system first (role_id)
         if (profile?.role_id) {
           // Fetch role name to determine redirect
-          const { data: roleData } = await supabase
-            .from('roles')
-            .select('name')
-            .eq('id', profile.role_id)
-            .single();
-          
-          if (roleData?.name === 'Super Admin') {
-            router.push('/admin');
-            return;
+          try {
+            const { data: roleData, error: roleError } = await supabase
+              .from('roles')
+              .select('name')
+              .eq('id', profile.role_id)
+              .maybeSingle();
+            
+            if (!roleError && roleData?.name === 'Super Admin') {
+              router.push('/admin');
+              return;
+            }
+          } catch (error) {
+            console.error('Error fetching role:', error);
+            // Fall through to legacy role check
           }
         }
 

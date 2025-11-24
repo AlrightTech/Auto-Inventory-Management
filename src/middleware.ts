@@ -59,15 +59,26 @@ export async function middleware(request: NextRequest) {
     // Get user role from database (check both old role field and new role_id)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, role_id, roles(name)')
+      .select('role, role_id')
       .eq('id', user.id)
       .single();
 
     // Check new RBAC system first (role_id)
     if (profile?.role_id) {
-      const roleName = (profile.roles as any)?.name;
-      if (roleName === 'Super Admin') {
-        return NextResponse.redirect(new URL('/admin', request.url));
+      try {
+        // Fetch role name separately to avoid RLS issues
+        const { data: roleData, error: roleError } = await supabase
+          .from('roles')
+          .select('name')
+          .eq('id', profile.role_id)
+          .maybeSingle();
+        
+        if (!roleError && roleData?.name === 'Super Admin') {
+          return NextResponse.redirect(new URL('/admin', request.url));
+        }
+      } catch (error) {
+        console.error('Error fetching role in middleware:', error);
+        // Fall through to legacy role check
       }
     }
     
