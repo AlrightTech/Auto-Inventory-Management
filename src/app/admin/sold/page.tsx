@@ -30,10 +30,12 @@ import {
   TrendingUp,
   TrendingDown,
   FileText,
-  Loader2
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { ARBOutcomeModal } from '@/components/arb/ARBOutcomeModal';
 
 interface SoldVehicle {
   id: string;
@@ -44,6 +46,7 @@ interface SoldVehicle {
   boughtPrice: number;
   buyFee?: number;
   otherCharges?: number;
+  totalExpenses?: number;
   totalCost?: number;
   soldPrice: number;
   netProfit: number;
@@ -88,6 +91,8 @@ export default function SoldPage() {
   const [vehicles, setVehicles] = useState<SoldVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [arbModalOpen, setArbModalOpen] = useState(false);
+  const [selectedVehicleForArb, setSelectedVehicleForArb] = useState<string | null>(null);
 
   // Load sold vehicles from API
   useEffect(() => {
@@ -121,7 +126,7 @@ export default function SoldPage() {
   );
 
   const totalSales = vehicles.reduce((sum, vehicle) => sum + (vehicle.soldPrice || 0), 0);
-  const totalPurchases = vehicles.reduce((sum, vehicle) => sum + ((vehicle.boughtPrice || 0) + (vehicle.buyFee || 0) + (vehicle.otherCharges || 0)), 0);
+  const totalPurchases = vehicles.reduce((sum, vehicle) => sum + ((vehicle.boughtPrice || 0) + (vehicle.buyFee || 0) + (vehicle.otherCharges || 0) + (vehicle.totalExpenses || 0)), 0);
   const totalProfit = vehicles.reduce((sum, vehicle) => sum + (vehicle.netProfit || 0), 0);
   const avgPrice = vehicles.length > 0 ? totalSales / vehicles.length : 0;
 
@@ -194,8 +199,9 @@ export default function SoldPage() {
           const boughtPrice = updatedVehicle.boughtPrice || 0;
           const buyFee = updatedVehicle.buyFee || 0;
           const otherCharges = updatedVehicle.otherCharges || 0;
+          const totalExpenses = updatedVehicle.totalExpenses || 0;
           const soldPrice = updatedVehicle.soldPrice || 0;
-          updatedVehicle.totalCost = boughtPrice + buyFee + otherCharges;
+          updatedVehicle.totalCost = boughtPrice + buyFee + otherCharges + totalExpenses;
           updatedVehicle.netProfit = soldPrice - updatedVehicle.totalCost;
           
           return updatedVehicle;
@@ -228,8 +234,33 @@ export default function SoldPage() {
     }
   };
 
-  const handleMoveToARB = (vehicleId: string) => {
-    handleStatusChange(vehicleId, 'ARB');
+  const handleInitiateARB = async (vehicleId: string) => {
+    try {
+      const response = await fetch(`/api/vehicles/${vehicleId}/arb/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ arb_type: 'Sold ARB' }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to initiate ARB');
+      }
+
+      setSelectedVehicleForArb(vehicleId);
+      setArbModalOpen(true);
+      toast.success('ARB initiated successfully');
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error: any) {
+      console.error('Error initiating ARB:', error);
+      toast.error(error.message || 'Failed to initiate ARB');
+    }
+  };
+
+  const handleARBOutcomeSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleMoveToWithdrew = (vehicleId: string) => {
@@ -494,10 +525,12 @@ export default function SoldPage() {
                             }}
                           >
                             <DropdownMenuItem
-                              onClick={() => handleMoveToARB(vehicle.id)}
+                              onClick={() => handleInitiateARB(vehicle.id)}
+                              disabled={vehicle.status === 'Pending Arbitration'}
                               style={{ color: 'var(--text)' }}
                             >
-                              Move to ARB
+                              <AlertTriangle className="w-4 h-4 mr-2" />
+                              {vehicle.status === 'Pending Arbitration' ? 'ARB in Progress' : 'Initiate ARB'}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleMoveToWithdrew(vehicle.id)}
@@ -525,6 +558,20 @@ export default function SoldPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* ARB Outcome Modal */}
+      {selectedVehicleForArb && (
+        <ARBOutcomeModal
+          isOpen={arbModalOpen}
+          onClose={() => {
+            setArbModalOpen(false);
+            setSelectedVehicleForArb(null);
+          }}
+          vehicleId={selectedVehicleForArb}
+          arbType="Sold ARB"
+          onSuccess={handleARBOutcomeSuccess}
+        />
+      )}
     </div>
   );
 }

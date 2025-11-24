@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,10 +25,7 @@ import {
   User,
   TrendingUp,
   Users,
-  Shield,
 } from 'lucide-react';
-import { usePermissions } from '@/hooks/usePermissions';
-import { filterNavigationByPermissions } from '@/lib/navigation-permissions';
 
 const defaultNavigation = [
   {
@@ -44,17 +41,15 @@ const defaultNavigation = [
   {
     name: 'Inventory',
     icon: Package,
-    permission: 'inventory.view',
     children: [
-      { name: 'All', href: '/admin/inventory', permission: 'inventory.view' },
-      { name: 'Buyer Withdrew', href: '/admin/inventory/buyer-withdrew', permission: 'inventory.view' },
+      { name: 'All', href: '/admin/inventory' },
+      { name: 'Buyer Withdrew', href: '/admin/inventory/buyer-withdrew' },
     ],
   },
   {
     name: 'ARB',
     href: '/admin/arb',
     icon: AlertTriangle,
-    permission: 'arb.access',
   },
   {
     name: 'Events',
@@ -70,17 +65,15 @@ const defaultNavigation = [
     name: 'Sold',
     href: '/admin/sold',
     icon: DollarSign,
-    permission: 'sold.view',
   },
   {
     name: 'Accounting',
     icon: BarChart3,
-    permission: 'accounting.accounting_page',
     children: [
-      { name: 'Summary', href: '/admin/accounting', permission: 'accounting.accounting_page' },
-      { name: 'Purchases', href: '/admin/accounting/purchases', permission: 'accounting.accounting_page' },
-      { name: 'Sold', href: '/admin/accounting/sold', permission: 'accounting.accounting_page' },
-      { name: 'Reports', href: '/admin/accounting/reports', permission: 'accounting.accounting_page' },
+      { name: 'Summary', href: '/admin/accounting' },
+      { name: 'Purchases', href: '/admin/accounting/purchases' },
+      { name: 'Sold', href: '/admin/accounting/sold' },
+      { name: 'Reports', href: '/admin/accounting/reports' },
     ],
   },
   {
@@ -92,13 +85,6 @@ const defaultNavigation = [
     name: 'User Management',
     href: '/admin/users',
     icon: Users,
-    permission: 'user_management.view_users',
-  },
-  {
-    name: 'Role Management',
-    href: '/admin/roles',
-    icon: Shield,
-    permission: 'user_management.create_roles',
   },
   {
     name: 'Settings',
@@ -144,16 +130,6 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggle, unreadCount = 0 }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const pathname = usePathname();
-  const { permissions, isAdmin } = usePermissions();
-
-  // Filter navigation based on permissions
-  const filteredNavigation = useMemo(() => {
-    // Admin always sees everything
-    if (isAdmin()) {
-      return navigation;
-    }
-    return filterNavigationByPermissions(navigation, permissions);
-  }, [navigation, permissions, isAdmin]);
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems(prev =>
@@ -213,7 +189,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
-        {filteredNavigation.map((item, index) => (
+        {navigation.map((item, index) => (
           <motion.div
             key={item.name}
             initial={{ opacity: 0, x: -20 }}

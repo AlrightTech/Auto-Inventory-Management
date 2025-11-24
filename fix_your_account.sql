@@ -26,3 +26,4 @@ WHERE p.email = 'admin@autoinventory.com';
 -- is_system_role: true
 -- description: Ultimate system administrator with full access...
 
+

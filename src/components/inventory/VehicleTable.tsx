@@ -33,7 +33,8 @@ import {
   Trash2,
   DollarSign,
   FileText,
-  Car
+  Car,
+  AlertTriangle
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
@@ -45,6 +46,7 @@ import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
 import { useDropdownOptions } from '@/hooks/useDropdownOptions';
 import { useRouter } from 'next/navigation';
+import { ARBOutcomeModal } from '@/components/arb/ARBOutcomeModal';
 
 // carLocationOptions will be fetched dynamically
 const titleStatusOptions = ['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated'];
@@ -125,6 +127,8 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
   const [contextMenuCell, setContextMenuCell] = useState<{ vehicleId: string; field: string; value: any } | null>(null);
   const [editingCell, setEditingCell] = useState<{ vehicleId: string; field: string } | null>(null);
   const [bulkActionOpen, setBulkActionOpen] = useState(false);
+  const [arbModalOpen, setArbModalOpen] = useState(false);
+  const [selectedVehicleForArb, setSelectedVehicleForArb] = useState<string | null>(null);
 
   // Load vehicles from API
   useEffect(() => {
@@ -292,6 +296,42 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
       toast.error(error instanceof Error ? error.message : 'Failed to mark vehicle as sold');
     } finally {
       setIsMarkingAsSold(null);
+    }
+  };
+
+  // Handle initiate ARB (Inventory ARB)
+  const handleInitiateARB = async (vehicleId: string) => {
+    try {
+      const response = await fetch(`/api/vehicles/${vehicleId}/arb/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ arb_type: 'Inventory ARB' }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to initiate ARB');
+      }
+
+      setSelectedVehicleForArb(vehicleId);
+      setArbModalOpen(true);
+      toast.success('ARB initiated successfully');
+      
+      // Refresh vehicles list
+      if (onVehicleAdded) {
+        onVehicleAdded();
+      }
+    } catch (error: any) {
+      console.error('Error initiating ARB:', error);
+      toast.error(error.message || 'Failed to initiate ARB');
+    }
+  };
+
+  const handleARBOutcomeSuccess = () => {
+    if (onVehicleAdded) {
+      onVehicleAdded();
     }
   };
 
@@ -1153,7 +1193,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleMarkAsSold(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
-                              disabled={isMarkingAsSold === vehicle.id || vehicle.status === 'Sold'}
+                              disabled={isMarkingAsSold === vehicle.id || vehicle.status === 'Sold' || vehicle.status === 'Pending Arbitration'}
                               style={{ color: isMarkingAsSold === vehicle.id ? 'var(--subtext)' : 'var(--text)' }}
                             >
                               {isMarkingAsSold === vehicle.id ? (
@@ -1162,6 +1202,14 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                                 <DollarSign className="mr-2 h-4 w-4" />
                               )}
                               {isMarkingAsSold === vehicle.id ? 'Updating...' : 'Mark as Sold'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleInitiateARB(vehicle.id)}
+                              disabled={vehicle.status === 'Sold' || vehicle.status === 'Pending Arbitration'}
+                              style={{ color: vehicle.status === 'Pending Arbitration' ? 'var(--subtext)' : 'var(--text)' }}
+                            >
+                              <AlertTriangle className="mr-2 h-4 w-4" />
+                              {vehicle.status === 'Pending Arbitration' ? 'ARB in Progress' : 'Initiate ARB'}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               style={{ color: 'var(--text)' }}
@@ -1183,6 +1231,21 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
 
 
     </Card>
+    <>
+      {/* ARB Outcome Modal */}
+      {selectedVehicleForArb && (
+        <ARBOutcomeModal
+          isOpen={arbModalOpen}
+          onClose={() => {
+            setArbModalOpen(false);
+            setSelectedVehicleForArb(null);
+          }}
+          vehicleId={selectedVehicleForArb}
+          arbType="Inventory ARB"
+          onSuccess={handleARBOutcomeSuccess}
+        />
+      )}
+    </>
   );
 }
 

@@ -135,3 +135,4 @@ export type PermissionPath =
   | `reports.${keyof ReportsPermissions}`
   | `user_management.${keyof UserManagementPermissions}`;
 
+

@@ -56,33 +56,13 @@ export async function middleware(request: NextRequest) {
 
   // Redirect to dashboard if accessing auth routes while logged in
   if (isAuthRoute && user) {
-    // Get user role from database (check both old role field and new role_id)
+    // Get user role from database
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, role_id')
+      .select('role')
       .eq('id', user.id)
       .single();
-
-    // Check new RBAC system first (role_id)
-    if (profile?.role_id) {
-      try {
-        // Fetch role name separately to avoid RLS issues
-        const { data: roleData, error: roleError } = await supabase
-          .from('roles')
-          .select('name')
-          .eq('id', profile.role_id)
-          .maybeSingle();
-        
-        if (!roleError && roleData?.name === 'Super Admin') {
-          return NextResponse.redirect(new URL('/admin', request.url));
-        }
-      } catch (error) {
-        console.error('Error fetching role in middleware:', error);
-        // Fall through to legacy role check
-      }
-    }
     
-    // Fallback to old role field for backward compatibility
     if (profile?.role === 'admin') {
       return NextResponse.redirect(new URL('/admin', request.url));
     } else if (profile?.role === 'seller') {
