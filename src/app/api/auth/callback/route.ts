@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
         // Wait a moment for the profile to be created by trigger
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Get user role from profiles table
+        // Get user role from profiles table (include role_id for RBAC system)
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, role_id')
           .eq('id', user.id)
           .single();
 
@@ -47,6 +47,20 @@ export async function GET(request: NextRequest) {
           return NextResponse.redirect(`${origin}/transporter`);
         }
 
+        // Check new RBAC system first (role_id)
+        if (profile?.role_id) {
+          const { data: roleData } = await supabase
+            .from('roles')
+            .select('name')
+            .eq('id', profile.role_id)
+            .single();
+          
+          if (roleData?.name === 'Super Admin') {
+            return NextResponse.redirect(`${origin}/admin`);
+          }
+        }
+        
+        // Fallback to old role field for backward compatibility
         if (profile?.role === 'admin') {
           return NextResponse.redirect(`${origin}/admin`);
         } else if (profile?.role === 'seller') {

@@ -20,14 +20,19 @@ export default async function AdminLayout({
       redirect('/auth/login');
     }
 
-    // Check if user is admin
+    // Check if user is admin (check both old role and new RBAC system)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, role_id, role_data:roles(name)')
       .eq('id', user.id)
       .single();
 
-    if (profile?.role !== 'admin') {
+    // Check new RBAC system first (Super Admin)
+    const isSuperAdmin = profile?.role_id && (profile.role_data as any)?.name === 'Super Admin';
+    // Fallback to old role field for backward compatibility
+    const isLegacyAdmin = profile?.role === 'admin';
+    
+    if (!isSuperAdmin && !isLegacyAdmin) {
       redirect('/auth/login');
     }
 

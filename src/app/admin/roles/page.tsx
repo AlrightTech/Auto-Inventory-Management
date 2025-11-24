@@ -164,26 +164,64 @@ export default function RolesPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!permissionsLoading && !isAdmin()) {
+    if (permissionsLoading) return;
+    
+    if (!isAdmin()) {
       router.push('/admin');
       toast.error('Access denied. Admin privileges required.');
       return;
     }
+    
     loadRoles();
-  }, [permissionsLoading, isAdmin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permissionsLoading]);
 
   const loadRoles = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/roles');
+      
+      // Add timeout to fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+      
+      const response = await fetch('/api/roles', {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
-        throw new Error('Failed to load roles');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Failed to load roles (${response.status})`);
       }
-      const { data } = await response.json();
-      setRoles(data || []);
-    } catch (error) {
+      
+      const result = await response.json();
+      setRoles(result.data || []);
+      
+      // Show warning if table doesn't exist or other issues
+      if (result.error) {
+        if (result.error.includes('table not found') || result.error.includes('migration')) {
+          toast.warning('Roles table not found. Please run database migration: supabase/migrations/20241221_create_rbac_system.sql', {
+            duration: 10000,
+          });
+        } else if (result.error.includes('timeout')) {
+          toast.warning('Request timed out. Please check your database connection.');
+        }
+      }
+    } catch (error: any) {
       console.error('Error loading roles:', error);
-      toast.error('Failed to load roles');
+      
+      if (error.name === 'AbortError') {
+        toast.error('Request timed out. Please check your connection and try again.');
+      } else {
+        toast.error(error.message || 'Failed to load roles');
+      }
+      
+      // Set empty array so UI doesn't break
+      setRoles([]);
     } finally {
       setLoading(false);
     }
@@ -335,8 +373,31 @@ export default function RolesPage() {
       </motion.div>
 
       {/* Roles List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {roles.map((role) => (
+      {roles.length === 0 && !loading ? (
+        <Card className="dashboard-card neon-glow instrument-cluster" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+          <CardContent className="p-12 text-center">
+            <Shield className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--subtext)', opacity: 0.5 }} />
+            <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>No Roles Found</h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--subtext)' }}>
+              {roles.length === 0 
+                ? 'The roles table may not exist. Please run the database migration: supabase/migrations/20241221_create_rbac_system.sql'
+                : 'No roles have been created yet. Click "Create Role" to get started.'}
+            </p>
+            <Button
+              onClick={() => handleOpenDialog()}
+              style={{
+                backgroundColor: 'var(--accent)',
+                color: 'white',
+              }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Role
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {roles.map((role) => (
           <Card
             key={role.id}
             className="dashboard-card neon-glow instrument-cluster"

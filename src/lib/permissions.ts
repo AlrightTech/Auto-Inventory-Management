@@ -127,6 +127,6 @@ export function getDefaultPermissions(): RolePermissions {
  */
 export function isAdmin(profile: { role?: string; role_data?: { name: string } | null } | null): boolean {
   if (!profile) return false;
-  return profile.role === 'admin' || profile.role_data?.name === 'Admin';
+  return profile.role === 'admin' || profile.role_data?.name === 'Super Admin';
 }
 

@@ -58,15 +58,15 @@ export function usePermissions(): UsePermissionsReturn {
       if (profileData.role_data) {
         setPermissions((profileData.role_data as any).permissions);
       } else if (profileData.role === 'admin') {
-        // Load Admin role permissions
-        const { data: adminRole } = await supabase
+        // Load Super Admin role permissions (Admin role was removed)
+        const { data: superAdminRole } = await supabase
           .from('roles')
           .select('permissions')
-          .eq('name', 'Admin')
+          .eq('name', 'Super Admin')
           .single();
         
-        if (adminRole) {
-          setPermissions(adminRole.permissions as RolePermissions);
+        if (superAdminRole) {
+          setPermissions(superAdminRole.permissions as RolePermissions);
         }
       } else {
         // No permissions for other legacy roles

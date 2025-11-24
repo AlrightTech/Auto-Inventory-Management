@@ -75,12 +75,34 @@ export default function AddVehiclePage() {
   }, [reset]);
 
   const onSubmit = async (data: VehicleInput) => {
+    // Validate VIN before submission
+    if (!data.vin || data.vin.trim() === '') {
+      toast.error('VIN number is required.');
+      return;
+    }
+
+    const trimmedVin = data.vin.trim();
+    if (trimmedVin.length < 10) {
+      toast.error('VIN must be exactly 10 characters.');
+      return;
+    }
+
+    if (trimmedVin.length > 10) {
+      toast.error('VIN must be exactly 10 characters. Extra characters are not allowed.');
+      return;
+    }
+
+    if (trimmedVin.length !== 10) {
+      toast.error('Please correct the VIN. It must be exactly 10 characters to proceed.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Clean up the data - remove empty strings and convert to proper types
       const cleanedData: VehicleInsert = {
         ...data,
-        vin: data.vin && data.vin.trim() !== '' ? data.vin.trim() : undefined,
+        vin: trimmedVin,
         sale_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
       };
 
@@ -413,7 +435,7 @@ export default function AddVehiclePage() {
               {/* Title Status */}
               <div className="space-y-2">
                 <Label htmlFor="title_status" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
-                  Title Status
+                  Title Status <span className="text-red-500">*</span>
                 </Label>
                 <Select value={watch('title_status') || ''} onValueChange={(value) => setValue('title_status', value as 'Absent' | 'Released' | 'Received' | 'Present' | 'In Transit' | 'Available not Received' | 'Validated' | 'Sent but not Validated')}>
                   <SelectTrigger className="h-11" style={{ 
@@ -530,9 +552,7 @@ export default function AddVehiclePage() {
                     borderRadius: '8px'
                   }}
                 />
-                {errors.other_charges && (
-                  <p className="text-red-500 text-xs mt-1">{errors.other_charges.message}</p>
-                )}
+                {/* No validation errors displayed for Other Charges */}
               </div>
             </div>
           </div>
@@ -551,7 +571,9 @@ export default function AddVehiclePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Sale Date */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium" style={{ color: 'var(--text)' }}>Sale Date</Label>
+                <Label className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                  Purchase Date <span className="text-red-500">*</span>
+                </Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -559,7 +581,7 @@ export default function AddVehiclePage() {
                       className="w-full justify-start text-left font-normal h-11"
                       style={{ 
                         backgroundColor: 'var(--card-bg)', 
-                        borderColor: 'var(--border)', 
+                        borderColor: errors.sale_date ? '#ef4444' : 'var(--border)', 
                         color: 'var(--text)',
                         borderRadius: '8px'
                       }}
@@ -572,12 +594,23 @@ export default function AddVehiclePage() {
                     <Calendar
                       mode="single"
                       selected={selectedDate}
-                      onSelect={setSelectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        if (date) {
+                          setValue('sale_date', format(date, 'yyyy-MM-dd'));
+                        }
+                      }}
                       disabled={(date) => date > new Date()}
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
+                {errors.sale_date && (
+                  <p className="text-red-500 text-xs mt-1">{errors.sale_date.message}</p>
+                )}
+                {selectedDate && selectedDate > new Date() && (
+                  <p className="text-red-500 text-xs mt-1">Purchase date cannot be a future date.</p>
+                )}
               </div>
 
               {/* Lane */}
@@ -702,7 +735,7 @@ export default function AddVehiclePage() {
               {/* Pickup City */}
               <div className="space-y-2">
                 <Label htmlFor="pickup_location_city" className="text-sm font-medium" style={{ color: 'var(--text)' }}>
-                  Pickup City
+                  Pickup Location <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="pickup_location_city"
@@ -711,11 +744,14 @@ export default function AddVehiclePage() {
                   className="h-11"
                   style={{ 
                     backgroundColor: 'var(--card-bg)', 
-                    borderColor: 'var(--border)', 
+                    borderColor: errors.pickup_location_city ? '#ef4444' : 'var(--border)', 
                     color: 'var(--text)',
                     borderRadius: '8px'
                   }}
                 />
+                {errors.pickup_location_city && (
+                  <p className="text-red-500 text-xs mt-1">{errors.pickup_location_city.message}</p>
+                )}
               </div>
             </div>
 

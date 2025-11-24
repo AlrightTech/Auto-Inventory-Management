@@ -85,10 +85,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate VIN if provided
-    if (body.vin && body.vin.length !== 17) {
+    // Validate VIN - must be exactly 10 characters
+    if (!body.vin || body.vin.trim() === '') {
       return NextResponse.json(
-        { error: 'VIN must be 17 characters' },
+        { error: 'VIN number is required' },
+        { status: 400 }
+      );
+    }
+
+    const trimmedVin = body.vin.trim();
+    if (trimmedVin.length < 10) {
+      return NextResponse.json(
+        { error: 'VIN must be exactly 10 characters' },
+        { status: 400 }
+      );
+    }
+
+    if (trimmedVin.length > 10) {
+      return NextResponse.json(
+        { error: 'VIN must be exactly 10 characters. Extra characters are not allowed.' },
+        { status: 400 }
+      );
+    }
+
+    if (trimmedVin.length !== 10) {
+      return NextResponse.json(
+        { error: 'Please correct the VIN. It must be exactly 10 characters to proceed.' },
         { status: 400 }
       );
     }

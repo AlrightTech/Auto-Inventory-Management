@@ -81,10 +81,10 @@ function LoginPageContent() {
       console.log('Authentication successful:', authData.user?.id);
 
       if (authData.user) {
-        // Get user role
+        // Get user role (include role_id for RBAC system)
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, role_id')
           .eq('id', authData.user.id)
           .single();
 
@@ -127,7 +127,22 @@ function LoginPageContent() {
 
         console.log('User profile:', profile);
 
-        // Redirect based on role
+        // Check new RBAC system first (role_id)
+        if (profile?.role_id) {
+          // Fetch role name to determine redirect
+          const { data: roleData } = await supabase
+            .from('roles')
+            .select('name')
+            .eq('id', profile.role_id)
+            .single();
+          
+          if (roleData?.name === 'Super Admin') {
+            router.push('/admin');
+            return;
+          }
+        }
+
+        // Fallback to old role field for backward compatibility
         if (profile?.role === 'admin') {
           router.push('/admin');
         } else if (profile?.role === 'seller') {
