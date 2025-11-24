@@ -7,6 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { VehicleTable } from '@/components/inventory/VehicleTable';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, FileText, CalendarIcon } from 'lucide-react';
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
@@ -15,8 +17,9 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import * as XLSX from 'xlsx';
 
-export default function InventoryPage() {
+function InventoryPageContent() {
   const router = useRouter();
+  const { hasPermission } = usePermissions();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -270,20 +273,22 @@ export default function InventoryPage() {
             Manage your vehicle inventory with comprehensive tracking and analytics.
           </p>
         </div>
-        <Button 
-          onClick={() => router.push('/admin/inventory/add')}
-          className="control-panel neon-glow"
-          style={{
-            backgroundColor: 'var(--accent)',
-            color: 'white',
-            borderRadius: '25px',
-            fontWeight: '500',
-            transition: '0.3s'
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Vehicle
-        </Button>
+        {hasPermission('inventory.add') && (
+          <Button 
+            onClick={() => router.push('/admin/inventory/add')}
+            className="control-panel neon-glow"
+            style={{
+              backgroundColor: 'var(--accent)',
+              color: 'white',
+              borderRadius: '25px',
+              fontWeight: '500',
+              transition: '0.3s'
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Vehicle
+          </Button>
+        )}
       </motion.div>
 
       {/* Inventory Stats Cards */}
@@ -597,5 +602,13 @@ export default function InventoryPage() {
       </motion.div>
 
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <ProtectedRoute requiredPermission="inventory.view">
+      <InventoryPageContent />
+    </ProtectedRoute>
   );
 }
