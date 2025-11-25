@@ -676,6 +676,7 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
   };
 
   return (
+    <>
     <Card className="dashboard-card neon-glow instrument-cluster">
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -1231,7 +1232,6 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
 
 
     </Card>
-    <>
       {/* ARB Outcome Modal */}
       {selectedVehicleForArb && (
         <ARBOutcomeModal
