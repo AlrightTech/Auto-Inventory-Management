@@ -116,11 +116,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if VIN already exists
-    if (body.vin) {
+    if (trimmedVin) {
       const { data: existingVehicle } = await supabase
         .from('vehicles')
         .select('id')
-        .eq('vin', body.vin)
+        .eq('vin', trimmedVin)
         .single();
 
       if (existingVehicle) {
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       make: body.make,
       model: body.model,
       year: body.year,
-      vin: body.vin || null,
+      vin: trimmedVin || null,
       trim: body.trim || null,
       exterior_color: body.exterior_color || null,
       interior_color: body.interior_color || null,

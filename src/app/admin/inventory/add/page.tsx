@@ -293,8 +293,8 @@ export default function AddVehiclePage() {
                 </Label>
                 <Input
                   id="vin"
-                  placeholder="17-character VIN (optional)"
-                  maxLength={17}
+                  placeholder="10-character VIN (optional)"
+                  maxLength={10}
                   {...register('vin')}
                   className="h-11"
                   style={{ 

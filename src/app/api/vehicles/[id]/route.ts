@@ -82,11 +82,16 @@ export async function PATCH(
     const body: Partial<VehicleUpdate> = await request.json();
 
     // Validate VIN if provided
-    if (body.vin && body.vin.length !== 17) {
-      return NextResponse.json(
-        { error: 'VIN must be 17 characters' },
-        { status: 400 }
-      );
+    if (body.vin) {
+      const trimmedVin = body.vin.trim();
+      if (trimmedVin.length !== 10) {
+        return NextResponse.json(
+          { error: 'VIN must be exactly 10 characters' },
+          { status: 400 }
+        );
+      }
+      // Update body.vin with trimmed value
+      body.vin = trimmedVin;
     }
 
     // Check if VIN already exists (excluding current vehicle)
