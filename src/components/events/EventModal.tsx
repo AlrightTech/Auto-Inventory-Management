@@ -175,7 +175,7 @@ export function EventModal({ isOpen, onClose, onSubmit, editingEvent }: EventMod
                   {...register('title')}
                 />
                 {errors.title && (
-                  <p className="text-red-400 text-sm">{errors.title.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
                 )}
               </div>
 
@@ -192,7 +192,7 @@ export function EventModal({ isOpen, onClose, onSubmit, editingEvent }: EventMod
                   {...register('event_date')}
                 />
                 {errors.event_date && (
-                  <p className="text-red-400 text-sm">{errors.event_date.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.event_date.message}</p>
                 )}
               </div>
 
@@ -209,7 +209,7 @@ export function EventModal({ isOpen, onClose, onSubmit, editingEvent }: EventMod
                   {...register('event_time')}
                 />
                 {errors.event_time && (
-                  <p className="text-red-400 text-sm">{errors.event_time.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.event_time.message}</p>
                 )}
               </div>
 

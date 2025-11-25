@@ -85,15 +85,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate VIN - must be 17 characters if provided (standard VIN length)
-    // VIN is optional but if provided, should be 17 characters
+    // VIN is optional - no validation, accept any value or empty
     const trimmedVin = body.vin ? body.vin.trim() : null;
-    
-    if (trimmedVin && trimmedVin.length !== 17) {
-      return NextResponse.json(
-        { error: 'VIN must be exactly 17 characters if provided' },
-        { status: 400 }
-      );
+
+    // Validate Other Charges - must be numeric if provided
+    if (body.other_charges !== undefined && body.other_charges !== null) {
+      if (typeof body.other_charges !== 'number' || isNaN(body.other_charges)) {
+        return NextResponse.json(
+          { error: 'Other Charges must be a valid number.' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate Pickup Zip - must contain digits only if provided
+    if (body.pickup_location_zip) {
+      const zipValue = String(body.pickup_location_zip).trim();
+      if (zipValue && !/^\d+$/.test(zipValue)) {
+        return NextResponse.json(
+          { error: 'Pickup ZIP must contain digits only.' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if VIN already exists
@@ -143,6 +156,14 @@ export async function POST(request: NextRequest) {
         : 'Absent',
       psi_status: body.psi_status || null,
       dealshield_arbitration_status: body.dealshield_arbitration_status || null,
+      // ARB status - must be NULL or one of the allowed values
+      // Explicitly validate and sanitize to prevent constraint violations
+      arb_status: (() => {
+        if (!body.arb_status) return null;
+        const trimmed = typeof body.arb_status === 'string' ? body.arb_status.trim() : String(body.arb_status).trim();
+        const validValues = ['Absent', 'Present', 'In Transit', 'Failed'];
+        return (trimmed && validValues.includes(trimmed)) ? trimmed : null;
+      })(),
       
       // Financial Information
       bought_price: body.bought_price || null,

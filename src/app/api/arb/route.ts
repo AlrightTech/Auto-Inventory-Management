@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       .from('vehicle_arb_records')
       .select(`
         *,
-        vehicle:vehicles!vehicle_arb_records_vehicle_id_fkey(
+        vehicle:vehicles(
           id,
           year,
           make,
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           buyer_dealership,
           buyer_contact_name
         ),
-        created_by_user:profiles!vehicle_arb_records_created_by_fkey(id, username, email)
+        created_by_user:profiles(id, username, email)
       `)
       .order('created_at', { ascending: false });
 
@@ -52,8 +52,9 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching ARB records:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return NextResponse.json(
-        { error: 'Failed to fetch ARB records' },
+        { error: error.message || 'Failed to fetch ARB records', details: error },
         { status: 500 }
       );
     }

@@ -122,11 +122,7 @@ export default function EditVehiclePage() {
   }, [vehicleId, setValue, router]);
 
   const onSubmit = async (data: VehicleInput) => {
-    // Validate VIN before submission
-    if (data.vin && data.vin.trim() !== '' && data.vin.trim().length !== 10) {
-      toast.error('VIN must be exactly 10 characters');
-      return;
-    }
+    // VIN is optional - no validation, accept any value or empty
     
     setIsSubmitting(true);
     try {
@@ -258,24 +254,9 @@ export default function EditVehiclePage() {
                       <Label htmlFor="vin" style={{ color: 'var(--text)' }}>VIN</Label>
                       <Input
                         id="vin"
-                        maxLength={10}
-                        {...register('vin', {
-                          validate: (value) => {
-                            if (!value || value.trim() === '') return true; // Optional field
-                            if (value.length !== 10) {
-                              return 'VIN must be exactly 10 characters';
-                            }
-                            return true;
-                          }
-                        })}
+                        {...register('vin')}
                         style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       />
-                      {errors.vin && (
-                        <p className="text-red-500 text-sm mt-1">{errors.vin.message}</p>
-                      )}
-                      {watch('vin') && watch('vin').trim().length > 0 && watch('vin').trim().length !== 10 && (
-                        <p className="text-red-500 text-sm mt-1">VIN must be exactly 10 characters</p>
-                      )}
                     </div>
                   </div>
 
@@ -307,6 +288,7 @@ export default function EditVehiclePage() {
                         {...register('bought_price', { valueAsNumber: true })}
                         style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       />
+                      {errors.bought_price && <p className="text-red-500 text-sm mt-1">{errors.bought_price.message}</p>}
                     </div>
                   </div>
                 </CardContent>
@@ -344,6 +326,7 @@ export default function EditVehiclePage() {
                         {...register('odometer', { valueAsNumber: true })}
                         style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       />
+                      {errors.odometer && <p className="text-red-500 text-sm mt-1">{errors.odometer.message}</p>}
                     </div>
                   </div>
                 </CardContent>
@@ -423,6 +406,7 @@ export default function EditVehiclePage() {
                         {...register('lane', { valueAsNumber: true })}
                         style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       />
+                      {errors.lane && <p className="text-red-500 text-sm mt-1">{errors.lane.message}</p>}
                     </div>
                     <div>
                       <Label htmlFor="run" style={{ color: 'var(--text)' }}>Run</Label>
@@ -432,6 +416,7 @@ export default function EditVehiclePage() {
                         {...register('run', { valueAsNumber: true })}
                         style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       />
+                      {errors.run && <p className="text-red-500 text-sm mt-1">{errors.run.message}</p>}
                     </div>
                   </div>
                 </CardContent>

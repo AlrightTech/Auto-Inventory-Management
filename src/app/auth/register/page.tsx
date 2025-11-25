@@ -151,7 +151,7 @@ export default function RegisterPage() {
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.email.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
                 )}
               </div>
 
@@ -168,7 +168,7 @@ export default function RegisterPage() {
                   {...register('username')}
                 />
                 {errors.username && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.username.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
                 )}
               </div>
 
@@ -190,7 +190,7 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
                 {errors.role && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.role.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
                 )}
               </div>
 
@@ -216,7 +216,7 @@ export default function RegisterPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.password.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
                 )}
               </div>
 
@@ -242,7 +242,7 @@ export default function RegisterPage() {
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.confirmPassword.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
                 )}
               </div>
 

@@ -7,15 +7,7 @@ export const vehicleSchema = z.object({
   year: z.coerce.number()
     .min(1900, 'Year must be 1900 or later')
     .max(new Date().getFullYear() + 1, `Year cannot be later than ${new Date().getFullYear() + 1}`),
-  vin: z.string()
-    .optional()
-    .refine((val) => {
-      if (!val || val.trim() === '') return true; // VIN is optional
-      const trimmed = val.trim();
-      return trimmed.length === 17; // Standard VIN length is 17 characters
-    }, {
-      message: 'VIN must be exactly 17 characters if provided.',
-    }),
+  vin: z.string().optional(),
   trim: z.string().optional(),
   exterior_color: z.string().optional(),
   interior_color: z.string().optional(),
@@ -32,7 +24,19 @@ export const vehicleSchema = z.object({
   buy_fee: z.number().optional(),
   sale_invoice: z.number().optional(),
   total_vehicle_cost: z.number().optional(),
-  other_charges: z.number().optional(), // No validation - accepts any value or empty
+  other_charges: z.preprocess((val) => {
+    // Convert NaN, null, or undefined to undefined (allow empty)
+    if (val === null || val === undefined || (typeof val === 'number' && isNaN(val))) {
+      return undefined;
+    }
+    return val;
+  }, z.number().optional().refine((val) => {
+    // If value is provided, it must be a valid number (not NaN)
+    if (val === undefined || val === null) return true;
+    return typeof val === 'number' && !isNaN(val);
+  }, {
+    message: 'Other Charges must be a valid number.',
+  })),
   
   // Sale Information
   sale_date: z.string().optional(),
@@ -46,7 +50,15 @@ export const vehicleSchema = z.object({
   pickup_location_address1: z.string().optional(),
   pickup_location_city: z.string().min(1, 'Pickup location is required.'),
   pickup_location_state: z.string().optional(),
-  pickup_location_zip: z.string().optional(),
+  pickup_location_zip: z.string()
+    .optional()
+    .refine((val) => {
+      if (!val || val.trim() === '') return true; // Optional field
+      // Only allow numeric digits
+      return /^\d+$/.test(val);
+    }, {
+      message: 'Pickup ZIP must contain digits only.',
+    }),
   pickup_location_phone: z.string().optional(),
   
   // Seller and Buyer Information

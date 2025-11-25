@@ -220,7 +220,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit, preSelectedVehicleId }
                       {...register('task_name')}
                     />
                     {errors.task_name && (
-                      <p className="text-red-400 text-sm">{errors.task_name.message}</p>
+                      <p className="text-red-500 text-sm mt-1">{errors.task_name.message}</p>
                     )}
                   </div>
 
@@ -253,7 +253,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit, preSelectedVehicleId }
                       </SelectContent>
                     </Select>
                     {errors.category && (
-                      <p className="text-red-400 text-sm">{errors.category.message}</p>
+                      <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
                     )}
                   </div>
                 </div>
@@ -305,7 +305,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit, preSelectedVehicleId }
                       </SelectContent>
                     </Select>
                     {errors.vehicle_id && (
-                      <p className="text-red-400 text-sm">{errors.vehicle_id.message}</p>
+                      <p className="text-red-500 text-sm mt-1">{errors.vehicle_id.message}</p>
                     )}
                   </div>
 
@@ -354,7 +354,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit, preSelectedVehicleId }
                       </SelectContent>
                     </Select>
                     {errors.assigned_to && (
-                      <p className="text-red-400 text-sm">{errors.assigned_to.message}</p>
+                      <p className="text-red-500 text-sm mt-1">{errors.assigned_to.message}</p>
                     )}
                   </div>
                 </div>
@@ -389,7 +389,7 @@ export function AddTaskModal({ isOpen, onClose, onSubmit, preSelectedVehicleId }
                     </PopoverContent>
                   </Popover>
                   {errors.due_date && (
-                    <p className="text-red-400 text-sm">{errors.due_date.message}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.due_date.message}</p>
                   )}
                 </div>
 
@@ -409,9 +409,9 @@ export function AddTaskModal({ isOpen, onClose, onSubmit, preSelectedVehicleId }
                     }}
                     {...register('notes')}
                   />
-                  {errors.notes && (
-                    <p className="text-red-400 text-sm">{errors.notes.message}</p>
-                  )}
+                    {errors.notes && (
+                      <p className="text-red-500 text-sm mt-1">{errors.notes.message}</p>
+                    )}
                 </div>
 
                 {/* Actions */}

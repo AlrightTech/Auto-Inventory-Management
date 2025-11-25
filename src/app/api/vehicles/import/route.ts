@@ -100,14 +100,9 @@ function validateVehicle(vehicle: VehicleInsert, index: number): string[] {
   if (!vehicle.year || vehicle.year < 1900 || vehicle.year > new Date().getFullYear() + 1) {
     errors.push(`Row ${index + 1}: Valid year is required`);
   }
+  // VIN is optional - no validation, accept any value or empty
   if (vehicle.vin) {
-    const trimmedVin = vehicle.vin.trim();
-    if (trimmedVin.length !== 10) {
-      errors.push(`Row ${index + 1}: VIN must be exactly 10 characters`);
-    } else {
-      // Update vehicle.vin with trimmed value
-      vehicle.vin = trimmedVin;
-    }
+    vehicle.vin = vehicle.vin.trim();
   }
 
   return errors;

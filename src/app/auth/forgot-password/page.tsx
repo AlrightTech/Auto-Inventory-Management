@@ -191,7 +191,7 @@ export default function ForgotPasswordPage() {
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-red-400 text-sm">{errors.email.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
                 )}
               </div>
 

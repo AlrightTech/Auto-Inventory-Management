@@ -21,7 +21,7 @@ export async function GET(
       .from('vehicle_arb_records')
       .select(`
         *,
-        created_by_user:profiles!vehicle_arb_records_created_by_fkey(id, username, email)
+        created_by_user:profiles(id, username, email)
       `)
       .eq('vehicle_id', vehicleId)
       .order('created_at', { ascending: false });

@@ -136,7 +136,7 @@ export function AddVehicleTaskModal({ isOpen, onClose, onSubmit, vehicleId }: Ad
                   {...register('task_name')}
                 />
                 {errors.task_name && (
-                  <p className="text-red-400 text-sm">{errors.task_name.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.task_name.message}</p>
                 )}
               </div>
 
@@ -169,7 +169,7 @@ export function AddVehicleTaskModal({ isOpen, onClose, onSubmit, vehicleId }: Ad
                   </PopoverContent>
                 </Popover>
                 {errors.due_date && (
-                  <p className="text-red-400 text-sm">{errors.due_date.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.due_date.message}</p>
                 )}
               </div>
 
@@ -190,7 +190,7 @@ export function AddVehicleTaskModal({ isOpen, onClose, onSubmit, vehicleId }: Ad
                   {...register('notes')}
                 />
                 {errors.notes && (
-                  <p className="text-red-400 text-sm">{errors.notes.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.notes.message}</p>
                 )}
               </div>
 

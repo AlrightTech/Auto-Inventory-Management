@@ -81,17 +81,9 @@ export async function PATCH(
 
     const body: Partial<VehicleUpdate> = await request.json();
 
-    // Validate VIN if provided
+    // VIN is optional - no validation, accept any value or empty
     if (body.vin) {
-      const trimmedVin = body.vin.trim();
-      if (trimmedVin.length !== 10) {
-        return NextResponse.json(
-          { error: 'VIN must be exactly 10 characters' },
-          { status: 400 }
-        );
-      }
-      // Update body.vin with trimmed value
-      body.vin = trimmedVin;
+      body.vin = body.vin.trim();
     }
 
     // Check if VIN already exists (excluding current vehicle)

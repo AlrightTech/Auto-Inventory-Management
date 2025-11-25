@@ -26,8 +26,8 @@ export default function VINDecodePage() {
   const [decodedData, setDecodedData] = useState<DecodedData | null>(null);
 
   const handleDecode = async () => {
-    if (vin.length !== 17) {
-      alert('VIN must be exactly 17 characters');
+    if (!vin || vin.trim() === '') {
+      alert('Please enter a VIN');
       return;
     }
 
@@ -86,7 +86,7 @@ export default function VINDecodePage() {
               VIN Decoder
             </CardTitle>
             <CardDescription className="text-slate-400">
-              Enter a 17-character VIN to decode vehicle information
+              Enter a VIN to decode vehicle information
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -99,13 +99,12 @@ export default function VINDecodePage() {
                   id="vin"
                   value={vin}
                   onChange={(e) => setVin(e.target.value.toUpperCase())}
-                  placeholder="Enter 17-character VIN"
-                  maxLength={17}
+                  placeholder="Enter VIN"
                   className="flex-1 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 font-mono"
                 />
                 <Button
                   onClick={handleDecode}
-                  disabled={vin.length !== 17 || isLoading}
+                  disabled={!vin || vin.trim() === '' || isLoading}
                   className="gradient-primary hover:opacity-90"
                 >
                   {isLoading ? (
@@ -116,7 +115,7 @@ export default function VINDecodePage() {
                 </Button>
               </div>
               <p className="text-xs text-slate-400">
-                {vin.length}/17 characters
+                {vin.length} characters
               </p>
             </div>
 

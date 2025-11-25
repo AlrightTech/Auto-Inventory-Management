@@ -75,12 +75,8 @@ export default function AddVehiclePage() {
   }, [reset]);
 
   const onSubmit = async (data: VehicleInput) => {
-    // Validate VIN - optional but if provided, must be 17 characters (standard VIN length)
+    // VIN is optional - no validation, accept any value or empty
     const trimmedVin = data.vin ? data.vin.trim() : null;
-    if (trimmedVin && trimmedVin.length !== 17) {
-      toast.error('VIN must be exactly 17 characters if provided.');
-      return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -91,9 +87,16 @@ export default function AddVehiclePage() {
         sale_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
       };
 
-      // Remove undefined values
+      // Explicitly remove arb_status from cleanedData - let API handle it
+      // This prevents any invalid arb_status values from being sent
+      if ('arb_status' in cleanedData) {
+        delete cleanedData.arb_status;
+      }
+
+      // Remove undefined values and empty strings
       Object.keys(cleanedData).forEach(key => {
-        if (cleanedData[key as keyof VehicleInsert] === undefined || cleanedData[key as keyof VehicleInsert] === '') {
+        const value = cleanedData[key as keyof VehicleInsert];
+        if (value === undefined || value === '' || value === null) {
           delete cleanedData[key as keyof VehicleInsert];
         }
       });
@@ -280,8 +283,7 @@ export default function AddVehiclePage() {
                 </Label>
                 <Input
                   id="vin"
-                  placeholder="10-character VIN (optional)"
-                  maxLength={10}
+                  placeholder="VIN (optional)"
                   {...register('vin')}
                   className="h-11"
                   style={{ 
@@ -530,16 +532,31 @@ export default function AddVehiclePage() {
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  {...register('other_charges', { valueAsNumber: true })}
+                  {...register('other_charges', { 
+                    valueAsNumber: true,
+                    validate: (value) => {
+                      // Allow empty/undefined/NaN
+                      if (value === undefined || value === null || (typeof value === 'number' && isNaN(value))) {
+                        return true;
+                      }
+                      // If provided, must be a valid number
+                      if (typeof value === 'number' && !isNaN(value)) {
+                        return true;
+                      }
+                      return 'Other Charges must be a valid number.';
+                    }
+                  })}
                   className="h-11"
                   style={{ 
                     backgroundColor: 'var(--card-bg)', 
-                    borderColor: 'var(--border)', 
+                    borderColor: errors.other_charges ? '#ef4444' : 'var(--border)', 
                     color: 'var(--text)',
                     borderRadius: '8px'
                   }}
                 />
-                {/* No validation errors displayed for Other Charges */}
+                {errors.other_charges && (
+                  <p className="text-red-500 text-xs mt-1">{errors.other_charges.message}</p>
+                )}
               </div>
             </div>
           </div>
@@ -769,16 +786,29 @@ export default function AddVehiclePage() {
                 </Label>
                 <Input
                   id="pickup_location_zip"
-                  placeholder="75236-1055"
-                  {...register('pickup_location_zip')}
+                  placeholder="75236"
+                  {...register('pickup_location_zip', {
+                    validate: (value) => {
+                      // Allow empty (optional field)
+                      if (!value || value.trim() === '') return true;
+                      // Only allow numeric digits
+                      if (!/^\d+$/.test(value)) {
+                        return 'Pickup ZIP must contain digits only.';
+                      }
+                      return true;
+                    }
+                  })}
                   className="h-11"
                   style={{ 
                     backgroundColor: 'var(--card-bg)', 
-                    borderColor: 'var(--border)', 
+                    borderColor: errors.pickup_location_zip ? '#ef4444' : 'var(--border)', 
                     color: 'var(--text)',
                     borderRadius: '8px'
                   }}
                 />
+                {errors.pickup_location_zip && (
+                  <p className="text-red-500 text-xs mt-1">{errors.pickup_location_zip.message}</p>
+                )}
               </div>
 
               {/* Pickup Phone */}
@@ -932,6 +962,23 @@ export default function AddVehiclePage() {
               }}
             >
               {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Adding Vehicle...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Vehicle
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Adding Vehicle...

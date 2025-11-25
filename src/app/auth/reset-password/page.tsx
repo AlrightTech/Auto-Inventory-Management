@@ -241,7 +241,7 @@ export default function ResetPasswordPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-400 text-sm">{errors.password.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
                 )}
               </div>
 
@@ -267,7 +267,7 @@ export default function ResetPasswordPage() {
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-400 text-sm">{errors.confirmPassword.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
                 )}
               </div>
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -32,7 +32,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { ARBOutcomeModal } from '@/components/arb/ARBOutcomeModal';
 
 interface ARBRecord {
   id: string;
@@ -76,11 +76,16 @@ const getOutcomeColor = (outcome: string) => {
 };
 
 export default function ARBPage() {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicles, setVehicles] = useState<ARBRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [arbModalOpen, setArbModalOpen] = useState(false);
+  const [selectedVehicleForArb, setSelectedVehicleForArb] = useState<{ id: string; type: 'Sold ARB' | 'Inventory ARB' } | null>(null);
   const [filterOutcome, setFilterOutcome] = useState<string>('all');
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedArbRecordId, setSelectedArbRecordId] = useState<string | null>(null);
+  const [selectedVehicleIdForHistory, setSelectedVehicleIdForHistory] = useState<string | null>(null);
 
   // Load ARB records
   useEffect(() => {
@@ -90,16 +95,15 @@ export default function ARBPage() {
         const response = await fetch('/api/arb');
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage = errorData.error || `Failed to load ARB records (${response.status})`;
-          console.error('ARB API error:', errorMessage, errorData);
-          toast.error(errorMessage);
-          setVehicles([]);
-          return;
+          if (response.status === 404) {
+            toast.error('ARB records endpoint not found');
+            setVehicles([]);
+            return;
+          }
+          throw new Error('Failed to load ARB records');
         }
         
-        const result = await response.json();
-        const { data } = result;
+        const { data } = await response.json();
         setVehicles(data || []);
       } catch (error: any) {
         console.error('Error loading ARB records:', error);
@@ -124,16 +128,17 @@ export default function ARBPage() {
     return matchesSearch && matchesFilter;
   });
 
-  const handleProcessOutcome = (arbRecordId: string) => {
+  const handleProcessOutcome = (vehicleId: string, arbType: 'Sold ARB' | 'Inventory ARB') => {
     try {
-      if (!arbRecordId) {
-        toast.error('ARB record ID is missing');
+      if (!vehicleId) {
+        toast.error('Invalid vehicle ID');
         return;
       }
-      router.push(`/admin/arb/${arbRecordId}/process`);
+      setSelectedVehicleForArb({ id: vehicleId, type: arbType });
+      setArbModalOpen(true);
     } catch (error: any) {
-      console.error('Error navigating to Process Outcome page:', error);
-      toast.error('Failed to navigate to Process Outcome page');
+      console.error('Error opening Process Outcome modal:', error);
+      toast.error('Failed to open Process Outcome dialog');
     }
   };
 
@@ -143,32 +148,43 @@ export default function ARBPage() {
         toast.error('ARB record ID is missing');
         return;
       }
-      router.push(`/admin/arb/${arbRecordId}`);
+      setSelectedArbRecordId(arbRecordId);
+      setDetailsModalOpen(true);
     } catch (error: any) {
-      console.error('Error navigating to ARB Details:', error);
-      toast.error('Failed to navigate to ARB details');
+      console.error('Error opening ARB Details:', error);
+      toast.error('Failed to open ARB details');
     }
   };
 
-  const handleViewHistory = (vehicleId: string, arbRecordId: string) => {
+  const handleViewHistory = (vehicleId: string) => {
     try {
       if (!vehicleId) {
         toast.error('Vehicle ID is missing');
         return;
       }
-      // Use the ARB record ID to navigate to history page
-      // The history page will fetch the vehicle ID from the ARB record
-      if (arbRecordId) {
-        router.push(`/admin/arb/${arbRecordId}/history`);
-      } else {
-        toast.error('ARB record ID is missing');
-      }
+      setSelectedVehicleIdForHistory(vehicleId);
+      setHistoryModalOpen(true);
     } catch (error: any) {
-      console.error('Error navigating to ARB History:', error);
-      toast.error('Failed to navigate to ARB history');
+      console.error('Error opening ARB History:', error);
+      toast.error('Failed to open ARB history');
     }
   };
 
+  const handleARBOutcomeSuccess = () => {
+    // Reload ARB records
+    const loadARBRecords = async () => {
+      try {
+        const response = await fetch('/api/arb');
+        if (response.ok) {
+          const { data } = await response.json();
+          setVehicles(data || []);
+        }
+      } catch (error) {
+        console.error('Error reloading ARB records:', error);
+      }
+    };
+    loadARBRecords();
+  };
 
   const pendingCount = vehicles.filter(v => v.outcome === 'Pending').length;
   const buyerWithdrewCount = vehicles.filter(v => v.outcome === 'Buyer Withdrew').length;
@@ -428,11 +444,7 @@ export default function ARBPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleProcessOutcome(vehicle.id);
-                            }}
+                            onClick={() => handleProcessOutcome(vehicle.vehicleId, vehicle.arbType)}
                             style={{
                               borderColor: 'var(--border)',
                               color: 'var(--text)'
@@ -466,7 +478,7 @@ export default function ARBPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               style={{ color: 'var(--text)' }}
-                              onClick={() => handleViewHistory(vehicle.vehicleId, vehicle.id)}
+                              onClick={() => handleViewHistory(vehicle.vehicleId)}
                             >
                               <History className="w-4 h-4 mr-2" />
                               View History
@@ -484,6 +496,43 @@ export default function ARBPage() {
         </Card>
       </motion.div>
 
+      {/* ARB Outcome Modal */}
+      {selectedVehicleForArb && (
+        <ARBOutcomeModal
+          isOpen={arbModalOpen}
+          onClose={() => {
+            setArbModalOpen(false);
+            setSelectedVehicleForArb(null);
+          }}
+          vehicleId={selectedVehicleForArb.id}
+          arbType={selectedVehicleForArb.type}
+          onSuccess={handleARBOutcomeSuccess}
+        />
+      )}
+
+      {/* ARB Details Modal */}
+      {selectedArbRecordId && (
+          isOpen={detailsModalOpen}
+          onClose={() => {
+            setDetailsModalOpen(false);
+            setSelectedArbRecordId(null);
+          }}
+          arbRecordId={selectedArbRecordId}
+          vehicleId={vehicles.find(v => v.id === selectedArbRecordId)?.vehicleId || ''}
+        />
+      )}
+
+      {/* ARB History Modal */}
+      {selectedVehicleIdForHistory && (
+          isOpen={historyModalOpen}
+          onClose={() => {
+            setHistoryModalOpen(false);
+            setSelectedVehicleIdForHistory(null);
+          }}
+          vehicleId={selectedVehicleIdForHistory}
+        />
+      )}
     </div>
   );
 }
+

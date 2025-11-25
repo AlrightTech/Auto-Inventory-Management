@@ -222,7 +222,7 @@ function LoginPageContent() {
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.email.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
                 )}
               </div>
 
@@ -247,7 +247,7 @@ function LoginPageContent() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">{errors.password.message}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
                 )}
               </div>
 

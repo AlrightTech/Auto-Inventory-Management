@@ -73,6 +73,11 @@ export function ARBOutcomeModal({
       }
     }
 
+    if (!vehicleId) {
+      toast.error('Vehicle ID is missing');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/vehicles/${vehicleId}/arb/outcome`, {
@@ -128,12 +133,24 @@ export function ARBOutcomeModal({
     return arbType === 'Inventory ARB' && outcome === 'Withdrawn';
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
+  // Don't render if no vehicleId
+  if (!vehicleId) {
+    return null;
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{
         backgroundColor: 'var(--card-bg)',
         borderColor: 'var(--border)',
-        color: 'var(--text)'
+        color: 'var(--text)',
+        zIndex: 100
       }}>
         <DialogHeader>
           <DialogTitle style={{ color: 'var(--accent)' }}>
@@ -177,7 +194,8 @@ export function ARBOutcomeModal({
               <SelectContent style={{
                 backgroundColor: 'var(--card-bg)',
                 borderColor: 'var(--border)',
-                color: 'var(--text)'
+                color: 'var(--text)',
+                zIndex: 101
               }}>
                 {getOutcomeOptions().map((option) => (
                   <SelectItem key={option} value={option} style={{ color: 'var(--text)' }}>
@@ -297,7 +315,8 @@ export function ARBOutcomeModal({
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" style={{
                     backgroundColor: 'var(--card-bg)',
-                    borderColor: 'var(--border)'
+                    borderColor: 'var(--border)',
+                    zIndex: 101
                   }}>
                     <Calendar
                       mode="single"
