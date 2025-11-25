@@ -4,42 +4,26 @@ export const vehicleSchema = z.object({
   // Basic Vehicle Information
   make: z.string().min(1, 'Make is required.'),
   model: z.string().min(1, 'Model is required.'),
-  year: z.number({
-    required_error: 'Year is required.',
-    invalid_type_error: 'Enter a valid 4-digit year.',
-  }).refine((val) => {
-    return val >= 1900 && val <= new Date().getFullYear() + 1;
-  }, { message: 'Enter a valid 4-digit year.' }),
+  year: z.coerce.number()
+    .min(1900, 'Year must be 1900 or later')
+    .max(new Date().getFullYear() + 1, `Year cannot be later than ${new Date().getFullYear() + 1}`),
   vin: z.string()
-    .min(1, 'VIN number is required.')
+    .optional()
     .refine((val) => {
+      if (!val || val.trim() === '') return true; // VIN is optional
       const trimmed = val.trim();
-      return trimmed.length === 10;
-    }, (val) => {
-      const trimmed = val.trim();
-      if (trimmed.length === 0) {
-        return { message: 'VIN number is required.' };
-      }
-      if (trimmed.length < 10) {
-        return { message: 'VIN must be exactly 10 characters.' };
-      }
-      if (trimmed.length > 10) {
-        return { message: 'VIN must be exactly 10 characters. Extra characters are not allowed.' };
-      }
-      return { message: 'VIN must be exactly 10 characters.' };
+      return trimmed.length === 17; // Standard VIN length is 17 characters
+    }, {
+      message: 'VIN must be exactly 17 characters if provided.',
     }),
   trim: z.string().optional(),
   exterior_color: z.string().optional(),
   interior_color: z.string().optional(),
   
   // Vehicle Status and Details
-  status: z.enum(['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress'], {
-    required_error: 'Status is required.',
-  }),
+  status: z.enum(['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress', 'Pending Arbitration']).optional().default('Pending'),
   odometer: z.number().optional(),
-  title_status: z.enum(['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated'], {
-    required_error: 'Title status is required.',
-  }),
+  title_status: z.enum(['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated']).optional().default('Absent'),
   psi_status: z.string().optional(),
   dealshield_arbitration_status: z.string().optional(),
   
@@ -51,7 +35,7 @@ export const vehicleSchema = z.object({
   other_charges: z.number().optional(), // No validation - accepts any value or empty
   
   // Sale Information
-  sale_date: z.string().min(1, 'Purchase date is required.'),
+  sale_date: z.string().optional(),
   lane: z.number().optional(),
   run: z.number().optional(),
   channel: z.string().optional(),

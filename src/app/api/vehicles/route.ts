@@ -85,32 +85,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate VIN - must be exactly 10 characters
-    if (!body.vin || body.vin.trim() === '') {
+    // Validate VIN - must be 17 characters if provided (standard VIN length)
+    // VIN is optional but if provided, should be 17 characters
+    const trimmedVin = body.vin ? body.vin.trim() : null;
+    
+    if (trimmedVin && trimmedVin.length !== 17) {
       return NextResponse.json(
-        { error: 'VIN number is required' },
-        { status: 400 }
-      );
-    }
-
-    const trimmedVin = body.vin.trim();
-    if (trimmedVin.length < 10) {
-      return NextResponse.json(
-        { error: 'VIN must be exactly 10 characters' },
-        { status: 400 }
-      );
-    }
-
-    if (trimmedVin.length > 10) {
-      return NextResponse.json(
-        { error: 'VIN must be exactly 10 characters. Extra characters are not allowed.' },
-        { status: 400 }
-      );
-    }
-
-    if (trimmedVin.length !== 10) {
-      return NextResponse.json(
-        { error: 'Please correct the VIN. It must be exactly 10 characters to proceed.' },
+        { error: 'VIN must be exactly 17 characters if provided' },
         { status: 400 }
       );
     }
@@ -143,11 +124,21 @@ export async function POST(request: NextRequest) {
       interior_color: body.interior_color || null,
       
       // Vehicle Status and Details
-      status: (body.status && ['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress'].includes(body.status)) 
+      status: (body.status && ['Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress', 'Pending Arbitration'].includes(body.status)) 
         ? body.status 
         : 'Pending',
       odometer: body.odometer || null,
-      title_status: (body.title_status && ['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated'].includes(body.title_status)) 
+      // Title status - use all valid values from migration
+      title_status: (body.title_status && [
+        'Absent', 
+        'In Transit', 
+        'Received', 
+        'Available not Received', 
+        'Present', 
+        'Released', 
+        'Validated', 
+        'Sent but not Validated'
+      ].includes(body.title_status)) 
         ? body.title_status 
         : 'Absent',
       psi_status: body.psi_status || null,
@@ -203,12 +194,26 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating vehicle:', error);
-      console.error('Vehicle data:', vehicleData);
-      console.error('Supabase error details:', error);
+      console.error('Vehicle data:', JSON.stringify(vehicleData, null, 2));
+      console.error('Supabase error details:', JSON.stringify(error, null, 2));
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to create vehicle';
+      if (error.code === '23505') {
+        errorMessage = 'A vehicle with this VIN already exists';
+      } else if (error.code === '23503') {
+        errorMessage = 'Invalid reference: The user profile does not exist';
+      } else if (error.code === '23514') {
+        errorMessage = `Validation error: ${error.message || 'Invalid value for one or more fields'}`;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return NextResponse.json({ 
-        error: 'Failed to create vehicle', 
+        error: errorMessage,
         details: error.message,
-        code: error.code 
+        code: error.code,
+        hint: error.hint
       }, { status: 500 });
     }
 

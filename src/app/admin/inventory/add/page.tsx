@@ -75,25 +75,10 @@ export default function AddVehiclePage() {
   }, [reset]);
 
   const onSubmit = async (data: VehicleInput) => {
-    // Validate VIN before submission
-    if (!data.vin || data.vin.trim() === '') {
-      toast.error('VIN number is required.');
-      return;
-    }
-
-    const trimmedVin = data.vin.trim();
-    if (trimmedVin.length < 10) {
-      toast.error('VIN must be exactly 10 characters.');
-      return;
-    }
-
-    if (trimmedVin.length > 10) {
-      toast.error('VIN must be exactly 10 characters. Extra characters are not allowed.');
-      return;
-    }
-
-    if (trimmedVin.length !== 10) {
-      toast.error('Please correct the VIN. It must be exactly 10 characters to proceed.');
+    // Validate VIN - optional but if provided, must be 17 characters (standard VIN length)
+    const trimmedVin = data.vin ? data.vin.trim() : null;
+    if (trimmedVin && trimmedVin.length !== 17) {
+      toast.error('VIN must be exactly 17 characters if provided.');
       return;
     }
 
@@ -123,7 +108,9 @@ export default function AddVehiclePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create vehicle');
+        const errorMessage = errorData.error || 'Failed to create vehicle';
+        const errorDetails = errorData.details ? ` Details: ${errorData.details}` : '';
+        throw new Error(`${errorMessage}${errorDetails}`);
       }
 
       const result = await response.json();
