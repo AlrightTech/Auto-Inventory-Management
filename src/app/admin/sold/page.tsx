@@ -252,7 +252,8 @@ export default function SoldPage() {
       setSelectedVehicleForArb(vehicleId);
       setArbModalOpen(true);
       toast.success('ARB initiated successfully');
-      setRefreshTrigger(prev => prev + 1);
+      // Don't refresh immediately - let the modal stay open
+      // Refresh will happen after ARB outcome is processed via handleARBOutcomeSuccess
     } catch (error: any) {
       console.error('Error initiating ARB:', error);
       toast.error(error.message || 'Failed to initiate ARB');
@@ -566,6 +567,11 @@ export default function SoldPage() {
           onClose={() => {
             setArbModalOpen(false);
             setSelectedVehicleForArb(null);
+            // Refresh after modal closes to show updated status
+            // Use setTimeout to ensure modal closes first before refresh
+            setTimeout(() => {
+              setRefreshTrigger(prev => prev + 1);
+            }, 100);
           }}
           vehicleId={selectedVehicleForArb}
           arbType="Sold ARB"
