@@ -2,6 +2,7 @@
 
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { ImpersonationBanner } from '@/components/users/ImpersonationBanner';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 interface User {
@@ -30,6 +31,7 @@ export function AdminLayoutClient({ user, children }: AdminLayoutClientProps) {
           <Header user={user} />
           <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-full">
+              <ImpersonationBanner />
               {children}
             </div>
           </main>

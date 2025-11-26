@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { usePermissions } from '@/hooks/usePermissions';
+import { filterNavigationByPermissions } from '@/lib/navigation-permissions';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -25,6 +27,7 @@ import {
   User,
   TrendingUp,
   Users,
+  Shield,
 } from 'lucide-react';
 
 const defaultNavigation = [
@@ -32,64 +35,81 @@ const defaultNavigation = [
     name: 'Dashboard',
     href: '/admin',
     icon: LayoutDashboard,
+    permission: undefined, // Always visible
   },
   {
     name: 'Task Management',
     href: '/admin/tasks',
     icon: CheckSquare,
+    permission: undefined, // Always visible
   },
   {
     name: 'Inventory',
     icon: Package,
+    permission: 'inventory.view',
     children: [
-      { name: 'All', href: '/admin/inventory' },
-      { name: 'Buyer Withdrew', href: '/admin/inventory/buyer-withdrew' },
+      { name: 'All', href: '/admin/inventory', permission: 'inventory.view' },
+      { name: 'Buyer Withdrew', href: '/admin/inventory/buyer-withdrew', permission: 'inventory.view' },
     ],
   },
   {
     name: 'ARB',
     href: '/admin/arb',
     icon: AlertTriangle,
+    permission: 'arb.access',
   },
   {
     name: 'Events',
     href: '/admin/events',
     icon: Calendar,
+    permission: undefined, // Always visible
   },
   {
     name: 'Chat',
     href: '/admin/chat',
     icon: MessageSquare,
+    permission: undefined, // Always visible
   },
   {
     name: 'Sold',
     href: '/admin/sold',
     icon: DollarSign,
+    permission: 'sold.view',
   },
   {
     name: 'Accounting',
     icon: BarChart3,
+    permission: 'accounting.accounting_page',
     children: [
-      { name: 'Summary', href: '/admin/accounting' },
-      { name: 'Purchases', href: '/admin/accounting/purchases' },
-      { name: 'Sold', href: '/admin/accounting/sold' },
-      { name: 'Reports', href: '/admin/accounting/reports' },
+      { name: 'Summary', href: '/admin/accounting', permission: 'accounting.accounting_page' },
+      { name: 'Purchases', href: '/admin/accounting/purchases', permission: 'accounting.accounting_page' },
+      { name: 'Sold', href: '/admin/accounting/sold', permission: 'accounting.accounting_page' },
+      { name: 'Reports', href: '/admin/accounting/reports', permission: 'accounting.accounting_page' },
     ],
   },
   {
     name: 'VIN Decode',
     href: '/admin/vin-decode',
     icon: Car,
+    permission: 'inventory.view', // Requires inventory view
   },
   {
     name: 'User Management',
     href: '/admin/users',
     icon: Users,
+    permission: 'user_management.view_users',
+  },
+  {
+    name: 'Role Management',
+    href: '/admin/roles',
+    icon: Shield,
+    permission: 'user_management.create_roles', // Only admins can manage roles
   },
   {
     name: 'Settings',
     href: '/admin/settings',
     icon: Settings,
+    permission: undefined, // Always visible
   },
 ];
 
@@ -97,7 +117,8 @@ interface NavigationItem {
   name: string;
   href?: string;
   icon: string | React.ComponentType<{ className?: string }>;
-  children?: { name: string; href: string }[];
+  children?: { name: string; href: string; permission?: string }[];
+  permission?: string;
 }
 
 interface SidebarProps {
@@ -130,6 +151,14 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggle, unreadCount = 0 }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const pathname = usePathname();
+  const { permissions, isAdmin, loading, profile } = usePermissions();
+
+  // Filter navigation based on permissions
+  const filteredNavigation = useMemo(() => {
+    if (loading) return [];
+    // Filter for roles (Admin check is done inside filterNavigationByPermissions)
+    return filterNavigationByPermissions(navigation, permissions, profile || undefined);
+  }, [navigation, permissions, profile, loading]);
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems(prev =>
@@ -189,7 +218,12 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
-        {navigation.map((item, index) => (
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-sm" style={{ color: 'var(--subtext)' }}>Loading...</div>
+          </div>
+        ) : (
+          filteredNavigation.map((item, index) => (
           <motion.div
             key={item.name}
             initial={{ opacity: 0, x: -20 }}
@@ -261,7 +295,7 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
                       className="ml-8 mt-1 space-y-0.5 border-l pl-3"
                       style={{ borderColor: 'var(--border)' }}
                     >
-                      {item.children.map((child) => (
+                      {item.children?.map((child) => (
                         <Link
                           key={child.name}
                           href={child.href}
@@ -362,7 +396,8 @@ export function Sidebar({ navigation = defaultNavigation, isOpen = true, onToggl
               </Link>
             )}
           </motion.div>
-        ))}
+          ))
+        )}
       </nav>
 
         {/* Footer */}

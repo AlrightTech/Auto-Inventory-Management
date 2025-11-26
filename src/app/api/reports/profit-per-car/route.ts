@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkPermission } from '@/lib/route-protection';
 
 // GET /api/reports/profit-per-car - Get profit per car report
 export async function GET(request: NextRequest) {
@@ -10,6 +11,12 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check report permission
+    const hasAccess = await checkPermission('reports.profit_per_car');
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Get query parameters

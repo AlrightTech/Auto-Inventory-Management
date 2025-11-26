@@ -3,8 +3,9 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { DollarSign } from 'lucide-react';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-export default function AccountingSoldPage() {
+function AccountingSoldPageContent() {
   return (
     <div className="space-y-6">
       <motion.div
@@ -38,5 +39,13 @@ export default function AccountingSoldPage() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+export default function AccountingSoldPage() {
+  return (
+    <ProtectedRoute requiredPermission="accounting.accounting_page">
+      <AccountingSoldPageContent />
+    </ProtectedRoute>
   );
 }

@@ -13,14 +13,24 @@ import {
   Calendar,
   Clock,
   X,
+  Edit,
+  Lock,
+  LogIn,
 } from 'lucide-react';
 import { EditUserModal } from './EditUserModal';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface UserProfile {
   id: string;
   email: string;
   username: string;
   role: 'admin' | 'seller' | 'transporter';
+  role_id?: string | null;
+  role_data?: { name: string; is_system_role?: boolean } | null;
+  status?: 'active' | 'inactive';
   created_at: string;
   last_sign_in_at?: string;
 }
@@ -34,11 +44,60 @@ interface UserDetailsModalProps {
 
 export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserDetailsModalProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { isAdmin } = usePermissions();
+  const { confirm } = useConfirmation();
+  const router = useRouter();
 
   if (!user) return null;
 
+  // Check if user is Admin (legacy role or RBAC Admin role)
+  const userIsAdmin = user.role === 'admin' || user.role_data?.name === 'Admin';
+
   const handleEditClick = () => {
+    if (userIsAdmin) {
+      toast.error('Admin account cannot be edited');
+      return;
+    }
     setIsEditModalOpen(true);
+  };
+
+  const handleAccessAccount = async () => {
+    if (!isAdmin()) {
+      toast.error('Only admins can access user accounts');
+      return;
+    }
+
+    if (userIsAdmin) {
+      toast.error('Cannot impersonate admin users');
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'Access User Account',
+      description: `You are about to impersonate user "${user.username || user.email}". You will be able to view and interact with the system as this user. This action will be logged for security purposes. Continue?`,
+      variant: 'warning',
+      confirmText: 'Access Account',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/users/${user.id}/impersonate`, {
+            method: 'POST',
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to access user account');
+          }
+
+          toast.success(`Now viewing as ${user.username || user.email}`);
+          router.refresh();
+        } catch (error) {
+          console.error('Error accessing user account:', error);
+          toast.error(error instanceof Error ? error.message : 'Failed to access user account');
+          throw error;
+        }
+      },
+    });
   };
 
   const handleEditClose = () => {
@@ -191,25 +250,22 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-5 h-5 text-slate-400" />
-                    <div>
-                      <p className="text-sm text-slate-400">Account Created</p>
-                      <p className="text-white font-medium">
-                        {formatDate(user.created_at)}
-                      </p>
+                  {user.status && (
+                    <div className="flex items-center space-x-3">
+                      <Shield className="w-5 h-5 text-slate-400" />
+                      <div>
+                        <p className="text-sm text-slate-400">Status</p>
+                        <Badge 
+                          variant="outline"
+                          className={user.status === 'active' 
+                            ? 'bg-green-500/20 text-green-400 border-green-500' 
+                            : 'bg-red-500/20 text-red-400 border-red-500'}
+                        >
+                          {user.status === 'active' ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <Clock className="w-5 h-5 text-slate-400" />
-                    <div>
-                      <p className="text-sm text-slate-400">Last Sign In</p>
-                      <p className="text-white font-medium">
-                        {user.last_sign_in_at ? formatDate(user.last_sign_in_at) : 'Never'}
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -229,12 +285,31 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
             >
               Close
             </Button>
-            <Button
-              className="gradient-primary hover:opacity-90"
-              onClick={handleEditClick}
-            >
-              Edit User
-            </Button>
+            {isAdmin() && !userIsAdmin && (
+              <Button
+                variant="outline"
+                onClick={handleAccessAccount}
+                className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Access Account
+              </Button>
+            )}
+            {!userIsAdmin && (
+              <Button
+                className="gradient-primary hover:opacity-90"
+                onClick={handleEditClick}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit User
+              </Button>
+            )}
+            {userIsAdmin && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded border border-slate-600 bg-slate-800/50">
+                <Lock className="w-4 h-4 text-slate-400" />
+                <span className="text-slate-400 text-sm">Admin account is locked</span>
+              </div>
+            )}
           </motion.div>
         </div>
       </DialogContent>

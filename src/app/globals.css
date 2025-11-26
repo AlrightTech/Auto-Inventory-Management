@@ -763,7 +763,7 @@ textarea::placeholder {
   left: 50% !important;
   top: 50% !important;
   transform: translate(-50%, -50%) !important;
-  z-index: 50 !important;
+  z-index: 101 !important;
   overflow-x: hidden !important; /* Prevent horizontal scroll */
   max-width: 90vw !important; /* Ensure modal doesn't exceed viewport */
 }
@@ -772,7 +772,7 @@ textarea::placeholder {
 [data-radix-dialog-overlay] {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 50 !important;
+  z-index: 100 !important;
 }
 
 /* Smooth transitions for all interactive elements */

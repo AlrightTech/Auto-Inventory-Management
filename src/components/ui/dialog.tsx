@@ -72,7 +72,7 @@ const DialogContent = React.forwardRef<
           maxWidth: maxWidthMap[maxWidth] || '32rem',
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 100
+          zIndex: 101
         }}
         {...props}
       >

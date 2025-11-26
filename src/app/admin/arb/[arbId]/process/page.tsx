@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CalendarIcon, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 interface ARBApiResponse {
   id: string;
@@ -29,7 +30,7 @@ interface ARBApiResponse {
   };
 }
 
-export default function ProcessARBOutcomePage() {
+function ProcessARBOutcomePageContent() {
   const params = useParams();
   const router = useRouter();
   const arbId = params?.arbId as string;
@@ -517,6 +518,14 @@ export default function ProcessARBOutcomePage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ProcessARBOutcomePage() {
+  return (
+    <ProtectedRoute requiredPermission="arb.enter_outcomes">
+      <ProcessARBOutcomePageContent />
+    </ProtectedRoute>
   );
 }
 

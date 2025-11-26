@@ -4,6 +4,7 @@ import { RolePermissions, PermissionPath } from '@/types/permissions';
 
 /**
  * Check if a permission is granted
+ * Note: Admin check should be done before calling this function
  */
 export function hasPermission(
   permissions: RolePermissions | null | undefined,
@@ -123,16 +124,15 @@ export function getDefaultPermissions(): RolePermissions {
 }
 
 /**
- * Check if user is admin (legacy role or Super Admin role)
- * This function checks the legacy 'admin' role field
- * For RBAC system, check role_id separately
+ * Check if user is admin (legacy role or Admin role)
+ * Admin role has full access and bypasses all permission checks
  */
 export function isAdmin(profile: { role?: string; role_data?: { name: string } | null } | null): boolean {
   if (!profile) return false;
   // Check legacy role field
   if (profile.role === 'admin') return true;
-  // Check RBAC system if role_data is available
-  if (profile.role_data?.name === 'Super Admin') return true;
+  // Check RBAC system - Admin role name
+  if (profile.role_data?.name === 'Admin') return true;
   return false;
 }
 

@@ -1,7 +1,7 @@
 // Navigation to permission mapping for RBAC
 
 import { RolePermissions } from '@/types/permissions';
-import { hasPermission } from './permissions';
+import { hasPermission, isAdmin } from './permissions';
 
 export interface NavigationItem {
   name: string;
@@ -16,8 +16,14 @@ export interface NavigationItem {
  */
 export function shouldShowNavigationItem(
   item: NavigationItem,
-  permissions: RolePermissions | null | undefined
+  permissions: RolePermissions | null | undefined,
+  profile?: { role?: string; role_data?: { name: string } | null } | null
 ): boolean {
+  // Admin always sees everything
+  if (profile && isAdmin(profile)) {
+    return true;
+  }
+
   // If no permission required, always show
   if (!item.permission) {
     // Check children permissions
@@ -38,10 +44,16 @@ export function shouldShowNavigationItem(
  */
 export function filterNavigationByPermissions(
   navigation: NavigationItem[],
-  permissions: RolePermissions | null | undefined
+  permissions: RolePermissions | null | undefined,
+  profile?: { role?: string; role_data?: { name: string } | null } | null
 ): NavigationItem[] {
+  // Admin always sees everything
+  if (profile && isAdmin(profile)) {
+    return navigation;
+  }
+
   return navigation
-    .filter(item => shouldShowNavigationItem(item, permissions))
+    .filter(item => shouldShowNavigationItem(item, permissions, profile))
     .map(item => {
       // Filter children if they exist
       if (item.children) {
@@ -60,5 +72,6 @@ export function filterNavigationByPermissions(
       return true;
     });
 }
+
 
 

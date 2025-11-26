@@ -36,6 +36,8 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { ARBOutcomeModal } from '@/components/arb/ARBOutcomeModal';
+import { usePermissions } from '@/hooks/usePermissions';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 interface SoldVehicle {
   id: string;
@@ -86,13 +88,17 @@ const getPaymentStatusColor = (status: string) => {
   }
 };
 
-export default function SoldPage() {
+function SoldPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicles, setVehicles] = useState<SoldVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [arbModalOpen, setArbModalOpen] = useState(false);
   const [selectedVehicleForArb, setSelectedVehicleForArb] = useState<string | null>(null);
+  const { hasPermission } = usePermissions();
+  
+  const canViewProfit = hasPermission('sold.profit_visibility');
+  const canViewExpenses = hasPermission('sold.expenses_visibility');
 
   // Load sold vehicles from API
   useEffect(() => {
@@ -437,7 +443,7 @@ export default function SoldPage() {
                     <TableHead style={{ color: 'var(--text)' }}>Sale Date</TableHead>
                     <TableHead style={{ color: 'var(--text)' }}>Bought Price</TableHead>
                     <TableHead style={{ color: 'var(--text)' }}>Sold Price</TableHead>
-                    <TableHead style={{ color: 'var(--text)' }}>Net Profit</TableHead>
+                    {canViewProfit && <TableHead style={{ color: 'var(--text)' }}>Net Profit</TableHead>}
                     <TableHead style={{ color: 'var(--text)' }}>Status</TableHead>
                     <TableHead style={{ color: 'var(--text)' }}>Payment</TableHead>
                     <TableHead style={{ color: 'var(--text)' }}>Actions</TableHead>
@@ -491,9 +497,11 @@ export default function SoldPage() {
                         }}
                       />
                     </TableCell>
-                    <TableCell className="font-bold" style={{ color: vehicle.netProfit >= 0 ? '#10b981' : '#ef4444' }}>
-                      ${(vehicle.netProfit || 0).toLocaleString()}
-                    </TableCell>
+                    {canViewProfit && (
+                      <TableCell className="font-bold" style={{ color: vehicle.netProfit >= 0 ? '#10b981' : '#ef4444' }}>
+                        ${(vehicle.netProfit || 0).toLocaleString()}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Badge 
                         variant="outline" 
@@ -579,5 +587,13 @@ export default function SoldPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function SoldPage() {
+  return (
+    <ProtectedRoute requiredPermission="sold.view">
+      <SoldPageContent />
+    </ProtectedRoute>
   );
 }

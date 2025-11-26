@@ -21,3 +21,4 @@ LEFT JOIN roles r ON p.role_id = r.id
 WHERE p.email = 'admin@autoinventory.com';
 
 
+

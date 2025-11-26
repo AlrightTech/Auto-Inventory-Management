@@ -47,6 +47,8 @@ import { toast } from 'sonner';
 import { useDropdownOptions } from '@/hooks/useDropdownOptions';
 import { useRouter } from 'next/navigation';
 import { ARBOutcomeModal } from '@/components/arb/ARBOutcomeModal';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 
 // carLocationOptions will be fetched dynamically
 const titleStatusOptions = ['Absent', 'Released', 'Received', 'Present', 'In Transit', 'Available not Received', 'Validated', 'Sent but not Validated'];
@@ -98,6 +100,13 @@ interface FilterState {
 
 export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: showFiltersProp, onExportCSV, onExportPDF }: VehicleTableProps) {
   const router = useRouter();
+  const { hasPermission } = usePermissions();
+  const { confirm } = useConfirmation();
+  
+  const canEdit = hasPermission('inventory.edit');
+  const canInitiateARB = hasPermission('arb.create');
+  const canViewSold = hasPermission('sold.view');
+  
   // Fetch car location options dynamically
   const { options: carLocationOptions, isLoading: isLoadingLocations } = useDropdownOptions('car_location', true);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
@@ -225,33 +234,39 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
 
   // Handle vehicle deletion
   const handleDeleteVehicle = async (vehicleId: string, vehicleInfo: string) => {
-    if (!confirm(`Are you sure you want to delete ${vehicleInfo}? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete Vehicle',
+      description: `Are you sure you want to delete ${vehicleInfo}? This action cannot be undone and will permanently remove all vehicle data, including photos, notes, and related records.`,
+      variant: 'danger',
+      confirmText: 'Delete Vehicle',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          setIsDeleting(vehicleId);
+          const response = await fetch(`/api/vehicles/${vehicleId}`, {
+            method: 'DELETE',
+          });
 
-    try {
-      setIsDeleting(vehicleId);
-      const response = await fetch(`/api/vehicles/${vehicleId}`, {
-        method: 'DELETE',
-      });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete vehicle');
+          }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete vehicle');
-      }
-
-      // Remove vehicle from local state
-      setVehicles(prev => prev.filter(v => v.id !== vehicleId));
-      toast.success('Vehicle deleted successfully');
-      if (onVehicleAdded) {
-        onVehicleAdded();
-      }
-    } catch (error) {
-      console.error('Error deleting vehicle:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete vehicle');
-    } finally {
-      setIsDeleting(null);
-    }
+          // Remove vehicle from local state
+          setVehicles(prev => prev.filter(v => v.id !== vehicleId));
+          toast.success('Vehicle deleted successfully');
+          if (onVehicleAdded) {
+            onVehicleAdded();
+          }
+        } catch (error) {
+          console.error('Error deleting vehicle:', error);
+          toast.error(error instanceof Error ? error.message : 'Failed to delete vehicle');
+          throw error;
+        } finally {
+          setIsDeleting(null);
+        }
+      },
+    });
   };
 
   const handleView = (vehicle: VehicleWithRelations) => {
@@ -264,39 +279,45 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
 
   // Handle mark as sold
   const handleMarkAsSold = async (vehicleId: string, vehicleInfo: string) => {
-    if (!confirm(`Mark ${vehicleInfo} as Sold?`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Mark Vehicle as Sold',
+      description: `Are you sure you want to mark ${vehicleInfo} as Sold? This will change the vehicle status and move it to the sold section.`,
+      variant: 'warning',
+      confirmText: 'Mark as Sold',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          setIsMarkingAsSold(vehicleId);
+          const response = await fetch(`/api/vehicles/${vehicleId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: 'Sold' }),
+          });
 
-    try {
-      setIsMarkingAsSold(vehicleId);
-      const response = await fetch(`/api/vehicles/${vehicleId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'Sold' }),
-      });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update vehicle status');
+          }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update vehicle status');
-      }
-
-      // Update local state
-      setVehicles(prev => prev.map(v => 
-        v.id === vehicleId ? { ...v, status: 'Sold' as const } : v
-      ));
-      toast.success('Vehicle marked as Sold');
-      if (onVehicleAdded) {
-        onVehicleAdded();
-      }
-    } catch (error) {
-      console.error('Error marking vehicle as sold:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to mark vehicle as sold');
-    } finally {
-      setIsMarkingAsSold(null);
-    }
+          // Update local state
+          setVehicles(prev => prev.map(v => 
+            v.id === vehicleId ? { ...v, status: 'Sold' as const } : v
+          ));
+          toast.success('Vehicle marked as Sold');
+          if (onVehicleAdded) {
+            onVehicleAdded();
+          }
+        } catch (error) {
+          console.error('Error marking vehicle as sold:', error);
+          toast.error(error instanceof Error ? error.message : 'Failed to mark vehicle as sold');
+          throw error;
+        } finally {
+          setIsMarkingAsSold(null);
+        }
+      },
+    });
   };
 
   // Handle initiate ARB (Inventory ARB)
@@ -315,14 +336,18 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
         throw new Error(error.error || 'Failed to initiate ARB');
       }
 
+      // Set vehicle ID first, then open modal after a brief delay to ensure state is set
       setSelectedVehicleForArb(vehicleId);
-      setArbModalOpen(true);
+      
+      // Use setTimeout to ensure state is set before opening modal
+      setTimeout(() => {
+        setArbModalOpen(true);
+      }, 0);
+      
       toast.success('ARB initiated successfully');
       
-      // Refresh vehicles list
-      if (onVehicleAdded) {
-        onVehicleAdded();
-      }
+      // Don't refresh immediately - let the modal stay open
+      // Refresh will happen after ARB outcome is processed via handleARBOutcomeSuccess
     } catch (error: any) {
       console.error('Error initiating ARB:', error);
       toast.error(error.message || 'Failed to initiate ARB');
@@ -1173,45 +1198,53 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              style={{ color: 'var(--text)' }}
-                              onClick={() => handleEdit(vehicle)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Vehicle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteVehicle(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
-                              disabled={isDeleting === vehicle.id}
-                              style={{ color: isDeleting === vehicle.id ? 'var(--subtext)' : '#ef4444' }}
-                            >
-                              {isDeleting === vehicle.id ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="mr-2 h-4 w-4" />
-                              )}
-                              {isDeleting === vehicle.id ? 'Deleting...' : 'Delete'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleMarkAsSold(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
-                              disabled={isMarkingAsSold === vehicle.id || vehicle.status === 'Sold' || vehicle.status === 'Pending Arbitration'}
-                              style={{ color: isMarkingAsSold === vehicle.id ? 'var(--subtext)' : 'var(--text)' }}
-                            >
-                              {isMarkingAsSold === vehicle.id ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              ) : (
-                                <DollarSign className="mr-2 h-4 w-4" />
-                              )}
-                              {isMarkingAsSold === vehicle.id ? 'Updating...' : 'Mark as Sold'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleInitiateARB(vehicle.id)}
-                              disabled={vehicle.status === 'Sold' || vehicle.status === 'Pending Arbitration'}
-                              style={{ color: vehicle.status === 'Pending Arbitration' ? 'var(--subtext)' : 'var(--text)' }}
-                            >
-                              <AlertTriangle className="mr-2 h-4 w-4" />
-                              {vehicle.status === 'Pending Arbitration' ? 'ARB in Progress' : 'Initiate ARB'}
-                            </DropdownMenuItem>
+                            {canEdit && (
+                              <DropdownMenuItem 
+                                style={{ color: 'var(--text)' }}
+                                onClick={() => handleEdit(vehicle)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Vehicle
+                              </DropdownMenuItem>
+                            )}
+                            {canEdit && (
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteVehicle(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
+                                disabled={isDeleting === vehicle.id}
+                                style={{ color: isDeleting === vehicle.id ? 'var(--subtext)' : '#ef4444' }}
+                              >
+                                {isDeleting === vehicle.id ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                )}
+                                {isDeleting === vehicle.id ? 'Deleting...' : 'Delete'}
+                              </DropdownMenuItem>
+                            )}
+                            {canViewSold && (
+                              <DropdownMenuItem 
+                                onClick={() => handleMarkAsSold(vehicle.id, `${vehicle.year} ${vehicle.make} ${vehicle.model}`)}
+                                disabled={isMarkingAsSold === vehicle.id || vehicle.status === 'Sold' || vehicle.status === 'ARB'}
+                                style={{ color: isMarkingAsSold === vehicle.id ? 'var(--subtext)' : 'var(--text)' }}
+                              >
+                                {isMarkingAsSold === vehicle.id ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <DollarSign className="mr-2 h-4 w-4" />
+                                )}
+                                {isMarkingAsSold === vehicle.id ? 'Updating...' : 'Mark as Sold'}
+                              </DropdownMenuItem>
+                            )}
+                            {canInitiateARB && (
+                              <DropdownMenuItem 
+                                onClick={() => handleInitiateARB(vehicle.id)}
+                                disabled={vehicle.status === 'Sold' || vehicle.status === 'ARB'}
+                                style={{ color: vehicle.status === 'ARB' ? 'var(--subtext)' : 'var(--text)' }}
+                              >
+                                <AlertTriangle className="mr-2 h-4 w-4" />
+                                {vehicle.status === 'ARB' ? 'ARB in Progress' : 'Initiate ARB'}
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem 
                               style={{ color: 'var(--text)' }}
                               onClick={() => handleDownloadVehicle(vehicle)}
@@ -1232,19 +1265,24 @@ export function VehicleTable({ onVehicleAdded, refreshTrigger, showFilters: show
 
 
     </Card>
-      {/* ARB Outcome Modal */}
-      {selectedVehicleForArb && (
-        <ARBOutcomeModal
-          isOpen={arbModalOpen}
-          onClose={() => {
-            setArbModalOpen(false);
+      {/* ARB Outcome Modal - Always render, control visibility with isOpen prop */}
+      <ARBOutcomeModal
+        isOpen={arbModalOpen && !!selectedVehicleForArb}
+        onClose={() => {
+          setArbModalOpen(false);
+          // Delay clearing selected vehicle to prevent flicker
+          setTimeout(() => {
             setSelectedVehicleForArb(null);
-          }}
-          vehicleId={selectedVehicleForArb}
-          arbType="Inventory ARB"
-          onSuccess={handleARBOutcomeSuccess}
-        />
-      )}
+            // Refresh after modal closes to show updated status
+            if (onVehicleAdded) {
+              onVehicleAdded();
+            }
+          }, 200);
+        }}
+        vehicleId={selectedVehicleForArb || ''}
+        arbType="Inventory ARB"
+        onSuccess={handleARBOutcomeSuccess}
+      />
     </>
   );
 }

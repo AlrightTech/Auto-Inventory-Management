@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { VehicleInsert } from '@/types/vehicle';
+import { checkPermission } from '@/lib/route-protection';
 
 // GET /api/vehicles - Get all vehicles (admin only)
 export async function GET(request: NextRequest) {
@@ -56,15 +57,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    // Check inventory add permission
+    const hasAccess = await checkPermission('inventory.add');
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body: VehicleInsert = await request.json();
@@ -158,12 +154,17 @@ export async function POST(request: NextRequest) {
       dealshield_arbitration_status: body.dealshield_arbitration_status || null,
       // ARB status - must be NULL or one of the allowed values
       // Explicitly validate and sanitize to prevent constraint violations
-      arb_status: (() => {
-        if (!body.arb_status) return null;
-        const trimmed = typeof body.arb_status === 'string' ? body.arb_status.trim() : String(body.arb_status).trim();
-        const validValues = ['Absent', 'Present', 'In Transit', 'Failed'];
-        return (trimmed && validValues.includes(trimmed)) ? trimmed : null;
-      })(),
+      // Note: arb_status is handled via dealshield_arbitration_status field
+      // If arb_status is provided in body, map it to dealshield_arbitration_status
+      ...((body as any).arb_status ? {
+        dealshield_arbitration_status: (() => {
+          const arbStatus = (body as any).arb_status;
+          if (!arbStatus) return null;
+          const trimmed = typeof arbStatus === 'string' ? arbStatus.trim() : String(arbStatus).trim();
+          const validValues = ['Absent', 'Present', 'In Transit', 'Failed'];
+          return (trimmed && validValues.includes(trimmed)) ? trimmed : null;
+        })()
+      } : {}),
       
       // Financial Information
       bought_price: body.bought_price || null,

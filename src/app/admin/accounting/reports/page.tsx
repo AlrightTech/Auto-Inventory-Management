@@ -18,9 +18,16 @@ import { SummaryReport } from '@/components/reports/SummaryReport';
 import { ArbitrationReport } from '@/components/reports/ArbitrationReport';
 import { SalesReport } from '@/components/reports/SalesReport';
 import { MissingTitlesReport } from '@/components/reports/MissingTitlesReport';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { usePermissions } from '@/hooks/usePermissions';
 
-export default function AccountingReportsPage() {
+function AccountingReportsPageContent() {
   const [activeTab, setActiveTab] = useState('profit-per-car');
+  const { hasPermission } = usePermissions();
+  
+  const canViewProfitPerCar = hasPermission('reports.profit_per_car');
+  const canViewArbitration = hasPermission('reports.arb_activity');
+  const canViewMissingTitles = hasPermission('reports.missing_titles');
 
   return (
     <div className="space-y-6">
@@ -44,48 +51,68 @@ export default function AccountingReportsPage() {
           backgroundColor: 'var(--card-bg)',
           borderColor: 'var(--border)'
         }}>
-          <TabsTrigger value="profit-per-car" style={{ color: 'var(--text)' }}>
-            <DollarSign className="w-4 h-4 mr-2" />
-            Profit Per Car
-          </TabsTrigger>
+          {canViewProfitPerCar && (
+            <TabsTrigger value="profit-per-car" style={{ color: 'var(--text)' }}>
+              <DollarSign className="w-4 h-4 mr-2" />
+              Profit Per Car
+            </TabsTrigger>
+          )}
           <TabsTrigger value="summary" style={{ color: 'var(--text)' }}>
             <BarChart3 className="w-4 h-4 mr-2" />
             Summary
           </TabsTrigger>
-          <TabsTrigger value="arbitration" style={{ color: 'var(--text)' }}>
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            Arbitration
-          </TabsTrigger>
+          {canViewArbitration && (
+            <TabsTrigger value="arbitration" style={{ color: 'var(--text)' }}>
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              Arbitration
+            </TabsTrigger>
+          )}
           <TabsTrigger value="sales" style={{ color: 'var(--text)' }}>
             <TrendingUp className="w-4 h-4 mr-2" />
             Sales
           </TabsTrigger>
-          <TabsTrigger value="missing-titles" style={{ color: 'var(--text)' }}>
-            <FileText className="w-4 h-4 mr-2" />
-            Missing Titles
-          </TabsTrigger>
+          {canViewMissingTitles && (
+            <TabsTrigger value="missing-titles" style={{ color: 'var(--text)' }}>
+              <FileText className="w-4 h-4 mr-2" />
+              Missing Titles
+            </TabsTrigger>
+          )}
         </TabsList>
 
-        <TabsContent value="profit-per-car" className="mt-6">
-          <ProfitPerCarReport />
-        </TabsContent>
+        {canViewProfitPerCar && (
+          <TabsContent value="profit-per-car" className="mt-6">
+            <ProfitPerCarReport />
+          </TabsContent>
+        )}
 
         <TabsContent value="summary" className="mt-6">
           <SummaryReport />
         </TabsContent>
 
-        <TabsContent value="arbitration" className="mt-6">
-          <ArbitrationReport />
-        </TabsContent>
+        {canViewArbitration && (
+          <TabsContent value="arbitration" className="mt-6">
+            <ArbitrationReport />
+          </TabsContent>
+        )}
 
         <TabsContent value="sales" className="mt-6">
           <SalesReport />
         </TabsContent>
 
-        <TabsContent value="missing-titles" className="mt-6">
-          <MissingTitlesReport />
-        </TabsContent>
+        {canViewMissingTitles && (
+          <TabsContent value="missing-titles" className="mt-6">
+            <MissingTitlesReport />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
+  );
+}
+
+export default function AccountingReportsPage() {
+  return (
+    <ProtectedRoute requiredPermission="accounting.accounting_page">
+      <AccountingReportsPageContent />
+    </ProtectedRoute>
   );
 }

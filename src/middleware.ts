@@ -54,6 +54,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
+  // Check if user is active (if authenticated)
+  if (isProtectedRoute && user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('status')
+      .eq('id', user.id)
+      .single();
+    
+    // If user is inactive, redirect to login with error message
+    if (profile && profile.status === 'inactive') {
+      const loginUrl = new URL('/auth/login', request.url);
+      loginUrl.searchParams.set('error', 'account_deactivated');
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   // Redirect to dashboard if accessing auth routes while logged in
   if (isAuthRoute && user) {
     // Get user role from database

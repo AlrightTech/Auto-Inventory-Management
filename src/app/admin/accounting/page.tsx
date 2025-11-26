@@ -26,6 +26,7 @@ import {
   Calculator
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 // Mock accounting data
 const mockFinancialData = {
@@ -81,7 +82,7 @@ const salesTrendData = [
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'];
 
-export default function AccountingPage() {
+function AccountingPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('summary');
 
@@ -499,5 +500,13 @@ export default function AccountingPage() {
         </motion.div>
       )}
     </div>
+  );
+}
+
+export default function AccountingPage() {
+  return (
+    <ProtectedRoute requiredPermission="accounting.accounting_page">
+      <AccountingPageContent />
+    </ProtectedRoute>
   );
 }

@@ -27,12 +27,16 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { UserTable } from '@/components/users/UserTable';
 import { UserDetailsModal } from '@/components/users/UserDetailsModal';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 
 interface UserProfile {
   id: string;
   email: string;
   username: string;
   role: 'admin' | 'seller' | 'transporter';
+  role_id?: string | null;
+  role_data?: { name: string; is_system_role?: boolean } | null;
+  status?: 'active' | 'inactive';
   created_at: string;
   last_sign_in_at?: string;
 }
@@ -46,6 +50,7 @@ export default function UserManagementPage() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const supabase = createClient();
+  const { confirm } = useConfirmation();
 
   // Load users from database
   useEffect(() => {
@@ -88,29 +93,39 @@ export default function UserManagementPage() {
   }, [users, searchTerm]);
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
-    if (!confirm(`Are you sure you want to delete user "${userEmail}"? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete User',
+      description: `Are you sure you want to delete user "${userEmail}"? This action cannot be undone and will permanently remove all user data.`,
+      variant: 'danger',
+      confirmText: 'Delete User',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          setIsDeleting(userId);
+          
+          const response = await fetch(`/api/users/${userId}`, {
+            method: 'DELETE',
+          });
 
-    try {
-      setIsDeleting(userId);
-      
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
-      });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete user');
+          }
+          
+          // Update local state
+          setUsers(prev => prev.filter(user => user.id !== userId));
+          toast.success('User deleted successfully');
+        } catch (error) {
+          console.error('Error deleting user:', error);
+          toast.error(error instanceof Error ? error.message : 'Failed to delete user');
+          throw error; // Re-throw to prevent modal from closing on error
+        } finally {
+          setIsDeleting(null);
+        }
+      },
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete user');
-      }
-      
-      // Update local state
-      setUsers(prev => prev.filter(user => user.id !== userId));
-      toast.success('User deleted successfully');
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete user');
-    } finally {
+    if (!confirmed) {
       setIsDeleting(null);
     }
   };

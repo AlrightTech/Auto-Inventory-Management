@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkPermission } from '@/lib/route-protection';
 
 // GET /api/arb - Get all ARB records with vehicle details
 export async function GET(request: NextRequest) {
@@ -10,6 +11,12 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check ARB access permission
+    const hasAccess = await checkPermission('arb.access');
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Get query parameters

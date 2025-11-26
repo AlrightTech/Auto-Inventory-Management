@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Loader2 } from 'lucide-react';
 import { PermissionPath } from '@/types/permissions';
+import { hasPermission } from '@/lib/permissions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -20,7 +21,7 @@ export function ProtectedRoute({
   redirectTo = '/admin',
 }: ProtectedRouteProps) {
   const router = useRouter();
-  const { permissions, isAdmin, loading } = usePermissions();
+  const { permissions, isAdmin, loading, hasPermission: checkPermission } = usePermissions();
 
   useEffect(() => {
     if (loading) return;
@@ -33,9 +34,7 @@ export function ProtectedRoute({
 
     // Check permission requirement
     if (requiredPermission) {
-      const hasAccess = isAdmin() || (permissions && 
-        (permissions as any)[requiredPermission.split('.')[0]]?.[requiredPermission.split('.')[1]] === true
-      );
+      const hasAccess = checkPermission(requiredPermission);
 
       if (!hasAccess) {
         router.push(redirectTo);
@@ -58,9 +57,7 @@ export function ProtectedRoute({
   }
 
   if (requiredPermission) {
-    const hasAccess = isAdmin() || (permissions && 
-      (permissions as any)[requiredPermission.split('.')[0]]?.[requiredPermission.split('.')[1]] === true
-    );
+    const hasAccess = checkPermission(requiredPermission);
 
     if (!hasAccess) {
       return null;
@@ -69,5 +66,6 @@ export function ProtectedRoute({
 
   return <>{children}</>;
 }
+
 
 

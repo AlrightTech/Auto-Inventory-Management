@@ -82,7 +82,7 @@ export async function requireAdmin(redirectTo: string = '/admin'): Promise<void>
       return; // Allow access
     }
 
-    // Check RBAC Super Admin role
+    // Check RBAC Admin role
     if (profile.role_id) {
       const { data: roleData, error: roleError } = await supabase
         .from('roles')
@@ -90,7 +90,7 @@ export async function requireAdmin(redirectTo: string = '/admin'): Promise<void>
         .eq('id', profile.role_id)
         .maybeSingle();
       
-      if (!roleError && roleData?.name === 'Super Admin') {
+      if (!roleError && roleData?.name === 'Admin') {
         return; // Allow access
       }
     }

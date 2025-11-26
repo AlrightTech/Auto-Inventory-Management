@@ -22,11 +22,17 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Check for success messages from URL parameters
+  // Check for success messages and error messages from URL parameters
   useEffect(() => {
     const message = searchParams.get('message');
+    const errorParam = searchParams.get('error');
+    
     if (message === 'email_confirmed') {
       setSuccess('Email confirmed successfully! You can now sign in.');
+    }
+    
+    if (errorParam === 'account_deactivated') {
+      setError('Your account has been deactivated. Contact Admin.');
     }
   }, [searchParams]);
   
@@ -85,10 +91,10 @@ function LoginPageContent() {
       console.log('Authentication successful:', authData.user?.id);
 
       if (authData.user) {
-        // Get user role (include role_id for RBAC system)
+        // Get user role and status (include role_id for RBAC system)
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('role, role_id')
+          .select('role, role_id, status')
           .eq('id', authData.user.id)
           .single();
 
@@ -132,6 +138,15 @@ function LoginPageContent() {
         console.log('User profile:', profile);
         console.log('Profile role:', profile?.role);
         console.log('Profile role_id:', profile?.role_id);
+        console.log('Profile status:', profile?.status);
+
+        // Check if user account is inactive
+        if (profile?.status === 'inactive') {
+          // Sign out the user
+          await supabase.auth.signOut();
+          setError('Your account has been deactivated. Contact Admin.');
+          return;
+        }
 
         // Check new RBAC system first (role_id)
         if (profile?.role_id) {

@@ -85,3 +85,4 @@ ALTER TABLE vehicles
 ADD CONSTRAINT vehicles_status_check 
 CHECK (status IN ('Pending', 'Sold', 'Withdrew', 'Complete', 'ARB', 'In Progress', 'Pending Arbitration'));
 
+

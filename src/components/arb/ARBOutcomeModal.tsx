@@ -146,12 +146,15 @@ export function ARBOutcomeModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{
-        backgroundColor: 'var(--card-bg)',
-        borderColor: 'var(--border)',
-        color: 'var(--text)',
-        zIndex: 100
-      }}>
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto" 
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          borderColor: 'var(--border)',
+          color: 'var(--text)',
+          zIndex: 101
+        }}
+      >
         <DialogHeader>
           <DialogTitle style={{ color: 'var(--accent)' }}>
             Process ARB Outcome - {arbType}

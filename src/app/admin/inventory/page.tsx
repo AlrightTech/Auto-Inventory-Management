@@ -11,11 +11,13 @@ import { Plus, Car, AlertTriangle, MapPin, Search, Filter, RotateCcw, Download, 
 import { VehicleWithRelations } from '@/types/vehicle';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { usePermissions } from '@/hooks/usePermissions';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import * as XLSX from 'xlsx';
 
-export default function InventoryPage() {
+function InventoryPageContent() {
   const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [vehicles, setVehicles] = useState<VehicleWithRelations[]>([]);
@@ -24,6 +26,9 @@ export default function InventoryPage() {
   const [exportDateFrom, setExportDateFrom] = useState<Date | null>(null);
   const [exportDateTo, setExportDateTo] = useState<Date | null>(null);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const { hasPermission } = usePermissions();
+  
+  const canAdd = hasPermission('inventory.add');
 
   // Helper function to escape CSV values
   const escapeCsvValue = (value: any): string => {
@@ -595,8 +600,14 @@ export default function InventoryPage() {
           onExportPDF={(filteredVehicles) => handleExportPDF(filteredVehicles, exportDateFrom, exportDateTo)}
         />
       </motion.div>
-
-
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <ProtectedRoute requiredPermission="inventory.view">
+      <InventoryPageContent />
+    </ProtectedRoute>
   );
 }

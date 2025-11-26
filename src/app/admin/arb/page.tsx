@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { usePermissions } from '@/hooks/usePermissions';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 interface ARBRecord {
   id: string;
@@ -75,12 +77,16 @@ const getOutcomeColor = (outcome: string) => {
   }
 };
 
-export default function ARBPage() {
+function ARBPageContent() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicles, setVehicles] = useState<ARBRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterOutcome, setFilterOutcome] = useState<string>('all');
+  const { hasPermission } = usePermissions();
+  
+  const canEnterOutcomes = hasPermission('arb.enter_outcomes');
+  const canUpdate = hasPermission('arb.update');
 
   // Load ARB records
   useEffect(() => {
@@ -94,8 +100,8 @@ export default function ARBPage() {
           const errorMessage = errorData.error || `Failed to load ARB records (${response.status})`;
           console.error('ARB API error:', errorMessage, errorData);
           toast.error(errorMessage);
-          setVehicles([]);
-          return;
+            setVehicles([]);
+            return;
         }
         
         const result = await response.json();
@@ -424,7 +430,7 @@ export default function ARBPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {vehicle.outcome === 'Pending' && (
+                        {vehicle.outcome === 'Pending' && canEnterOutcomes && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -485,5 +491,13 @@ export default function ARBPage() {
       </motion.div>
 
     </div>
+  );
+}
+
+export default function ARBPage() {
+  return (
+    <ProtectedRoute requiredPermission="arb.access">
+      <ARBPageContent />
+    </ProtectedRoute>
   );
 }

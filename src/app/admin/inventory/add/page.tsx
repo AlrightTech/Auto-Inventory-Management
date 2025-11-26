@@ -50,7 +50,7 @@ export default function AddVehiclePage() {
     reset,
     watch,
   } = useForm<VehicleInput>({
-    resolver: zodResolver(vehicleSchema),
+    resolver: zodResolver(vehicleSchema) as any,
     defaultValues: {
       status: 'In Progress',
       title_status: 'Absent',
@@ -81,11 +81,14 @@ export default function AddVehiclePage() {
     setIsSubmitting(true);
     try {
       // Clean up the data - remove empty strings and convert to proper types
-      const cleanedData: VehicleInsert = {
+      // Map VehicleInput to VehicleInsert, handling type differences
+      const cleanedData = {
         ...data,
-        vin: trimmedVin,
+        vin: trimmedVin || undefined,
         sale_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
-      };
+        // Ensure status matches VehicleInsert type (exclude 'Pending Arbitration')
+        status: data.status === 'Pending Arbitration' ? 'Pending' : data.status,
+      } as VehicleInsert;
 
       // Explicitly remove arb_status from cleanedData - let API handle it
       // This prevents any invalid arb_status values from being sent

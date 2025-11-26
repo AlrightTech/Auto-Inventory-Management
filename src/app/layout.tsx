@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ConfirmationProvider } from "@/contexts/ConfirmationContext";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -31,18 +32,20 @@ export default function RootLayout({
         className={`${inter.variable} ${poppins.variable} antialiased`}
       >
         <ThemeProvider>
-          {children}
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: 'hsl(var(--card))',
-                color: 'hsl(var(--card-foreground))',
-                border: '1px solid hsl(var(--border))',
-              },
-              className: 'toast-custom',
-            }}
-          />
+          <ConfirmationProvider>
+            {children}
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: 'hsl(var(--card))',
+                  color: 'hsl(var(--card-foreground))',
+                  border: '1px solid hsl(var(--border))',
+                },
+                className: 'toast-custom',
+              }}
+            />
+          </ConfirmationProvider>
         </ThemeProvider>
       </body>
     </html>

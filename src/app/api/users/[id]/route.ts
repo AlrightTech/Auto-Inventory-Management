@@ -27,10 +27,10 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    // Get specific user
+    // Get specific user with role data
     const { data: userData, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('*, role_data:roles(name, is_system_role)')
       .eq('id', id)
       .single();
 
@@ -75,13 +75,37 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
+    // Get target user to check if it's admin
+    const { data: targetUser, error: targetUserError } = await supabase
+      .from('profiles')
+      .select('role, role_id, role_data:roles(name)')
+      .eq('id', id)
+      .single();
+
+    if (targetUserError) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Prevent modifying admin account
+    const targetIsAdmin = targetUser?.role === 'admin' || targetUser?.role_data?.name === 'Admin';
+    if (targetIsAdmin) {
+      return NextResponse.json({ error: 'Admin account cannot be modified' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { username, role, email } = body;
 
-    // Validate role if provided
-    if (role && !['admin', 'seller', 'transporter'].includes(role)) {
+    // Validate role if provided - prevent creating new admins
+    if (role && role === 'admin') {
       return NextResponse.json(
-        { error: 'Invalid role. Must be admin, seller, or transporter' },
+        { error: 'Cannot change user role to admin via this endpoint' },
+        { status: 403 }
+      );
+    }
+
+    if (role && !['seller', 'transporter'].includes(role)) {
+      return NextResponse.json(
+        { error: 'Invalid role. Must be seller or transporter' },
         { status: 400 }
       );
     }
@@ -91,6 +115,21 @@ export async function PATCH(
     if (username !== undefined) updateData.username = username;
     if (role !== undefined) updateData.role = role;
     if (email !== undefined) updateData.email = email;
+    updateData.updated_at = new Date().toISOString();
+
+    // Log the action
+    await supabase
+      .from('audit_logs')
+      .insert({
+        admin_id: user.id,
+        action_type: 'update_user',
+        target_user_id: id,
+        details: {
+          changes: { username, role, email },
+        },
+        ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        user_agent: request.headers.get('user-agent') || 'unknown',
+      });
 
     const { data: updatedUser, error } = await supabase
       .from('profiles')
@@ -145,7 +184,7 @@ export async function DELETE(
     // Check if user being deleted is an admin
     const { data: targetUser, error: targetError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, role_id, role_data:roles(name)')
       .eq('id', id)
       .single();
 
@@ -153,8 +192,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (targetUser.role === 'admin') {
-      return NextResponse.json({ error: 'Cannot delete admin users' }, { status: 400 });
+    const targetIsAdmin = targetUser?.role === 'admin' || targetUser?.role_data?.name === 'Admin';
+    if (targetIsAdmin) {
+      return NextResponse.json({ error: 'Admin account cannot be deleted' }, { status: 403 });
     }
 
     // Delete profile (this will cascade to related records)

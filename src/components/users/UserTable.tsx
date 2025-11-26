@@ -23,6 +23,9 @@ interface UserProfile {
   email: string;
   username: string;
   role: 'admin' | 'seller' | 'transporter';
+  role_id?: string | null;
+  role_data?: { name: string; is_system_role?: boolean } | null;
+  status?: 'active' | 'inactive';
   created_at: string;
   last_sign_in_at?: string;
 }
@@ -151,7 +154,7 @@ export function UserTable({ users, onViewUser, onDeleteUser, isDeleting }: UserT
                     <DropdownMenuItem 
                       className="text-red-400 hover:bg-red-500/10"
                       onClick={() => onDeleteUser(user.id, user.email)}
-                      disabled={user.role === 'admin'} // Prevent deleting admin users
+                      disabled={user.role === 'admin' || user.role_data?.name === 'Admin'} // Prevent deleting admin users
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete User

@@ -41,3 +41,4 @@ LEFT JOIN roles r ON p.role_id = r.id
 WHERE p.role_id IS NOT NULL;
 
 
+

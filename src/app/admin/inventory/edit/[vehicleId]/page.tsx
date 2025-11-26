@@ -45,7 +45,7 @@ export default function EditVehiclePage() {
     setValue,
     watch,
   } = useForm<VehicleInput>({
-    resolver: zodResolver(vehicleSchema),
+    resolver: zodResolver(vehicleSchema) as any,
     defaultValues: {
       status: 'Pending',
       title_status: 'Absent',
@@ -126,11 +126,13 @@ export default function EditVehiclePage() {
     
     setIsSubmitting(true);
     try {
-      const cleanedData: VehicleInsert = {
+      const cleanedData = {
         ...data,
         vin: data.vin && data.vin.trim() !== '' ? data.vin.trim() : undefined,
         sale_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
-      };
+        // Ensure status matches VehicleInsert type (exclude 'Pending Arbitration')
+        status: data.status === 'Pending Arbitration' ? 'Pending' : data.status,
+      } as VehicleInsert;
 
       Object.keys(cleanedData).forEach(key => {
         if (cleanedData[key as keyof VehicleInsert] === undefined || cleanedData[key as keyof VehicleInsert] === '') {
