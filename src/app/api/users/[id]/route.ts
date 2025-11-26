@@ -28,11 +28,34 @@ export async function GET(
     }
 
     // Get specific user with role data
-    const { data: userData, error } = await supabase
+    // Try to get with status, but handle gracefully if column doesn't exist
+    let userData: any = null;
+    let error: any = null;
+    
+    const userQuery = await supabase
       .from('profiles')
       .select('*, role_data:roles(name, is_system_role)')
       .eq('id', id)
       .single();
+    
+    userData = userQuery.data;
+    error = userQuery.error;
+    
+    // If error is about missing status column, try without it
+    if (error && error.message && error.message.includes('status')) {
+      const userQueryWithoutStatus = await supabase
+        .from('profiles')
+        .select('id, email, username, role, role_id, avatar_url, created_at, updated_at, role_data:roles(name, is_system_role)')
+        .eq('id', id)
+        .single();
+      
+      userData = userQueryWithoutStatus.data;
+      error = userQueryWithoutStatus.error;
+      // Default status to 'active' if column doesn't exist
+      if (userData) {
+        userData.status = 'active';
+      }
+    }
 
     if (error) {
       if (error.code === 'PGRST116') {
@@ -93,7 +116,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { username, role, email } = body;
+    const { username, role, email, status } = body;
 
     // Validate role if provided - prevent creating new admins
     if (role && role === 'admin') {
@@ -115,6 +138,10 @@ export async function PATCH(
     if (username !== undefined) updateData.username = username;
     if (role !== undefined) updateData.role = role;
     if (email !== undefined) updateData.email = email;
+    // Only update status if provided and column exists (will fail gracefully if column doesn't exist)
+    if (status !== undefined) {
+      updateData.status = status;
+    }
     updateData.updated_at = new Date().toISOString();
 
     // Log the action
@@ -125,7 +152,7 @@ export async function PATCH(
         action_type: 'update_user',
         target_user_id: id,
         details: {
-          changes: { username, role, email },
+          changes: { username, role, email, status },
         },
         ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         user_agent: request.headers.get('user-agent') || 'unknown',

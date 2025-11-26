@@ -56,17 +56,24 @@ export async function middleware(request: NextRequest) {
 
   // Check if user is active (if authenticated)
   if (isProtectedRoute && user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('status')
-      .eq('id', user.id)
-      .single();
-    
-    // If user is inactive, redirect to login with error message
-    if (profile && profile.status === 'inactive') {
-      const loginUrl = new URL('/auth/login', request.url);
-      loginUrl.searchParams.set('error', 'account_deactivated');
-      return NextResponse.redirect(loginUrl);
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('status')
+        .eq('id', user.id)
+        .single();
+      
+      // Only check status if column exists and user is inactive
+      // If column doesn't exist, profileError will have the error, but we'll ignore it
+      if (profile && profile.status === 'inactive') {
+        const loginUrl = new URL('/auth/login', request.url);
+        loginUrl.searchParams.set('error', 'account_deactivated');
+        return NextResponse.redirect(loginUrl);
+      }
+      // If error is about missing column, just continue (status defaults to active)
+    } catch (error) {
+      // If status column doesn't exist, just continue (defaults to active)
+      // This prevents the middleware from breaking if migration hasn't run
     }
   }
 

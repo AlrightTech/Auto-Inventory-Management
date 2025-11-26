@@ -34,17 +34,40 @@ export async function POST(
     }
 
     // Get target user
-    const { data: targetUser, error: targetError } = await supabase
+    let targetUser: any = null;
+    let targetError: any = null;
+    
+    // Try to get with status first
+    const targetUserQuery = await supabase
       .from('profiles')
       .select('id, email, username, status')
       .eq('id', targetUserId)
       .single();
+    
+    targetUser = targetUserQuery.data;
+    targetError = targetUserQuery.error;
+
+    // If error is about missing status column, try without it
+    if (targetError && targetError.message && targetError.message.includes('status')) {
+      const targetUserQueryWithoutStatus = await supabase
+        .from('profiles')
+        .select('id, email, username')
+        .eq('id', targetUserId)
+        .single();
+      
+      targetUser = targetUserQueryWithoutStatus.data;
+      targetError = targetUserQueryWithoutStatus.error;
+      // Default status to 'active' if column doesn't exist
+      if (targetUser) {
+        targetUser.status = 'active';
+      }
+    }
 
     if (targetError || !targetUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if target user is active
+    // Check if target user is active (only if status exists and is inactive)
     if (targetUser.status === 'inactive') {
       return NextResponse.json({ error: 'Cannot impersonate inactive user' }, { status: 400 });
     }

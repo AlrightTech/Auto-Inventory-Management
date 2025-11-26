@@ -24,10 +24,32 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all users with role data
-    const { data: users, error } = await supabase
+    // Try to get with status, but handle gracefully if column doesn't exist
+    let users: any[] = [];
+    let error: any = null;
+    
+    const usersQuery = await supabase
       .from('profiles')
       .select('*, role_data:roles(name, is_system_role)')
       .order('created_at', { ascending: false });
+    
+    users = usersQuery.data || [];
+    error = usersQuery.error;
+    
+    // If error is about missing status column, try without it
+    if (error && error.message && error.message.includes('status')) {
+      // Try selecting specific columns excluding status
+      const usersQueryWithoutStatus = await supabase
+        .from('profiles')
+        .select('id, email, username, role, role_id, avatar_url, created_at, updated_at, role_data:roles(name, is_system_role)')
+        .order('created_at', { ascending: false });
+      
+      users = (usersQueryWithoutStatus.data || []).map((user: any) => ({
+        ...user,
+        status: 'active' // Default to active if column doesn't exist
+      }));
+      error = usersQueryWithoutStatus.error;
+    }
 
     if (error) {
       console.error('Error fetching users:', error);

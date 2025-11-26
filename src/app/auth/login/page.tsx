@@ -92,11 +92,36 @@ function LoginPageContent() {
 
       if (authData.user) {
         // Get user role and status (include role_id for RBAC system)
-        const { data: profile, error: profileError } = await supabase
+        // Try to get status, but handle gracefully if column doesn't exist
+        let profile: any = null;
+        let profileError: any = null;
+        
+        // First try with status
+        const profileQuery = await supabase
           .from('profiles')
           .select('role, role_id, status')
           .eq('id', authData.user.id)
           .single();
+        
+        profile = profileQuery.data;
+        profileError = profileQuery.error;
+
+        // If error is about missing column, try without status
+        if (profileError && profileError.message && profileError.message.includes('status')) {
+          console.log('Status column not found, fetching without status...');
+          const profileQueryWithoutStatus = await supabase
+            .from('profiles')
+            .select('role, role_id')
+            .eq('id', authData.user.id)
+            .single();
+          
+          profile = profileQueryWithoutStatus.data;
+          profileError = profileQueryWithoutStatus.error;
+          // Default status to 'active' if column doesn't exist
+          if (profile) {
+            profile.status = 'active';
+          }
+        }
 
         if (profileError) {
           console.error('Profile fetch error:', profileError);
@@ -140,7 +165,7 @@ function LoginPageContent() {
         console.log('Profile role_id:', profile?.role_id);
         console.log('Profile status:', profile?.status);
 
-        // Check if user account is inactive
+        // Check if user account is inactive (only if status exists and is inactive)
         if (profile?.status === 'inactive') {
           // Sign out the user
           await supabase.auth.signOut();

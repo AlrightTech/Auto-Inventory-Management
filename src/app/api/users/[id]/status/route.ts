@@ -59,6 +59,7 @@ export async function PATCH(
     }
 
     // Update status
+    // Check if status column exists first by trying to update
     const { data: updatedUser, error: updateError } = await supabase
       .from('profiles')
       .update({ status })
@@ -67,6 +68,14 @@ export async function PATCH(
       .single();
 
     if (updateError) {
+      // If error is about missing column, return helpful message
+      if (updateError.message && updateError.message.includes('status')) {
+        console.error('Status column does not exist. Please run migration: 20250105_add_user_management_fields.sql');
+        return NextResponse.json({ 
+          error: 'Status column does not exist. Please run the database migration to enable user status management.',
+          details: 'Migration file: 20250105_add_user_management_fields.sql'
+        }, { status: 500 });
+      }
       console.error('Error updating user status:', updateError);
       return NextResponse.json({ error: 'Failed to update user status' }, { status: 500 });
     }
