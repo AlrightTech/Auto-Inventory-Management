@@ -15,13 +15,10 @@ import {
   X,
   Edit,
   Lock,
-  LogIn,
 } from 'lucide-react';
 import { EditUserModal } from './EditUserModal';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 
 interface UserProfile {
   id: string;
@@ -45,8 +42,6 @@ interface UserDetailsModalProps {
 export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserDetailsModalProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { isAdmin } = usePermissions();
-  const { confirm } = useConfirmation();
-  const router = useRouter();
 
   if (!user) return null;
 
@@ -61,44 +56,6 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
     setIsEditModalOpen(true);
   };
 
-  const handleAccessAccount = async () => {
-    if (!isAdmin()) {
-      toast.error('Only admins can access user accounts');
-      return;
-    }
-
-    if (userIsAdmin) {
-      toast.error('Cannot impersonate admin users');
-      return;
-    }
-
-    const confirmed = await confirm({
-      title: 'Access User Account',
-      description: `You are about to impersonate user "${user.username || user.email}". You will be able to view and interact with the system as this user. This action will be logged for security purposes. Continue?`,
-      variant: 'warning',
-      confirmText: 'Access Account',
-      cancelText: 'Cancel',
-      onConfirm: async () => {
-        try {
-          const response = await fetch(`/api/users/${user.id}/impersonate`, {
-            method: 'POST',
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to access user account');
-          }
-
-          toast.success(`Now viewing as ${user.username || user.email}`);
-          router.refresh();
-        } catch (error) {
-          console.error('Error accessing user account:', error);
-          toast.error(error instanceof Error ? error.message : 'Failed to access user account');
-          throw error;
-        }
-      },
-    });
-  };
 
   const handleEditClose = () => {
     setIsEditModalOpen(false);
@@ -285,16 +242,6 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
             >
               Close
             </Button>
-            {isAdmin() && !userIsAdmin && (
-              <Button
-                variant="outline"
-                onClick={handleAccessAccount}
-                className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Access Account
-              </Button>
-            )}
             {!userIsAdmin && (
               <Button
                 className="gradient-primary hover:opacity-90"

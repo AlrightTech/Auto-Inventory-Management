@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ProfileForm } from '@/components/profile/ProfileForm';
-import { User, ListChecks } from 'lucide-react';
+import { User, ListChecks, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SettingsPage() {
@@ -55,6 +55,30 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
+          <Link href="/admin/settings/system-settings/manage-locations">
+            <Card className="glass-card hover-glow transition-all duration-300 cursor-pointer">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center">
+                  <MapPin className="w-5 h-5 mr-2 text-blue-400" />
+                  Manage Locations
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Add, edit, and delete car locations used across all modules
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-slate-700/50">
+                  Manage Locations
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <Link href="/admin/settings/dropdowns">
             <Card className="glass-card hover-glow transition-all duration-300 cursor-pointer">
               <CardHeader>
@@ -63,7 +87,7 @@ export default function SettingsPage() {
                   Dropdown Manager
                 </CardTitle>
                 <CardDescription className="text-slate-400">
-                  Manage dropdown options for Car Location and other categories
+                  Manage dropdown options for all categories
                 </CardDescription>
               </CardHeader>
               <CardContent>

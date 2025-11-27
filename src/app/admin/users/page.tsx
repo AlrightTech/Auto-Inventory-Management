@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { UserTable } from '@/components/users/UserTable';
 import { UserDetailsModal } from '@/components/users/UserDetailsModal';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { useRouter } from 'next/navigation';
 
 interface UserProfile {
   id: string;
@@ -42,6 +43,7 @@ interface UserProfile {
 }
 
 export default function UserManagementPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -183,7 +185,10 @@ export default function UserManagementPage() {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button className="gradient-primary hover:opacity-90">
+          <Button 
+            className="gradient-primary hover:opacity-90"
+            onClick={() => router.push('/admin/users/add')}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add User
           </Button>

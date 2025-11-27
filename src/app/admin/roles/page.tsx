@@ -27,7 +27,6 @@ import {
 import { toast } from 'sonner';
 import { Role, RolePermissions } from '@/types/permissions';
 import { getDefaultPermissions } from '@/lib/permissions';
-import { EditRoleModal } from '@/components/roles/EditRoleModal';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { useRouter } from 'next/navigation';
 
@@ -38,8 +37,6 @@ export default function RoleManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const { confirm } = useConfirmation();
 
   // Load roles
@@ -92,58 +89,65 @@ export default function RoleManagementPage() {
   }, [roles, searchTerm]);
 
   const handleEdit = (role: Role) => {
-    // Prevent editing Admin role
-    if (role.name === 'Admin' || role.is_system_role) {
-      toast.error('System roles cannot be edited');
-      return;
-    }
-    setSelectedRole(role);
-    setEditModalOpen(true);
+    // Navigate to edit page
+    router.push(`/admin/roles/edit/${role.id}`);
   };
 
   const handleDelete = async (role: Role) => {
-    // Prevent deleting Admin or system roles
-    if (role.name === 'Admin' || role.is_system_role) {
-      toast.error('System roles cannot be deleted');
-      return;
-    }
-
-    const confirmed = await confirm({
-      title: 'Delete Role',
-      description: `Are you sure you want to delete role "${role.name}"? This action cannot be undone. All users assigned to this role will lose their permissions.`,
-      variant: 'danger',
-      confirmText: 'Delete Role',
-      cancelText: 'Cancel',
-      onConfirm: async () => {
-        try {
+    try {
+      const confirmed = await confirm({
+        title: 'Delete Role',
+        description: 'Are you sure you want to delete this role? This action cannot be undone.',
+        variant: 'danger',
+        confirmText: 'Delete Role',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
           setIsDeleting(role.id);
           
-          const response = await fetch(`/api/roles/${role.id}`, {
-            method: 'DELETE',
-          });
+          try {
+            const response = await fetch(`/api/roles/${role.id}`, {
+              method: 'DELETE',
+            });
 
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to delete role');
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Failed to delete role');
+            }
+
+            // Optimistically remove the role from the list
+            setRoles(prevRoles => prevRoles.filter(r => r.id !== role.id));
+            setFilteredRoles(prevFiltered => prevFiltered.filter(r => r.id !== role.id));
+            
+            // Show success message
+            toast.success('Role deleted successfully', {
+              description: `The role "${role.name}" has been removed.`,
+              duration: 4000,
+            });
+          } catch (error: any) {
+            console.error('Error deleting role:', error);
+            toast.error(error.message || 'Failed to delete role', {
+              duration: 4000,
+            });
+            // Reload roles to ensure UI is in sync
+            loadRoles();
+            // Don't re-throw - error is handled via toast, modal should close
+          } finally {
+            setIsDeleting(null);
           }
+        },
+      });
 
-          toast.success('Role deleted successfully');
-          loadRoles();
-        } catch (error: any) {
-          console.error('Error deleting role:', error);
-          toast.error(error.message || 'Failed to delete role');
-          throw error;
-        } finally {
-          setIsDeleting(null);
-        }
-      },
-    });
-  };
-
-  const handleEditSuccess = () => {
-    setEditModalOpen(false);
-    setSelectedRole(null);
-    loadRoles();
+      // If user cancelled, do nothing
+      if (!confirmed) {
+        return;
+      }
+    } catch (error: any) {
+      // Handle any errors from the confirmation dialog
+      console.error('Error in delete confirmation:', error);
+      // Don't show error toast here - it's already handled in onConfirm
+      // Just ensure the UI state is reset
+      setIsDeleting(null);
+    }
   };
 
   const getPermissionCount = (permissions: RolePermissions): { granted: number; total: number } => {
@@ -254,9 +258,7 @@ export default function RoleManagementPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`p-4 rounded-lg border transition-colors ${
-                        isSystemRole ? 'opacity-75' : ''
-                      }`}
+                      className="p-4 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card-bg)',
                         borderColor: 'var(--border)'
@@ -293,47 +295,35 @@ export default function RoleManagementPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {!isSystemRole && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEdit(role)}
-                                style={{
-                                  borderColor: 'var(--border)',
-                                  color: 'var(--text)'
-                                }}
-                              >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDelete(role)}
-                                disabled={isDeleting === role.id}
-                                style={{
-                                  borderColor: '#ef4444',
-                                  color: '#ef4444'
-                                }}
-                              >
-                                {isDeleting === role.id ? (
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                )}
-                                Delete
-                              </Button>
-                            </>
-                          )}
-                          {isSystemRole && (
-                            <div className="text-xs px-3 py-1 rounded" style={{ 
-                              backgroundColor: 'rgba(107, 114, 128, 0.2)',
-                              color: 'var(--subtext)'
-                            }}>
-                              Locked
-                            </div>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(role)}
+                            style={{
+                              borderColor: 'var(--border)',
+                              color: 'var(--text)'
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(role)}
+                            disabled={isDeleting === role.id}
+                            style={{
+                              borderColor: '#ef4444',
+                              color: '#ef4444'
+                            }}
+                          >
+                            {isDeleting === role.id ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4 mr-2" />
+                            )}
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     </motion.div>
@@ -344,19 +334,6 @@ export default function RoleManagementPage() {
           </CardContent>
         </Card>
       </motion.div>
-
-      {/* Edit Role Modal */}
-      {selectedRole && (
-        <EditRoleModal
-          isOpen={editModalOpen}
-          onClose={() => {
-            setEditModalOpen(false);
-            setSelectedRole(null);
-          }}
-          onSuccess={handleEditSuccess}
-          role={selectedRole}
-        />
-      )}
     </div>
   );
 }

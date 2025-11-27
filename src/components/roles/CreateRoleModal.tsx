@@ -32,47 +32,67 @@ export function CreateRoleModal({ isOpen, onClose, onSuccess }: CreateRoleModalP
       return;
     }
 
-    const confirmed = await confirm({
-      title: 'Create New Role',
-      description: `Are you sure you want to create the role "${name.trim()}"? This will create a new role with the selected permissions that can be assigned to users.`,
-      variant: 'info',
-      confirmText: 'Create Role',
-      cancelText: 'Cancel',
-      onConfirm: async () => {
-        setIsSubmitting(true);
-        try {
-          const response = await fetch('/api/roles', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: name.trim(),
-              description: description.trim() || null,
-              permissions,
-            }),
-          });
+    try {
+      const confirmed = await confirm({
+        title: 'Create New Role',
+        description: `Are you sure you want to create the role "${name.trim()}"? This will create a new role with the selected permissions that can be assigned to users.`,
+        variant: 'info',
+        confirmText: 'Create Role',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          setIsSubmitting(true);
+          try {
+            const response = await fetch('/api/roles', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                name: name.trim(),
+                description: description.trim() || null,
+                permissions,
+              }),
+            });
 
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to create role');
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.error || 'Failed to create role');
+            }
+
+            const { data } = await response.json();
+            
+            // Show success message with role name
+            toast.success(`Role "${data.name}" created successfully!`, {
+              duration: 3000,
+            });
+            
+            // Reset form
+            setName('');
+            setDescription('');
+            setPermissions(getDefaultPermissions());
+            
+            // Close modal and refresh list
+            onSuccess();
+            onClose();
+          } catch (error: any) {
+            console.error('Error creating role:', error);
+            toast.error(error.message || 'Failed to create role');
+            // Don't throw error - let user try again
+          } finally {
+            setIsSubmitting(false);
           }
-
-          toast.success('Role created successfully');
-          // Reset form
-          setName('');
-          setDescription('');
-          setPermissions(getDefaultPermissions());
-          onSuccess();
-        } catch (error: any) {
-          console.error('Error creating role:', error);
-          toast.error(error.message || 'Failed to create role');
-          throw error;
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-    });
+        },
+      });
+      
+      // If user cancelled, do nothing
+      if (!confirmed) {
+        return;
+      }
+    } catch (error: any) {
+      // Handle any errors from the confirmation dialog
+      console.error('Error in confirmation:', error);
+      toast.error('An error occurred. Please try again.');
+    }
   };
 
   const handleClose = () => {

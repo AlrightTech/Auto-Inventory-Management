@@ -14,14 +14,23 @@ const DialogClose = DialogPrimitive.Close;
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
-    style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+    style={{ 
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      zIndex: 100,
+      position: 'fixed',
+      inset: 0,
+      visibility: 'visible',
+      opacity: 1,
+      pointerEvents: 'auto',
+      ...style,
+    }}
     {...props}
   />
 ));
@@ -30,7 +39,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => {
+>(({ className, children, style, ...props }, ref) => {
   // Extract max-width from className to handle custom widths
   const maxWidthMatch = className?.match(/max-w-(\w+)/);
   const maxWidth = maxWidthMatch ? maxWidthMatch[1] : 'lg';
@@ -49,12 +58,12 @@ const DialogContent = React.forwardRef<
   };
 
   return (
-    <DialogPortal>
+    <DialogPortal container={typeof document !== 'undefined' ? document.body : undefined}>
       <DialogOverlay />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed z-[100] w-full border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+          "fixed w-full border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
           className
         )}
         style={{
@@ -72,7 +81,11 @@ const DialogContent = React.forwardRef<
           maxWidth: maxWidthMap[maxWidth] || '32rem',
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 101
+          zIndex: 101,
+          visibility: 'visible',
+          opacity: 1,
+          pointerEvents: 'auto',
+          ...style,
         }}
         {...props}
       >
@@ -82,7 +95,8 @@ const DialogContent = React.forwardRef<
           style={{ 
             color: 'var(--text)',
             backgroundColor: 'transparent',
-            border: 'none'
+            border: 'none',
+            zIndex: 102,
           }}
         >
           <X className="h-4 w-4" />

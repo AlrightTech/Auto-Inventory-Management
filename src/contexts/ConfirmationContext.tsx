@@ -19,8 +19,14 @@ export function ConfirmationProvider({ children }: { children: React.ReactNode }
       setOptions({
         ...options,
         onConfirm: async () => {
-          await options.onConfirm();
-          resolve(true);
+          try {
+            await options.onConfirm();
+            resolve(true);
+          } catch (error) {
+            // Error is handled by the onConfirm callback (via toast)
+            // Resolve as false to indicate cancellation/failure
+            resolve(false);
+          }
         },
         onCancel: () => {
           if (options.onCancel) {

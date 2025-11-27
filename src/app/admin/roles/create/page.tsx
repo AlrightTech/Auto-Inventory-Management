@@ -13,12 +13,10 @@ import { toast } from 'sonner';
 import { RolePermissions } from '@/types/permissions';
 import { getDefaultPermissions } from '@/lib/permissions';
 import { PermissionToggleGroup } from '@/components/roles/PermissionToggleGroup';
-import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 function CreateRolePageContent() {
   const router = useRouter();
-  const { confirm } = useConfirmation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [permissions, setPermissions] = useState<RolePermissions>(getDefaultPermissions());
@@ -30,44 +28,47 @@ function CreateRolePageContent() {
       return;
     }
 
-    const confirmed = await confirm({
-      title: 'Create New Role',
-      description: `Are you sure you want to create the role "${name.trim()}"? This will create a new role with the selected permissions that can be assigned to users.`,
-      variant: 'info',
-      confirmText: 'Create Role',
-      cancelText: 'Cancel',
-      onConfirm: async () => {
-        setIsSubmitting(true);
-        try {
-          const response = await fetch('/api/roles', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: name.trim(),
-              description: description.trim() || null,
-              permissions,
-            }),
-          });
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/roles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim() || null,
+          permissions,
+        }),
+      });
 
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to create role');
-          }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create role');
+      }
 
-          toast.success('Role created successfully');
-          // Navigate back to roles list
-          router.push('/admin/roles');
-        } catch (error: any) {
-          console.error('Error creating role:', error);
-          toast.error(error.message || 'Failed to create role');
-          throw error;
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-    });
+      const { data } = await response.json();
+      
+      // Show success toast notification
+      toast.success('Role created successfully!', {
+        description: `The role "${data.name}" has been created and is now available.`,
+        duration: 4000,
+      });
+      
+      // Navigate back to roles list after a short delay to show the toast
+      // The roles list will automatically refresh when the component mounts
+      setTimeout(() => {
+        router.push('/admin/roles');
+        router.refresh(); // Ensure fresh data is loaded
+      }, 500);
+    } catch (error: any) {
+      console.error('Error creating role:', error);
+      toast.error(error.message || 'Failed to create role', {
+        duration: 4000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {

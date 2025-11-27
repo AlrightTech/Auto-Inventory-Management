@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // GET /api/users - Get all users (admin only)
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, password, role, username } = body;
+    const { email, password, role, username, status } = body;
 
     // Validate required fields
     if (!email || !password || !role) {
@@ -104,8 +104,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // Create user in Supabase Auth using admin client (requires service role key)
+    const adminClient = createAdminClient();
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true, // Auto-confirm email for admin-created users
@@ -121,14 +122,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Create profile
+    const profileInsert: any = {
+      id: authData.user.id,
+      email,
+      role,
+      username: username || email.split('@')[0],
+    };
+
+    // Add status if provided (and column exists)
+    if (status && ['active', 'inactive'].includes(status)) {
+      profileInsert.status = status;
+    }
+
     const { data: profileData, error: profileCreateError } = await supabase
       .from('profiles')
-      .insert({
-        id: authData.user.id,
-        email,
-        role,
-        username: username || email.split('@')[0],
-      })
+      .insert(profileInsert)
       .select()
       .single();
 

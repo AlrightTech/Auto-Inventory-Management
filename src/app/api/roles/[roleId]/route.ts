@@ -89,10 +89,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get role to check if it's a system role
+    // Get role to verify it exists
     const { data: existingRole } = await supabase
       .from('roles')
-      .select('name, is_system_role')
+      .select('id')
       .eq('id', roleId)
       .single();
 
@@ -100,14 +100,6 @@ export async function PATCH(
       return NextResponse.json(
         { error: 'Role not found' },
         { status: 404 }
-      );
-    }
-
-    // Prevent editing Admin role
-    if (existingRole.name === 'Admin' || existingRole.is_system_role) {
-      return NextResponse.json(
-        { error: 'System roles cannot be edited' },
-        { status: 403 }
       );
     }
 
@@ -188,10 +180,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get role to check if it's a system role
+    // Get role to verify it exists
     const { data: existingRole } = await supabase
       .from('roles')
-      .select('name, is_system_role')
+      .select('id')
       .eq('id', roleId)
       .single();
 
@@ -199,14 +191,6 @@ export async function DELETE(
       return NextResponse.json(
         { error: 'Role not found' },
         { status: 404 }
-      );
-    }
-
-    // Prevent deleting Admin or system roles
-    if (existingRole.name === 'Admin' || existingRole.is_system_role) {
-      return NextResponse.json(
-        { error: 'System roles cannot be deleted' },
-        { status: 403 }
       );
     }
 

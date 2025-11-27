@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // POST /api/users/[id]/reset-password - Admin reset user password
@@ -67,8 +67,9 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Update password using admin API
-    const { error: passwordError } = await supabase.auth.admin.updateUserById(
+    // Update password using admin API (requires service role key)
+    const adminClient = createAdminClient();
+    const { error: passwordError } = await adminClient.auth.admin.updateUserById(
       targetUserId,
       { password: newPassword }
     );

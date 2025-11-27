@@ -32,9 +32,13 @@ export function ConfirmationModal({ isOpen, options, onClose }: ConfirmationModa
     setIsLoading(true);
     try {
       await options.onConfirm();
+      // Close modal on success
       onClose();
     } catch (error) {
       console.error('Confirmation action failed:', error);
+      // Close modal even on error to prevent blank screen
+      // The error should be handled by the onConfirm callback and shown via toast
+      onClose();
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +80,11 @@ export function ConfirmationModal({ isOpen, options, onClose }: ConfirmationModa
   const styles = variantStyles[variant];
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleCancel}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        handleCancel();
+      }
+    }}>
       <DialogContent 
         className="max-w-md"
         style={{
@@ -84,6 +92,8 @@ export function ConfirmationModal({ isOpen, options, onClose }: ConfirmationModa
           borderColor: styles.borderColor,
           borderWidth: '1px',
           zIndex: 102,
+          visibility: isOpen ? 'visible' : 'hidden',
+          opacity: isOpen ? 1 : 0,
         }}
       >
         <DialogHeader>

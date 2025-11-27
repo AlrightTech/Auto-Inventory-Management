@@ -81,6 +81,14 @@ body {
   background-color: var(--bg);
   color: var(--text);
   transition: background-color 0.4s ease, color 0.4s ease;
+  /* Ensure body doesn't prevent modal rendering */
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Prevent body scroll when modal is open */
+body:has([data-radix-dialog-overlay][data-state="open"]) {
+  overflow: hidden;
 }
 
 /* Smooth transitions for interactive elements */
@@ -764,8 +772,16 @@ textarea::placeholder {
   top: 50% !important;
   transform: translate(-50%, -50%) !important;
   z-index: 101 !important;
-  overflow-x: hidden !important; /* Prevent horizontal scroll */
-  max-width: 90vw !important; /* Ensure modal doesn't exceed viewport */
+  overflow-x: hidden !important;
+  max-width: 90vw !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background-color: var(--card-bg) !important;
+  color: var(--text) !important;
+  min-width: 300px !important;
 }
 
 /* Ensure modal overlay covers entire viewport */
@@ -773,6 +789,48 @@ textarea::placeholder {
   position: fixed !important;
   inset: 0 !important;
   z-index: 100 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Prevent modal content from being hidden */
+[data-radix-dialog-content] > * {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  color: var(--text) !important;
+}
+
+/* Ensure dialog is visible when open */
+[data-radix-dialog-content][data-state="open"] {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+[data-radix-dialog-overlay][data-state="open"] {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+/* Ensure portal container is visible */
+[data-radix-portal] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
+}
+
+/* Portal content should be interactive */
+[data-radix-portal] > * {
+  pointer-events: auto !important;
 }
 
 /* Smooth transitions for all interactive elements */
