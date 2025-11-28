@@ -219,7 +219,6 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
           duration: 5000,
         });
         // Don't re-throw to prevent modal from closing on error
-      }
       } finally {
         setIsSaving(false);
       }
