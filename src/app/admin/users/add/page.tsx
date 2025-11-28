@@ -179,7 +179,7 @@ function AddUserPageContent() {
                 User Information
               </CardTitle>
               <CardDescription style={{ color: 'var(--subtext)' }}>
-                Enter the user's details and assign a role
+                Enter the user&apos;s details and assign a role
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

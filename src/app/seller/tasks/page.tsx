@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,83 +63,83 @@ export default function SellerTasksPage() {
   }, [supabase]);
 
   // Load tasks assigned to current user
-  useEffect(() => {
-    const loadTasks = async () => {
-      if (!currentUser) return;
+  const loadTasks = useCallback(async () => {
+    if (!currentUser) return;
 
-      try {
-        setIsLoading(true);
-        const { data: tasksData, error } = await supabase
-          .from('tasks')
-          .select(`
-            *,
-            vehicle:vehicles(*),
-            assigned_user:profiles!tasks_assigned_to_fkey(*)
-          `)
-          .eq('assigned_to', currentUser.id)
-          .order('created_at', { ascending: false });
+    try {
+      setIsLoading(true);
+      const { data: tasksData, error } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          vehicle:vehicles(*),
+          assigned_user:profiles!tasks_assigned_to_fkey(*)
+        `)
+        .eq('assigned_to', currentUser.id)
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error loading tasks:', error);
-          return;
-        }
-
-        if (tasksData) {
-          const tasksWithRelations: TaskWithRelations[] = tasksData.map(task => ({
-            id: task.id,
-            task_name: task.task_name,
-            vehicle_id: task.vehicle_id,
-            assigned_to: task.assigned_to,
-            assigned_by: task.assigned_by,
-            due_date: task.due_date,
-            notes: task.notes,
-            category: task.category,
-            status: task.status,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
-            vehicle: task.vehicle ? {
-              id: task.vehicle.id,
-              make: task.vehicle.make,
-              model: task.vehicle.model,
-              year: task.vehicle.year,
-              vin: task.vehicle.vin,
-              status: task.vehicle.status,
-              created_by: task.vehicle.created_by,
-              created_at: task.vehicle.created_at,
-            } : undefined,
-            assigned_user: task.assigned_user ? {
-              id: task.assigned_user.id,
-              email: task.assigned_user.email,
-              username: task.assigned_user.username || task.assigned_user.email.split('@')[0],
-              role: task.assigned_user.role,
-              isOnline: false,
-              lastSeen: null,
-              created_at: task.assigned_user.created_at,
-            } : undefined,
-          }));
-
-          setTasks(tasksWithRelations);
-          setFilteredTasks(tasksWithRelations);
-
-          // Calculate task counts
-          const counts = {
-            accountingToDo: tasksWithRelations.filter(t => t.category === 'accounting' && t.status === 'pending').length,
-            allTasks: tasksWithRelations.length,
-            missingTitle: tasksWithRelations.filter(t => t.category === 'missing_title' && t.status === 'pending').length,
-            fileArb: tasksWithRelations.filter(t => t.category === 'file_arb' && t.status === 'pending').length,
-            location: tasksWithRelations.filter(t => t.category === 'location' && t.status === 'pending').length,
-          };
-          setTaskCounts(counts);
-        }
-      } catch (error) {
+      if (error) {
         console.error('Error loading tasks:', error);
-      } finally {
-        setIsLoading(false);
+        return;
       }
-    };
 
-    loadTasks();
+      if (tasksData) {
+        const tasksWithRelations: TaskWithRelations[] = tasksData.map(task => ({
+          id: task.id,
+          task_name: task.task_name,
+          vehicle_id: task.vehicle_id,
+          assigned_to: task.assigned_to,
+          assigned_by: task.assigned_by,
+          due_date: task.due_date,
+          notes: task.notes,
+          category: task.category,
+          status: task.status,
+          created_at: task.created_at,
+          updated_at: task.updated_at,
+          vehicle: task.vehicle ? {
+            id: task.vehicle.id,
+            make: task.vehicle.make,
+            model: task.vehicle.model,
+            year: task.vehicle.year,
+            vin: task.vehicle.vin,
+            status: task.vehicle.status,
+            created_by: task.vehicle.created_by,
+            created_at: task.vehicle.created_at,
+          } : undefined,
+          assigned_user: task.assigned_user ? {
+            id: task.assigned_user.id,
+            email: task.assigned_user.email,
+            username: task.assigned_user.username || task.assigned_user.email.split('@')[0],
+            role: task.assigned_user.role,
+            isOnline: false,
+            lastSeen: null,
+            created_at: task.assigned_user.created_at,
+          } : undefined,
+        }));
+
+        setTasks(tasksWithRelations);
+        setFilteredTasks(tasksWithRelations);
+
+        // Calculate task counts
+        const counts = {
+          accountingToDo: tasksWithRelations.filter(t => t.category === 'accounting' && t.status === 'pending').length,
+          allTasks: tasksWithRelations.length,
+          missingTitle: tasksWithRelations.filter(t => t.category === 'missing_title' && t.status === 'pending').length,
+          fileArb: tasksWithRelations.filter(t => t.category === 'file_arb' && t.status === 'pending').length,
+          location: tasksWithRelations.filter(t => t.category === 'location' && t.status === 'pending').length,
+        };
+        setTaskCounts(counts);
+      }
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [currentUser, supabase]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
 
   // Apply filters and search
   useEffect(() => {
@@ -431,6 +431,7 @@ export default function SellerTasksPage() {
             <TaskTable
               tasks={filteredTasks}
               onTaskUpdate={handleTaskUpdate}
+              onRefresh={loadTasks}
             />
           </CardContent>
         </Card>

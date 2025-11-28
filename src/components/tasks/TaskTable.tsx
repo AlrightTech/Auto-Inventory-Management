@@ -11,9 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, CheckCircle, Clock, AlertCircle, Eye, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, CheckCircle, Clock, AlertCircle, Eye, Edit, Trash2, Loader2 } from 'lucide-react';
 import { formatDate, getTimeAgo, getStatusColor } from '@/lib/utils';
 import { TaskWithRelations } from '@/types';
+import { toast } from 'sonner';
 
 interface TaskTableProps {
   tasks: TaskWithRelations[];
@@ -21,10 +22,12 @@ interface TaskTableProps {
   onViewTask?: (task: TaskWithRelations) => void;
   onEditTask?: (task: TaskWithRelations) => void;
   onDeleteTask?: (taskId: string) => void;
+  onRefresh?: () => void;
 }
 
-export function TaskTable({ tasks, onTaskUpdate, onViewTask, onEditTask, onDeleteTask }: TaskTableProps) {
+export function TaskTable({ tasks, onTaskUpdate, onViewTask, onEditTask, onDeleteTask, onRefresh }: TaskTableProps) {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [isBulkCompleting, setIsBulkCompleting] = useState(false);
 
   const handleTaskUpdate = (taskId: string, updates: { status?: string; notes?: string }) => {
     if (onTaskUpdate) {
@@ -45,6 +48,51 @@ export function TaskTable({ tasks, onTaskUpdate, onViewTask, onEditTask, onDelet
       setSelectedTasks([]);
     } else {
       setSelectedTasks(tasks.map(task => task.id));
+    }
+  };
+
+  const handleBulkComplete = async () => {
+    if (selectedTasks.length === 0) {
+      toast.error('Please select at least one task');
+      return;
+    }
+
+    setIsBulkCompleting(true);
+    try {
+      const response = await fetch('/api/tasks/bulk', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskIds: selectedTasks,
+          updates: { status: 'completed' }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update tasks');
+      }
+
+      const { data, count } = await response.json();
+      
+      // Clear selected tasks
+      setSelectedTasks([]);
+      
+      // Show success toast
+      toast.success(`Tasks marked as completed.`);
+      
+      // Refresh the task list if refresh callback is provided
+      if (onRefresh) {
+        onRefresh();
+      } else {
+        // Fallback: reload the page if no refresh callback
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error bulk completing tasks:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to mark tasks as completed');
+    } finally {
+      setIsBulkCompleting(false);
     }
   };
 
@@ -112,25 +160,22 @@ export function TaskTable({ tasks, onTaskUpdate, onViewTask, onEditTask, onDelet
               variant="outline" 
               size="sm" 
               className="task-action-btn"
+              onClick={handleBulkComplete}
+              disabled={isBulkCompleting}
               style={{ 
                 borderColor: 'var(--border)',
                 color: 'var(--text)',
                 backgroundColor: 'var(--card-bg)'
               }}
             >
-              Mark as Completed
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="task-action-btn"
-              style={{ 
-                borderColor: 'var(--border)',
-                color: 'var(--text)',
-                backgroundColor: 'var(--card-bg)'
-              }}
-            >
-              Assign to User
+              {isBulkCompleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Mark as Completed'
+              )}
             </Button>
           </div>
         )}

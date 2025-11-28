@@ -154,17 +154,15 @@ export async function POST(request: NextRequest) {
       dealshield_arbitration_status: body.dealshield_arbitration_status || null,
       // ARB status - must be NULL or one of the allowed values
       // Explicitly validate and sanitize to prevent constraint violations
-      // Note: arb_status is handled via dealshield_arbitration_status field
-      // If arb_status is provided in body, map it to dealshield_arbitration_status
-      ...((body as any).arb_status ? {
-        dealshield_arbitration_status: (() => {
-          const arbStatus = (body as any).arb_status;
-          if (!arbStatus) return null;
-          const trimmed = typeof arbStatus === 'string' ? arbStatus.trim() : String(arbStatus).trim();
-          const validValues = ['Absent', 'Present', 'In Transit', 'Failed'];
-          return (trimmed && validValues.includes(trimmed)) ? trimmed : null;
-        })()
-      } : {}),
+      // The constraint allows: NULL or values in ('Absent', 'Present', 'In Transit', 'Failed')
+      arb_status: (() => {
+        const arbStatus = (body as any).arb_status;
+        if (!arbStatus) return null;
+        const trimmed = typeof arbStatus === 'string' ? arbStatus.trim() : String(arbStatus).trim();
+        const validValues = ['Absent', 'Present', 'In Transit', 'Failed'];
+        // Only return valid values, otherwise return null to satisfy constraint
+        return (trimmed && validValues.includes(trimmed)) ? trimmed : null;
+      })(),
       
       // Financial Information
       bought_price: body.bought_price || null,

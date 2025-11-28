@@ -30,6 +30,13 @@ interface UserProfile {
   last_sign_in_at?: string;
 }
 
+interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  is_system_role?: boolean;
+}
+
 interface EditUserModalProps {
   user: UserProfile | null;
   isOpen: boolean;
@@ -44,27 +51,74 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
     username: '',
     email: '',
     role: 'seller' as 'admin' | 'seller' | 'transporter',
+    role_id: null as string | null,
     status: 'active' as 'active' | 'inactive',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(true);
 
   // Check if user is Admin
   const userIsAdmin = user?.role === 'admin' || user?.role_data?.name === 'Admin';
 
+  // Load roles from API
+  useEffect(() => {
+    const loadRoles = async () => {
+      try {
+        setIsLoadingRoles(true);
+        const response = await fetch('/api/roles');
+        if (response.ok) {
+          const { data } = await response.json();
+          // Filter out Admin role - exclude roles with name "Admin" (case-insensitive)
+          const filteredRoles = (data || []).filter(
+            (role: Role) => role.name.toLowerCase() !== 'admin'
+          );
+          setRoles(filteredRoles);
+        } else {
+          console.error('Failed to load roles');
+          // Fallback to legacy roles if API fails
+          setRoles([]);
+        }
+      } catch (error) {
+        console.error('Error loading roles:', error);
+        setRoles([]);
+      } finally {
+        setIsLoadingRoles(false);
+      }
+    };
+
+    if (isOpen) {
+      loadRoles();
+    }
+  }, [isOpen]);
+
   // Initialize form data when user changes
   useEffect(() => {
     if (user) {
+      // Determine the role to use - prefer role_id if available, otherwise use legacy role
+      let initialRole = user.role || 'seller';
+      let initialRoleId = user.role_id || null;
+
+      // If user has a role_data but no role_id, try to find matching role
+      if (user.role_data?.name && !initialRoleId && roles.length > 0) {
+        const matchingRole = roles.find(r => r.name === user.role_data.name);
+        if (matchingRole) {
+          initialRoleId = matchingRole.id;
+        }
+      }
+
       setFormData({
         username: user.username || '',
         email: user.email || '',
-        role: user.role || 'seller',
+        role: initialRole as 'admin' | 'seller' | 'transporter',
+        role_id: initialRoleId,
         status: user.status || 'active',
       });
     }
-  }, [user]);
+  }, [user, roles]);
 
   // Prevent editing admin
   if (userIsAdmin) {
@@ -126,22 +180,46 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
             username: formData.username.trim(),
             email: formData.email.trim(),
             role: formData.role,
+            role_id: formData.role_id,
             status: formData.status,
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to update user');
+          const errorMessage = errorData.error || 'Failed to update user';
+          const errorDetails = errorData.details ? ` Details: ${errorData.details}` : '';
+          throw new Error(`${errorMessage}${errorDetails}`);
         }
 
-        toast.success('User updated successfully');
+        const result = await response.json();
+        
+        // Show success toast with details about what was updated
+        const updatedFields = [];
+        if (formData.username !== (user.username || '')) updatedFields.push('name');
+        if (formData.email !== user.email) updatedFields.push('email');
+        if (formData.status !== (user.status || 'active')) updatedFields.push('status');
+        if (formData.role !== user.role || formData.role_id !== user.role_id) updatedFields.push('role');
+        
+        const updateMessage = updatedFields.length > 0 
+          ? `User ${updatedFields.join(', ')} updated successfully`
+          : 'User updated successfully';
+        
+        toast.success(updateMessage, {
+          description: result.data ? `User "${result.data.username || result.data.email}" has been updated.` : undefined,
+          duration: 4000,
+        });
+        
         onUserUpdated();
         onClose();
       } catch (error) {
         console.error('Error updating user:', error);
-        toast.error(error instanceof Error ? error.message : 'Failed to update user');
-        throw error;
+        const errorMessage = error instanceof Error ? error.message : 'Failed to update user';
+        toast.error(errorMessage, {
+          duration: 5000,
+        });
+        // Don't re-throw to prevent modal from closing on error
+      }
       } finally {
         setIsSaving(false);
       }
@@ -208,18 +286,78 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
               Role
             </Label>
             <Select
-              value={formData.role}
-              onValueChange={(value: 'seller' | 'transporter') =>
-                setFormData({ ...formData, role: value })
+              value={
+                formData.role_id || 
+                (roles.length > 0 
+                  ? roles.find(r => 
+                      r.name.toLowerCase().includes(formData.role.toLowerCase())
+                    )?.id 
+                  : formData.role) || 
+                ''
               }
-              disabled={isSaving}
+              onValueChange={(value: string) => {
+                // Find the selected role
+                const selectedRole = roles.find(r => r.id === value);
+                if (selectedRole) {
+                  // Map role name to legacy role for API compatibility
+                  let legacyRole: 'seller' | 'transporter' = 'seller';
+                  if (selectedRole.name.toLowerCase().includes('transporter')) {
+                    legacyRole = 'transporter';
+                  } else if (selectedRole.name.toLowerCase().includes('seller')) {
+                    legacyRole = 'seller';
+                  }
+                  
+                  setFormData({ 
+                    ...formData, 
+                    role: legacyRole,
+                    role_id: selectedRole.id 
+                  });
+                } else {
+                  // Fallback to legacy role system
+                  setFormData({ 
+                    ...formData, 
+                    role: value as 'seller' | 'transporter',
+                    role_id: null 
+                  });
+                }
+              }}
+              disabled={isSaving || isLoadingRoles}
             >
-              <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
-                <SelectValue placeholder="Select role" />
+              <SelectTrigger 
+                id="role"
+                className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                style={{ 
+                  backgroundColor: 'var(--card-bg)', 
+                  borderColor: 'var(--border)', 
+                  color: 'var(--text)' 
+                }}
+              >
+                <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select role"} />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="seller">Seller</SelectItem>
-                <SelectItem value="transporter">Transporter</SelectItem>
+              <SelectContent 
+                style={{ 
+                  backgroundColor: 'var(--card-bg)', 
+                  borderColor: 'var(--border)',
+                  zIndex: 9999
+                }}
+              >
+                {roles.length > 0 ? (
+                  roles.map((role) => (
+                    <SelectItem 
+                      key={role.id} 
+                      value={role.id}
+                      style={{ color: 'var(--text)' }}
+                    >
+                      {role.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Fallback to legacy roles if no roles loaded
+                  <>
+                    <SelectItem value="seller" style={{ color: 'var(--text)' }}>Seller</SelectItem>
+                    <SelectItem value="transporter" style={{ color: 'var(--text)' }}>Transporter</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
             <p className="text-xs text-slate-400">Note: Admin role cannot be assigned via this form</p>
@@ -236,12 +374,26 @@ export function EditUserModal({ user, isOpen, onClose, onUserUpdated }: EditUser
               }
               disabled={isSaving}
             >
-              <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20">
+              <SelectTrigger 
+                id="status"
+                className="bg-slate-800/50 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                style={{ 
+                  backgroundColor: 'var(--card-bg)', 
+                  borderColor: 'var(--border)', 
+                  color: 'var(--text)' 
+                }}
+              >
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectContent 
+                style={{ 
+                  backgroundColor: 'var(--card-bg)', 
+                  borderColor: 'var(--border)',
+                  zIndex: 9999
+                }}
+              >
+                <SelectItem value="active" style={{ color: 'var(--text)' }}>Active</SelectItem>
+                <SelectItem value="inactive" style={{ color: 'var(--text)' }}>Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>

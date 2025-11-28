@@ -564,6 +564,7 @@ export default function AdminTasksPage() {
                   toast.error('Failed to delete task');
                 }
               }}
+              onRefresh={loadTasks}
             />
           </CardContent>
         </Card>
